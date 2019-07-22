@@ -1,90 +1,98 @@
 import networkx as nx
 
-class GenPattern():
-    def __init__(self):
+# class GenPattern():
+#     def __init__(self):
+#         pass
+#
+# class EndPattern(GenPattern):
+#     def __init__(self):
+#         GenPattern.__init__(self)
+#
+#     def match(self,g,l):
+#         yield l
+#
+# class ContPattern(GenPattern):
+#     def __init__(self):
+#         GenPattern.__init__(self)
+#         self.next = None
+#
+#     def then(self, next):
+#         if self.next == None:
+#             self.next = next
+#         else:
+#             self.next.then(next)
+#         return self
+#
+# class NodePattern(ContPattern):
+#     def __init__(self, i):
+#         ContPattern.__init__(self)
+#         self.i = i
+#
+#     def match(self,g,l):
+#         for i in self.iterator(g, l):
+#             l[self.i] = i
+#             for l in self.next.match(g, l): yield l
+#
+# class AHeadNodePattern(NodePattern):
+#     def __init__(self, i):
+#         NodePattern.__init__(self, i)
+#
+#     def iterator(self, g, l):
+#         return list(g.nodes)
+#
+# class SourceNodePattern(NodePattern):
+#     def __init__(self, edge_pat):
+#         NodePattern.__init__(self, edge_pat.e[0])
+#         self.edge_pat = edge_pat
+#
+#     def iterator(self, g, l):
+#         yield l[self.edge_pat.e][0]
+#
+# class TargetNodePattern(NodePattern):
+#     def __init__(self, edge_pat):
+#         NodePattern.__init__(self, edge_pat.e[1])
+#         self.edge_pat = edge_pat
+#
+#     def iterator(self, g, l):
+#         yield l[self.edge_pat.e][1]
+#
+# class EdgePattern(ContPattern):
+#     def __init__(self, e):
+#         ContPattern.__init__(self)
+#         self.e = e
+#
+#     def match(self,g,l):
+#         for e in self.iterator(g, l):
+#             l[self.e] = e
+#             for l in self.next.match(g, l): yield l
+#
+# class AHeadEdgePattern(EdgePattern):
+#     def __init__(self, e):
+#         EdgePattern.__init__(self, e)
+#
+#     def iterator(self, g, l):
+#         return list(g.edges)
+#
+# class OutgoingEdgePattern(EdgePattern):
+#     def __init__(self, node_pat, e):
+#         EdgePattern.__init__(self, e)
+#         self.node_pat = node_pat
+#
+#     def iterator(self, g, l):
+#         return list(g.out_edges(l[self.node_pat.i]))
+#
+# class IncomingEdgePattern(EdgePattern):
+#     def __init__(self, node_pat, e):
+#         EdgePattern.__init__(self, e)
+#         self.node_pat = node_pat
+#
+#     def iterator(self, g, l):
+#         return list(g.in_edges(l[self.node_pat.i]))
+
+
+class PairPattern():
+    def __init__(self, i, j):
         pass
-
-class EndPattern(GenPattern):
-    def __init__(self):
-        GenPattern.__init__(self)
-
-    def match(self,g,l):
-        yield l
-
-class ContPattern(GenPattern):
-    def __init__(self):
-        GenPattern.__init__(self)
-
-    def then(self, next):
-        self.next = next
-        return self
-
-class NodePattern(ContPattern):
-    def __init__(self, i):
-        ContPattern.__init__(self)
-        self.i = i
-
-    def match(self,g,l):
-        for i in self.iterator(g, l):
-            l[self.i] = i
-            for l in self.next.match(g, l): yield l
-
-class AHeadNodePattern(NodePattern):
-    def __init__(self, i):
-        NodePattern.__init__(self, i)
-
-    def iterator(self, g, l):
-        return list(g.nodes)
-
-class SourceNodePattern(NodePattern):
-    def __init__(self, edge_pat):
-        NodePattern.__init__(self, edge_pat.e[0])
-        self.edge_pat = edge_pat
-
-    def iterator(self, g, l):
-        yield l[self.edge_pat.e][0]
-
-class TargetNodePattern(NodePattern):
-    def __init__(self, edge_pat):
-        NodePattern.__init__(self, edge_pat.e[1])
-        self.edge_pat = edge_pat
-
-    def iterator(self, g, l):
-        yield l[self.edge_pat.e][1]
-
-
-class EdgePattern(ContPattern):
-    def __init__(self, e):
-        ContPattern.__init__(self)
-        self.e = e
-
-    def match(self,g,l):
-        for e in self.iterator(g, l):
-            l[self.e] = e
-            for l in self.next.match(g, l): yield l
-
-class AHeadEdgePattern(EdgePattern):
-    def __init__(self, e):
-        EdgePattern.__init__(self, e)
-
-    def iterator(self, g, l):
-        return list(g.edges)
-
-class OutgoingEdgePattern(EdgePattern):
-    def __init__(self, node_pat, e):
-        EdgePattern.__init__(self, e)
-        self.node_pat = node_pat
-
-    def iterator(self, g, l):
-        return list(g.out_edges(l[self.node_pat.i]))
-
-class IncomingEdgePattern(EdgePattern):
-    def __init__(self, node_pat, e):
-        EdgePattern.__init__(self, e)
-        self.node_pat = node_pat
-
-    def iterator(self, g, l):
-        return list(g.in_edges(l[self.node_pat.i]))
 
 
 class GraphO():
@@ -137,22 +145,87 @@ class GraphO():
 
     def pat(self):
         dep = nx.DiGraph()
+
+        dep.add_node('r00t')
+
         for i in self.nodes:
             dep.add_node(i)
-        for (i,j,e) in self.edges:
-            dep.add_node((i,j,e))
-            dep.add_edge((i,j,e),i)
-            dep.add_edge((i,j,e),j)
-            dep.add_edge(i,(i,j,e))
-            dep.add_edge(j,(i,j,e))
+
+        for i in self.nodes:
+            for j in self.nodes:
+                if i == j:
+                    nii = self.g.number_of_edges(i,i)
+                    if nii != 0:
+                        dep.add_node((i,i,nii))
+                        dep.add_edge('r00t',(i,i,nii), weight = 1.+1./nii)
+                        dep.add_edge((i,i,nii),i, weight = 0.)
+                        dep.add_edge(i,(i,i,nii), weight = 0.)
+                    pass
+                elif i < j:
+                    nij = self.g.number_of_edges(i,j)
+                    nji = self.g.number_of_edges(j,i)
+                    if nij != 0 or nji != 0:
+                        dep.add_node((i,j,(nij,nji)))
+                        dep.add_edge('r00t',(i,j,(nij,nji)), weight = 1.+1./(nij+nji))
+                        dep.add_edge((i,j,(nij,nji)),i, weight = 0.)
+                        dep.add_edge((i,j,(nij,nji)),j, weight = 0.)
+                        if nij != 0: dep.add_edge(i,(i,j,(nij,nji)), weight = 1.)
+                        if nji != 0: dep.add_edge(j,(i,j,(nij,nji)), weight = 1.)
+                    pass
+
+        print(str(dep.nodes))
+        print(str(dep.edges(data=True)))
+
         ed = nx.algorithms.tree.branchings.Edmonds(dep)
         B = ed.find_optimum('weight', 1, kind='min', style='arborescence')
+        #B = nx.algorithms.tree.branchings.greedy_branching(dep)
+        print(nx.algorithms.tree.branchings.branching_weight(B))
         print(B.nodes)
         print(B.edges)
         C = nx.algorithms.dag.topological_sort(B)
         for i in C:
             print(str(i))
+
         return None
+
+
+# [('r00t', (0, 1, (2, 2)), {'weight': 1.25}),
+# ('r00t', (0, 2, (1, 2)), {'weight': 1.3333333333333333}),
+# ('r00t', (0, 3, (1, 0)), {'weight': 2.0}),
+# ('r00t', (1, 1, 2), {'weight': 1.5}),
+# ('r00t', (1, 2, (0, 1)), {'weight': 2.0}),
+# (0, (0, 1, (2, 2)), {'weight': 1.0}),
+# (0, (0, 2, (1, 2)), {'weight': 1.0}),
+# (0, (0, 3, (1, 0)), {'weight': 1.0}),
+# (1, (0, 1, (2, 2)), {'weight': 1.0}),
+# (1, (1, 1, 2), {'weight': -10.0}),
+# (2, (0, 2, (1, 2)), {'weight': 1.0}),
+# (2, (1, 2, (0, 1)), {'weight': 1.0}),
+# ((0, 1, (2, 2)), 0, {'weight': -10.0}),
+# ((0, 1, (2, 2)), 1, {'weight': -10.0}),
+# ((0, 2, (1, 2)), 0, {'weight': -10.0}),
+# ((0, 2, (1, 2)), 2, {'weight': -10.0}),
+# ((0, 3, (1, 0)), 0, {'weight': -10.0}),
+# ((0, 3, (1, 0)), 3, {'weight': -10.0}),
+# ((1, 1, 2), 1, {'weight': -10.0}),
+# ((1, 2, (0, 1)), 1, {'weight': -10.0}),
+# ((1, 2, (0, 1)), 2, {'weight': -10.0})]
+
+
+#
+# # [(, ),
+#    (, (0, 2, (1, 2))),
+#    (, (0, 3, (1, 0))),
+#    (1, (1, 1, 2)),
+#    (2, (1, 2, (0, 1))),
+#    (, ),
+#    ((0, 2, (1, 2)), 2),
+#    ((0, 3, (1, 0)), 3),
+#    ((1, 2, (0, 1)), 1)]
+#
+# 'r00t'
+# (0, 1, (2, 2))
+# 0
 
 class GraphM:
     def __init__(self, s, t, l):
@@ -208,26 +281,74 @@ class Graph:
 
         return r, GraphM(t1, r, l1), GraphM(t2, r, l2)
 
+# 
+# g = GraphO()
+# n1 = g.add_node()
+# n2 = g.add_node()
+# n3 = g.add_node()
+# e1 = g.add_edge(n1, n2)
+# e2 = g.add_edge(n1, n2)
+#
+# p1 = AHeadNodePattern(n2)
+# p2 = IncomingEdgePattern(p1,e1)
+# p3 = SourceNodePattern(p2)
+# p4 = OutgoingEdgePattern(p3,e2)
+#
+# pat = p1.then(p2).then(p3).then(p4).then(EndPattern())
+
+# for l in pat.match(g,{}):
+#     print("=> " + str(l))
+#
+# print(str(g.g.in_edges(1)))
 
 g = GraphO()
 n1 = g.add_node()
 n2 = g.add_node()
 n3 = g.add_node()
+n4 = g.add_node()
 e1 = g.add_edge(n1, n2)
 e1 = g.add_edge(n1, n2)
+e1 = g.add_edge(n2, n1)
+e1 = g.add_edge(n2, n1)
+e2 = g.add_edge(n3, n2)
+e1 = g.add_edge(n1, n3)
+e1 = g.add_edge(n3, n1)
+e1 = g.add_edge(n3, n1)
+e1 = g.add_edge(n1, n4)
+e1 = g.add_edge(n2, n2)
+e1 = g.add_edge(n2, n2)
 
-pat = AHeadNodePattern(n1)
-pat.then(IncomingEdgePattern(pat,e1).then(EndPattern()))
 
-for l in pat.match(g,{}):
-    print(str(l))
-
-print(str(g.g.in_edges(1)))
+print(g.pat())
 
 
 
 import sys
 sys.exit(0)
+
+# [, , , , , , , , , , ]
+#
+# (2, 3, 1)
+# 3         by ((2, 3, 1), 3)
+# (2, 3, 0) by (3, (2, 3, 0))
+# 2         by ((2, 3, 1), 2)
+# (2, 0, 0) by (2, (2, 0, 0))
+# 0         by ((2, 0, 0), 0)
+# (1, 0, 1) by (0, (1, 0, 1))
+# 1         by ((1, 0, 1), 1)
+# (1, 0, 0) by (1, (1, 0, 0))
+# (0, 1, 1) by (1, (0, 1, 1))
+# (0, 1, 0) by (0, (0, 1, 0))
+# (1, 2, 0) by (2, (1, 2, 0))
+#
+
+
+
+
+
+
+
+
 
 print(str(g.nodes) + " " + str(g.edges))
 
@@ -250,23 +371,6 @@ m.l[e1] = f1
 print(m)
 
 print(Graph.merge(m, m))
-
-g = GraphO()
-n1 = g.add_node()
-n2 = g.add_node()
-n3 = g.add_node()
-n4 = g.add_node()
-e1 = g.add_edge(n1, n2)
-e1 = g.add_edge(n1, n2)
-e1 = g.add_edge(n2, n1)
-e1 = g.add_edge(n2, n1)
-e2 = g.add_edge(n2, n3)
-e1 = g.add_edge(n3, n1)
-e1 = g.add_edge(n3, n4)
-e1 = g.add_edge(n3, n4)
-
-
-print(g.pat())
 
 # import copy
 #
