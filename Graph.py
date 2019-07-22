@@ -502,6 +502,21 @@ n4 = g.add_node()
 # e1 = g.add_edge(n2, n2)
 
 
+p = 3
+q = 5
+
+import math
+
+t = set()
+for i in range(0,math.factorial(q) // math.factorial(q-p)):
+    k = i
+    s = ''
+    for j in range(0,p):
+        s += str(k % p) + " "
+        k = k // p
+    t.add(s)
+    print(str(i) + ': ' + s)
+print(str(len(t)))
 
 class Ctx():
     def __init__(self,g):
