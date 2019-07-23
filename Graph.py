@@ -406,8 +406,9 @@ class Graph:
     def pattern_match(p, g):
         pat = p.pat()
         ctx = Graph.Ctx(g)
+        h = GraphM(p,g,ctx.l)
         for l in pat.match(ctx):
-            yield l
+            yield h
 
     @staticmethod
     def merge(m1, m2):
@@ -445,32 +446,3 @@ class Graph:
                 l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
 
         return r, GraphM(t1, r, l1), GraphM(t2, r, l2)
-
-
-g = GraphO()
-n1 = g.add_node()
-n2 = g.add_node()
-n3 = g.add_node()
-n4 = g.add_node()
-e1 = g.add_edge(n1, n2)
-e1 = g.add_edge(n1, n2)
-e1 = g.add_edge(n2, n1)
-e1 = g.add_edge(n2, n1)
-#e1 = g.add_edge(n3, n1)
-# e1 = g.add_edge(n1, n2)
-# e1 = g.add_edge(n2, n1)
-# e1 = g.add_edge(n2, n1)
-# e2 = g.add_edge(n3, n2)
-# e1 = g.add_edge(n1, n3)
-# e1 = g.add_edge(n3, n1)
-# e1 = g.add_edge(n3, n1)
-# e1 = g.add_edge(n1, n4)
-# e1 = g.add_edge(n2, n2)
-# e1 = g.add_edge(n2, n2)
-
-
-for l in Graph.pattern_match(g,g):
-    print(str(l))
-
-import sys
-sys.exit(0)
