@@ -352,7 +352,7 @@ class GraphO():
             self.__pattern = self.pat()
         return self.__pattern
 
-    def pat(self, known_nodes = None, known_edges = None):
+    def pat(self, known_nodes = set(), known_edges = {}):
 
         dep = nx.DiGraph()
 
@@ -360,38 +360,42 @@ class GraphO():
 
         for i in self.nodes:
             dep.add_node(i)
-            dep.add_edge('r00t',i, weight = 1. + self.g.size())
+            dep.add_edge('r00t',i, weight = 0. if i in known_nodes else (1. + self.g.size()))
 
         for i in self.nodes:
             for j in self.nodes:
                 if i == j:
-                    nii = self.g.number_of_edges(i,i)
-                    if nii != 0:
+                    kii = len(known_edges[i,i]) if (i,i) in known_edges else 0
+                    nii = self.g.number_of_edges(i,i) - kii
+                    if nii > 0:
                         dep.add_node((i,i))
                         dep.add_edge('r00t',(i,i), weight = 1.+1./nii)
                         dep.add_edge((i,i),i, weight = 0.)
                         dep.add_edge(i,(i,i), weight = 1.)
                     pass
                 elif i < j:
-                    nij = self.g.number_of_edges(i,j)
-                    nji = self.g.number_of_edges(j,i)
-                    if nij != 0:
+                    kij = len(known_edges[i,j]) if (i,j) in known_edges else 0
+                    kji = len(known_edges[j,i]) if (j,i) in known_edges else 0
+                    nij = self.g.number_of_edges(i,j) - kij
+                    nji = self.g.number_of_edges(j,i) - kij
+                    if nij > 0:
                         dep.add_node((i,j))
                         dep.add_edge((i,j),i, weight = 0.)
                         dep.add_edge((i,j),j, weight = 0.)
                         dep.add_edge(i,(i,j), weight = 1.)
                         dep.add_edge(j,(i,j), weight = 1.)
                         dep.add_edge('r00t',(i,j), weight = 1.+1./(nij+nji))
-                    if nji != 0:
+                    if nji > 0:
                         dep.add_node((j,i))
                         dep.add_edge((j,i),i, weight = 0.)
                         dep.add_edge((j,i),j, weight = 0.)
                         dep.add_edge(i,(j,i), weight = 1.)
                         dep.add_edge(j,(j,i), weight = 1.)
-                        if nij == 0: dep.add_edge('r00t',(j,i), weight = 1.+1./(nij+nji))
-                    if nij != 0 and nji != 0:
-                        dep.add_edge((i,j),(j,i), weight = 0.)
-                        dep.add_edge((j,i),(i,j), weight = 0.)
+                        if nij == 0:
+                            dep.add_edge('r00t',(j,i), weight = 1.+1./(nij+nji))
+                        else: # nij > 0 and nji > 0
+                            dep.add_edge((i,j),(j,i), weight = 0.)
+                            dep.add_edge((j,i),(i,j), weight = 0.)
                     pass
 
         #print(str(dep.nodes))
@@ -405,37 +409,18 @@ class GraphO():
         startpat = ContPattern()
         endpat = EndPattern()
 
-        def unique_pred(B,i):
-            for j in B.predecessors(i):
-                return j
-
-        l = set()
+        l = known_nodes.copy()
         for i in C:
-            #print(str(i))
-            if i == 'r00t': continue
-            p = unique_pred(B,i)
+            if i == 'r00t':
+                continue
 
             pat = ContPattern()
-            if p == 'r00t':
-                if type(i) == int:
-                    #print("Head Node")
+            if type(i) == int:
+                if i in l:
+                    continue
+                else:
                     pat = HeadNodePattern(i)
                     l.add(i)
-                elif i[0] == i[1]:
-                    #print("Head Loop")
-                    nii = self.g.number_of_edges(i[0],i[0])
-                    pat = HeadHalfPairPattern(i[0],i[0],nii)
-                    endpat = EdgePattern(i[0],i[0],nii).then(endpat)
-                    l.add(i[0])
-                else:
-                    #print("Head Pair")
-                    nij = self.g.number_of_edges(i[0],i[1])
-                    pat = HeadHalfPairPattern(i[0],i[1],nij)
-                    endpat = EdgePattern(i[0],i[1],nij).then(endpat)
-                    l.add(i[0])
-                    l.add(i[1])
-            elif type(i) == int:
-                continue
             else:
                 (i,j) = i
                 nij = self.g.number_of_edges(i,j)
@@ -453,8 +438,10 @@ class GraphO():
                         pat = IncomingHalfPairPattern(i,j,nij)
                         l.add(i)
                     else:
-                        print("WTF")
-                        continue
+                        #print("Head Pair")
+                        pat = HeadHalfPairPattern(i,j,nij)
+                        l.add(i)
+                        l.add(j)
                 endpat = EdgePattern(i,j,nij).then(endpat)
             startpat = startpat.then(pat)
 
@@ -465,6 +452,7 @@ class GraphM:
         self.s = s
         self.t = t
         self.l = l
+        self.__pattern = None
 
     def __eq__(self, other):
         return self.s == other.s and self.t == other.t and self.l == other.l
@@ -474,6 +462,12 @@ class GraphM:
 
     def __repr__(self):
         return "[ " + str(self.l) + " ]"
+
+    def pattern(self):
+        if self.__pattern == None:
+            self.__pattern = self.t.pat() # TODO: compute known_nodes and known_edges here
+        return self.__pattern
+
 
 class Graph:
 
