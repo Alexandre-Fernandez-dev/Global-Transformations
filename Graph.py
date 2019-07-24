@@ -351,20 +351,41 @@ class GraphO():
         return startpat.then(endpat).next
 
 class GraphM:
-    def __init__(self, s, t, l = {}):
+    def __init__(self, s, t, l):
         self.s = s
         self.t = t
         self.l = l
         self.__pattern = None
+        hash(self)
+
+    def compose(self,h):
+        assert self.t == h.s
+        l = { k: h.l[v] for k, v in self.l.items() }
+        return GraphM(self.s,h.t,l)
 
     def __eq__(self, other):
         return self.s == other.s and self.t == other.t and self.l == other.l
+
+    def __hash__(self):
+        r = hash(self.s) ^ hash(self.t)
+        for k, v in self.l.items():
+            r = 31 * r + hash(k)
+            r = 31 * r + hash(v)
+        return r
 
     def apply(self, e):
         return self.l[e]
 
     def __repr__(self):
         return "[ " + str(self.l) + " ]"
+
+    @property
+    def dom(self):
+        return self.s
+
+    @property
+    def cod(self):
+        return self.t
 
     def pattern(self):
         if self.__pattern == None:
@@ -399,9 +420,8 @@ class Graph:
         if isinstance(p,GraphO):
             pat = p.pattern()
             ctx = Graph.Ctx(g)
-            h = GraphM(p,g,ctx.l)
             for l in pat.match(ctx):
-                yield h
+                yield GraphM(p,g,l)
         else:
             pat = p.pattern()
             ctx = Graph.Ctx(g)
@@ -409,9 +429,8 @@ class Graph:
                 if type(i_eij) == int:
                     ctx.curse(i_eij)
                 ctx.l[p.l[i_eij]] = ii_eeij
-            h = GraphM(p.t,g,ctx.l)
             for l in pat.match(ctx):
-                yield h
+                yield GraphM(p.t,g,l)
 
     @staticmethod
     def merge(m1, m2):
