@@ -50,38 +50,7 @@ e31 = g.add_edge(n3,n1)
 
 T.apply(g)
 
-
 import sys
 sys.exit(0)
 
 inc01b = T.add_inclusion(g0,g1,incl01b,incr01b)
-
-
-
-
-
-
-# g = GraphO()
-# n1 = g.add_node()
-# n2 = g.add_node()
-# n3 = g.add_node()
-# n4 = g.add_node()
-# e1 = g.add_edge(n1, n2)
-# e1 = g.add_edge(n1, n2)
-# e1 = g.add_edge(n2, n1)
-# e1 = g.add_edge(n2, n1)
-# #e1 = g.add_edge(n3, n1)
-# # e1 = g.add_edge(n1, n2)
-# # e1 = g.add_edge(n2, n1)
-# # e1 = g.add_edge(n2, n1)
-# # e2 = g.add_edge(n3, n2)
-# # e1 = g.add_edge(n1, n3)
-# # e1 = g.add_edge(n3, n1)
-# # e1 = g.add_edge(n3, n1)
-# # e1 = g.add_edge(n1, n4)
-# # e1 = g.add_edge(n2, n2)
-# # e1 = g.add_edge(n2, n2)
-#
-# for l in Graph.pattern_match(g,g):
-#     print(str(l))
-#

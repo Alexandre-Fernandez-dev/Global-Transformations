@@ -33,12 +33,11 @@ class GT:
         for g in reversed(list(nx.algorithms.dag.topological_sort(self.G))): #self.G.nodes(data = 'lhs'):
             l = self.G.nodes[g]['lhs']
             for ll in self.C.pattern_match(l,X):
-                 =
                 flag = False
                 for lll in batch.nodes(data = 'green'):
                     if lll == l:
                         flag = True
-                if not flat: batch.add_node(batch.number_of_nodes(), green = ll)
+                if not flag: batch.add_node(batch.number_of_nodes(), green = ll)
         print(batch.nodes(data = True))
 
 

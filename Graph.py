@@ -55,7 +55,6 @@ class HeadNodePattern(ContPattern):
             if ctx.is_cursed(i): continue
             ctx.curse(i)
             ctx.l[self.i] = i
-            # self.next.match(ctx)
             for l in self.next.match(ctx): yield l
             ctx.uncurse(i)
 
@@ -63,133 +62,220 @@ class HeadNodePattern(ContPattern):
         return 'HN(' + str(self.i) + ')'
 
 
-class LoopPattern(ContPattern):
-    def __init__(self, i, nii):
-        ContPattern.__init__(self)
-        self.i = i
-        self.nii = nii
-        pass
+# class LoopPattern(ContPattern):
+#     def __init__(self, i, nii):
+#         ContPattern.__init__(self)
+#         self.i = i
+#         self.nii = nii
+#         pass
+#
+# class CheckLoopPattern(LoopPattern):
+#     def __init__(self, i, nii):
+#         LoopPattern.__init__(self,i,nii)
+#
+#     def match(self, ctx):
+#         i = ctx.l[self.i]
+#         if ctx.g.g.number_of_edges(i,i) < self.nii:
+#             return
+#         for l in self.next.match(ctx): yield l
+#
+#     def pr(self):
+#         return 'CL(' + str(self.i) + ' - ' + str(self.nii) + ')'
+#
+# class HeadLoopPattern(LoopPattern):
+#     def __init__(self, i, nii):
+#         LoopPattern.__init__(self,i,nii)
+#
+#     def match(self, ctx):
+#         for i in ctx.g.nodes:
+#             if ctx.is_cursed(i): continue
+#             nii = ctx.g.g.number_of_edges(i,i)
+#             if nii < self.nii:
+#                 continue
+#             ctx.curse(i)
+#             ctx.l[self.i] = i
+#             for l in self.next.match(ctx): yield l
+#             ctx.uncurse(i)
+#
+#     def pr(self):
+#         return 'HL(' + str(self.i) + ' - ' + str(self.nii) + ')'
 
-class CheckLoopPattern(LoopPattern):
-    def __init__(self, i, nii):
-        LoopPattern.__init__(self,i,nii)
-
-    def match(self, ctx):
-        i = ctx.l[self.i]
-        if ctx.g.g.number_of_edges(i,i) < self.nii:
-            return
-        # self.next.match(ctx)
-        for l in self.next.match(ctx): yield l
-
-    def pr(self):
-        return 'CL(' + str(self.i) + ' - ' + str(self.nii) + ')'
-
-class HeadLoopPattern(LoopPattern):
-    def __init__(self, i, nii):
-        LoopPattern.__init__(self,i,nii)
-
-    def match(self, ctx):
-        for i in ctx.g.nodes:
-            if ctx.is_cursed(i): continue
-            nii = ctx.g.g.number_of_edges(i,i)
-            if nii < self.nii:
-                continue
-            ctx.curse(i)
-            ctx.l[self.i] = i
-            # self.next.match(ctx)
-            for l in self.next.match(ctx): yield l
-            ctx.uncurse(i)
-
-    def pr(self):
-        return 'HL(' + str(self.i) + ' - ' + str(self.nii) + ')'
-
-class PairPattern(ContPattern):
-    def __init__(self, i, j, nij, nji):
+class HalfPairPattern(ContPattern):
+    def __init__(self, i, j, nij):
         ContPattern.__init__(self)
         self.i = i
         self.j = j
         self.nij = nij
-        self.nji = nji
         pass
 
-class HeadPairPattern(PairPattern):
-    def __init__(self, i, j, nij, nji):
-        PairPattern.__init__(self,i,j,nij,nji)
-
-    def match(self, ctx):
-        for i in ctx.g.nodes:
-            if ctx.is_cursed(i): continue
-            ctx.curse(i)
-            for j in ctx.g.nodes:
-                if ctx.is_cursed(j): continue
-                nij = ctx.g.g.number_of_edges(i,j)
-                nji = ctx.g.g.number_of_edges(j,i)
-                if nij < self.nij or nji < self.nji:
-                    continue
-                ctx.curse(j)
-                ctx.l[self.i] = i
-                ctx.l[self.j] = j
-                # self.next.match(ctx)
-                for l in self.next.match(ctx): yield l
-                ctx.uncurse(j)
-            ctx.uncurse(i)
-
-    def pr(self):
-        return 'HP(' + str(self.i) + ' -> ' + str(self.j) + ', ' + str(self.nij) + ' / ' + str(self.nji) + ')'
-
-class OutgoingPairPattern(PairPattern):
-    def __init__(self, i, j, nij, nji):
-        PairPattern.__init__(self,i,j,nij,nji)
+class CheckHalfPairPattern(HalfPairPattern):
+    def __init__(self, i, j, nij):
+        HalfPairPattern.__init__(self,i,j,nij)
 
     def match(self, ctx):
         i = ctx.l[self.i]
-        for j in ctx.g.g.successors(i) if self.nij > 0 else ctx.g.g.predecessors(i):
+        j = ctx.l[self.j]
+        if ctx.g.g.number_of_edges(i,j) < self.nij:
+            return
+        for l in self.next.match(ctx): yield l
+
+    def pr(self):
+        return 'CHP(' + str(self.i) + ' => ' + str(self.j) + ' - ' + str(self.nij) + ')'
+
+class HeadHalfPairPattern(HalfPairPattern):
+    def __init__(self, i, j, nij):
+        HalfPairPattern.__init__(self,i,j,nij)
+        self.__loop = (i == j)
+
+    def match(self, ctx):
+        if self.__loop:
+            for i in ctx.g.nodes:
+                if ctx.is_cursed(i): continue
+                j = i
+                if ctx.g.g.number_of_edges(i,j) < self.nij:
+                    continue
+                ctx.curse(i)
+                ctx.l[self.i] = i
+                ctx.l[self.j] = j
+                for l in self.next.match(ctx): yield l
+                ctx.uncurse(i)
+        else:
+            for i in ctx.g.nodes:
+                if ctx.is_cursed(i): continue
+                ctx.curse(i)
+                for j in ctx.g.nodes:
+                    if ctx.is_cursed(j): continue
+                    if ctx.g.g.number_of_edges(i,j) < self.nij:
+                        continue
+                    ctx.curse(j)
+                    ctx.l[self.i] = i
+                    ctx.l[self.j] = j
+                    for l in self.next.match(ctx): yield l
+                    ctx.uncurse(j)
+                ctx.uncurse(i)
+
+    def pr(self):
+        return 'HHP(' + str(self.i) + ' => ' + str(self.j) + ' - ' + str(self.nij) + ')'
+
+class OutgoingHalfPairPattern(HalfPairPattern):
+    def __init__(self, i, j, nij):
+        HalfPairPattern.__init__(self,i,j,nij)
+
+    def match(self, ctx):
+        i = ctx.l[self.i]
+        for j in ctx.g.g.successors(i):
             if ctx.is_cursed(j): continue
-            if ctx.g.g.number_of_edges(i,j) < self.nij or ctx.g.g.number_of_edges(j,i) < self.nji:
+            if ctx.g.g.number_of_edges(i,j) < self.nij:
                 continue
             ctx.curse(j)
             ctx.l[self.j] = j
-            # self.next.match(ctx)
             for l in self.next.match(ctx): yield l
             ctx.uncurse(j)
 
     def pr(self):
-        return 'OP(' + str(self.i) + ' -> ' + str(self.j) + ', ' + str(self.nij) + ' / ' + str(self.nji) + ')'
+        return 'OHP(' + str(self.i) + ' -> ' + str(self.j) + ' - ' + str(self.nij) + ')'
 
-
-class IncomingPairPattern(PairPattern):
-    def __init__(self, i, j, nij, nji):
-        PairPattern.__init__(self,i,j,nij,nji)
+class IncomingHalfPairPattern(HalfPairPattern):
+    def __init__(self, i, j, nij):
+        HalfPairPattern.__init__(self,i,j,nij)
 
     def match(self, ctx):
         j = ctx.l[self.j]
-        for i in ctx.g.g.predecessors(j) if self.nij > 0 else ctx.g.g.successors(j):
+        for i in ctx.g.g.predecessors(j):
             if ctx.is_cursed(i): continue
-            if ctx.g.g.number_of_edges(i,j) < self.nij or ctx.g.g.number_of_edges(j,i) < self.nji:
+            if ctx.g.g.number_of_edges(i,j) < self.nij:
                 continue
             ctx.curse(i)
             ctx.l[self.i] = i
-            # self.next.match(ctx)
             for l in self.next.match(ctx): yield l
             ctx.uncurse(i)
 
     def pr(self):
-        return 'IP(' + str(self.i) + ' -> ' + str(self.j) + ', ' + str(self.nij) + ' / ' + str(self.nji) + ')'
+        return 'IHP(' + str(self.i) + ' -> ' + str(self.j) + ' - ' + str(self.nij) + ')'
 
-class CheckPairPattern(PairPattern):
-    def __init__(self, i, j, nij, nji):
-        PairPattern.__init__(self,i,j,nij,nji)
-
-    def match(self, ctx):
-        i = ctx.l[self.i]
-        j = ctx.l[self.j]
-        if ctx.g.g.number_of_edges(i,j) < self.nij or ctx.g.g.number_of_edges(j,i) < self.nji:
-            raise StopIteration
-        # self.next.match(ctx)
-        for l in self.next.match(ctx): yield l
-
-    def pr(self):
-        return 'CP(' + str(self.i) + ' -> ' + str(self.j) + ', ' + str(self.nij) + ' / ' + str(self.nji) + ')'
+# class PairPattern(ContPattern):
+#     def __init__(self, i, j, nij, nji):
+#         ContPattern.__init__(self)
+#         self.i = i
+#         self.j = j
+#         self.nij = nij
+#         self.nji = nji
+#         pass
+#
+# class HeadPairPattern(PairPattern):
+#     def __init__(self, i, j, nij, nji):
+#         PairPattern.__init__(self,i,j,nij,nji)
+#
+#     def match(self, ctx):
+#         for i in ctx.g.nodes:
+#             if ctx.is_cursed(i): continue
+#             ctx.curse(i)
+#             for j in ctx.g.nodes:
+#                 if ctx.is_cursed(j): continue
+#                 nij = ctx.g.g.number_of_edges(i,j)
+#                 nji = ctx.g.g.number_of_edges(j,i)
+#                 if nij < self.nij or nji < self.nji:
+#                     continue
+#                 ctx.curse(j)
+#                 ctx.l[self.i] = i
+#                 ctx.l[self.j] = j
+#                 for l in self.next.match(ctx): yield l
+#                 ctx.uncurse(j)
+#             ctx.uncurse(i)
+#
+#     def pr(self):
+#         return 'HP(' + str(self.i) + ' -> ' + str(self.j) + ', ' + str(self.nij) + ' / ' + str(self.nji) + ')'
+#
+# class OutgoingPairPattern(PairPattern):
+#     def __init__(self, i, j, nij, nji):
+#         PairPattern.__init__(self,i,j,nij,nji)
+#
+#     def match(self, ctx):
+#         i = ctx.l[self.i]
+#         for j in ctx.g.g.successors(i) if self.nij > 0 else ctx.g.g.predecessors(i):
+#             if ctx.is_cursed(j): continue
+#             if ctx.g.g.number_of_edges(i,j) < self.nij or ctx.g.g.number_of_edges(j,i) < self.nji:
+#                 continue
+#             ctx.curse(j)
+#             ctx.l[self.j] = j
+#             for l in self.next.match(ctx): yield l
+#             ctx.uncurse(j)
+#
+#     def pr(self):
+#         return 'OP(' + str(self.i) + ' -> ' + str(self.j) + ', ' + str(self.nij) + ' / ' + str(self.nji) + ')'
+#
+#
+# class IncomingPairPattern(PairPattern):
+#     def __init__(self, i, j, nij, nji):
+#         PairPattern.__init__(self,i,j,nij,nji)
+#
+#     def match(self, ctx):
+#         j = ctx.l[self.j]
+#         for i in ctx.g.g.predecessors(j) if self.nij > 0 else ctx.g.g.successors(j):
+#             if ctx.is_cursed(i): continue
+#             if ctx.g.g.number_of_edges(i,j) < self.nij or ctx.g.g.number_of_edges(j,i) < self.nji:
+#                 continue
+#             ctx.curse(i)
+#             ctx.l[self.i] = i
+#             for l in self.next.match(ctx): yield l
+#             ctx.uncurse(i)
+#
+#     def pr(self):
+#         return 'IP(' + str(self.i) + ' -> ' + str(self.j) + ', ' + str(self.nij) + ' / ' + str(self.nji) + ')'
+#
+# class CheckPairPattern(PairPattern):
+#     def __init__(self, i, j, nij, nji):
+#         PairPattern.__init__(self,i,j,nij,nji)
+#
+#     def match(self, ctx):
+#         i = ctx.l[self.i]
+#         j = ctx.l[self.j]
+#         if ctx.g.g.number_of_edges(i,j) < self.nij or ctx.g.g.number_of_edges(j,i) < self.nji:
+#             raise StopIteration
+#         for l in self.next.match(ctx): yield l
+#
+#     def pr(self):
+#         return 'CP(' + str(self.i) + ' -> ' + str(self.j) + ', ' + str(self.nij) + ' / ' + str(self.nji) + ')'
 
 class EdgePattern(ContPattern):
     def __init__(self, i, j, nij):
@@ -206,7 +292,6 @@ class EdgePattern(ContPattern):
         for l in injections(self.nij,nij):
             for e in range(self.nij):
                 ctx.l[(self.i,self.j,e)] = (i,j,l[e])
-            # self.next.match(ctx)
             for ll in self.next.match(ctx): yield ll
 
     def pr(self):
@@ -218,10 +303,10 @@ class GraphO():
             self.g = nx.MultiDiGraph()
         else:
             self.g = g
-        self.pattern = None
+        self.__pattern = None
 
     def add_node(self):
-        n = len(self.g)
+        n = self.g.number_of_nodes()
         self.g.add_node(n)
         return n
 
@@ -230,7 +315,8 @@ class GraphO():
         return (i,j,e)
 
     def copy(self):
-        return GraphO(self.g.copy())
+        cp = GraphO(self.g.copy())
+        return cp
 
     @property
     def nodes(self):
@@ -261,9 +347,12 @@ class GraphO():
     def __repr__(self):
         return "{ " + str(self.nodes) + ", " + str(self.edges) + " }";
 
-    def pat(self):
-        if self.pattern != None:
-            return self.pattern
+    def pattern(self):
+        if self.__pattern == None:
+            self.__pattern = self.pat()
+        return self.__pattern
+
+    def pat(self,partial_l = None):
 
         dep = nx.DiGraph()
 
@@ -278,21 +367,21 @@ class GraphO():
                 if i == j:
                     nii = self.g.number_of_edges(i,i)
                     if nii != 0:
-                        dep.add_node((i,i,nii))
-                        dep.add_edge('r00t',(i,i,nii), weight = 1.+1./nii)
-                        dep.add_edge((i,i,nii),i, weight = 0.)
-                        dep.add_edge(i,(i,i,nii), weight = 1.)
+                        dep.add_node((i,i))
+                        dep.add_edge('r00t',(i,i), weight = 1.+1./nii)
+                        dep.add_edge((i,i),i, weight = 0.)
+                        dep.add_edge(i,(i,i), weight = 1.)
                     pass
                 elif i < j:
                     nij = self.g.number_of_edges(i,j)
                     nji = self.g.number_of_edges(j,i)
                     if nij != 0 or nji != 0:
-                        dep.add_node((i,j,(nij,nji)))
-                        dep.add_edge('r00t',(i,j,(nij,nji)), weight = 1.+1./(nij+nji))
-                        dep.add_edge((i,j,(nij,nji)),i, weight = 0.)
-                        dep.add_edge((i,j,(nij,nji)),j, weight = 0.)
-                        dep.add_edge(i,(i,j,(nij,nji)), weight = 1.)
-                        dep.add_edge(j,(i,j,(nij,nji)), weight = 1.)
+                        dep.add_node((i,j))
+                        dep.add_edge('r00t',(i,j), weight = 1.+1./(nij+nji))
+                        dep.add_edge((i,j),i, weight = 0.)
+                        dep.add_edge((i,j),j, weight = 0.)
+                        dep.add_edge(i,(i,j), weight = 1.)
+                        dep.add_edge(j,(i,j), weight = 1.)
                     pass
 
         #print(str(dep.nodes))
@@ -327,51 +416,79 @@ class GraphO():
                     l.add(i)
                 elif i[0] == i[1]:
                     #print("Head Loop")
-                    pat = HeadLoopPattern(i[0],i[2])
-                    endpat = EdgePattern(i[0],i[0],i[2]).then(endpat)
+                    #pat = HeadLoopPattern(i[0],i[2])
+                    nii = self.g.number_of_edges(i[0],i[0])
+                    pat = HeadHalfPairPattern(i[0],i[0],nii)
+                    endpat = EdgePattern(i[0],i[0],nii).then(endpat)
                     l.add(i[0])
                 else:
                     #print("Head Pair")
-                    pat = HeadPairPattern(i[0],i[1],i[2][0],i[2][1])
-                    endpat = EdgePattern(i[0],i[1],i[2][0]).then(endpat)
-                    endpat = EdgePattern(i[1],i[0],i[2][1]).then(endpat)
+                    #pat = HeadPairPattern(i[0],i[1],i[2][0],i[2][1])
+                    nij = self.g.number_of_edges(i[0],i[1])
+                    nji = self.g.number_of_edges(i[1],i[0])
+                    if nij > 0:
+                        pat = HeadHalfPairPattern(i[0],i[1],nij)
+                        endpat = EdgePattern(i[0],i[1],nij).then(endpat)
+                        if nji > 0:
+                            pat.then(CheckHalfPairPattern(i[1],i[0],nji))
+                            endpat = EdgePattern(i[1],i[0],nji).then(endpat)
+                    else:
+                        pat = HeadHalfPairPattern(i[1],i[0],nji)
+                        endpat = EdgePattern(i[1],i[0],nji).then(endpat)
                     l.add(i[0])
                     l.add(i[1])
             elif type(i) == int:
                 continue
             else:
-                (i,j,s) = i
+                (i,j) = i
                 if i == j:
                     #print("Check Loop")
-                    pat = CheckLoopPattern(i,s)
-                    endpat = EdgePattern(i,i,s).then(endpat)
+                    #pat = CheckLoopPattern(i,s)
+                    nii = self.g.number_of_edges(i,i)
+                    pat = CheckHalfPairPattern(i,i,nii)
+                    endpat = EdgePattern(i,i,nii).then(endpat)
                 else:
+                    nij = self.g.number_of_edges(i,j)
+                    nji = self.g.number_of_edges(j,i)
                     if i in l:
                         if j in l:
                             #print("Check Pair")
-                            pat = CheckPairPattern(i,j,s[0],s[1])
+                            #pat = CheckPairPattern(i,j,s[0],s[1])
+                            if nij > 0:
+                                pat = CheckHalfPairPattern(i,j,nij)
+                                if nji > 0: pat.then(CheckHalfPairPattern(j,i,nji))
+                            else:
+                                pat = CheckHalfPairPattern(j,i,nji)
                         else:
                             #print("Outgoing Pair")
-                            pat = OutgoingPairPattern(i,j,s[0],s[1])
+                            #pat = OutgoingPairPattern(i,j,s[0],s[1])
+                            if nij > 0:
+                                pat = OutgoingHalfPairPattern(i,j,nij)
+                                if nji > 0: pat.then(CheckHalfPairPattern(j,i,nji))
+                            else:
+                                pat = IncomingHalfPairPattern(j,i,nji)
                             l.add(j)
                     else:
                         if j in l:
                             #print("Incoming Pair")
-                            pat = IncomingPairPattern(i,j,s[0],s[1])
+                            #pat = IncomingPairPattern(i,j,s[0],s[1])
+                            if nij > 0:
+                                pat = IncomingHalfPairPattern(i,j,nij)
+                                if nji > 0: pat.then(CheckHalfPairPattern(j,i,nji))
+                            else:
+                                pat = OutgoingHalfPairPattern(j,i,nji)
                             l.add(i)
                         else:
                             #print("WTF")
                             continue
-                    endpat = EdgePattern(i,j,s[0]).then(endpat)
-                    endpat = EdgePattern(j,i,s[1]).then(endpat)
+                    if nij > 0: endpat = EdgePattern(i,j,nij).then(endpat)
+                    if nji > 0: endpat = EdgePattern(j,i,nji).then(endpat)
             startpat = startpat.then(pat)
 
-        self.pattern = startpat.then(endpat).next
-        return self.pattern
-
+        return startpat.then(endpat).next
 
 class GraphM:
-    def __init__(self, s, t, l):
+    def __init__(self, s, t, l = {}):
         self.s = s
         self.t = t
         self.l = l
@@ -446,3 +563,52 @@ class Graph:
                 l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
 
         return r, GraphM(t1, r, l1), GraphM(t2, r, l2)
+
+def test_merge():
+    g1 = GraphO()
+    n1 = g1.add_node()
+    n2 = g1.add_node()
+    n3 = g1.add_node()
+    e1 = g1.add_edge(n1,n2)
+
+    g2 = GraphO()
+    n4 = g2.add_node()
+    n5 = g2.add_node()
+    n6 = g2.add_node()
+    n7 = g2.add_node()
+    e2 = g2.add_edge(n5,n6)
+    e3 = g2.add_edge(n4,n7)
+
+    h = GraphM(g1,g2,{
+        n1: n5,
+        n2: n6,
+        n3: n4,
+        e1: e2
+    })
+    print(h)
+    print(Graph.merge(h,h))
+
+def test_pmatching():
+    g = GraphO()
+    n1 = g.add_node()
+    n2 = g.add_node()
+    n3 = g.add_node()
+    n4 = g.add_node()
+    n5 = g.add_node()
+    n6 = g.add_node()
+    e1 = g.add_edge(n1, n2)
+    e1 = g.add_edge(n1, n2)
+    e1 = g.add_edge(n2, n1)
+    e1 = g.add_edge(n2, n1)
+    e2 = g.add_edge(n3, n5)
+    e3 = g.add_edge(n6, n6)
+
+    print(g.pat())
+
+    for l in Graph.pattern_match(g,g):
+        print(str(l))
+
+
+if __name__ == "__main__":
+    test_merge()
+    test_pmatching()
