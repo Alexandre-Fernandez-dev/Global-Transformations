@@ -352,7 +352,7 @@ class GraphO():
             self.__pattern = self.pat()
         return self.__pattern
 
-    def pat(self,partial_l = None):
+    def pat(self, known_nodes = None, known_edges = None):
 
         dep = nx.DiGraph()
 
@@ -375,25 +375,32 @@ class GraphO():
                 elif i < j:
                     nij = self.g.number_of_edges(i,j)
                     nji = self.g.number_of_edges(j,i)
-                    if nij != 0 or nji != 0:
+                    if nij != 0:
                         dep.add_node((i,j))
-                        dep.add_edge('r00t',(i,j), weight = 1.+1./(nij+nji))
                         dep.add_edge((i,j),i, weight = 0.)
                         dep.add_edge((i,j),j, weight = 0.)
                         dep.add_edge(i,(i,j), weight = 1.)
                         dep.add_edge(j,(i,j), weight = 1.)
+                        dep.add_edge('r00t',(i,j), weight = 1.+1./(nij+nji))
+                    if nji != 0:
+                        dep.add_node((j,i))
+                        dep.add_edge((j,i),i, weight = 0.)
+                        dep.add_edge((j,i),j, weight = 0.)
+                        dep.add_edge(i,(j,i), weight = 1.)
+                        dep.add_edge(j,(j,i), weight = 1.)
+                        if nij == 0: dep.add_edge('r00t',(j,i), weight = 1.+1./(nij+nji))
+                    if nij != 0 and nji != 0:
+                        dep.add_edge((i,j),(j,i), weight = 0.)
+                        dep.add_edge((j,i),(i,j), weight = 0.)
                     pass
 
         #print(str(dep.nodes))
         #print(str(dep.edges(data=True)))
-
         ed = nx.algorithms.tree.branchings.Edmonds(dep)
         B = ed.find_optimum('weight', 1, kind='min', style='arborescence')
-        #B = nx.algorithms.tree.branchings.greedy_branching(dep)
-        #print(nx.algorithms.tree.branchings.branching_weight(B))
+        C = nx.algorithms.dag.topological_sort(B)
         #print(B.nodes)
         #print(B.edges)
-        C = nx.algorithms.dag.topological_sort(B)
 
         startpat = ContPattern()
         endpat = EndPattern()
@@ -416,73 +423,39 @@ class GraphO():
                     l.add(i)
                 elif i[0] == i[1]:
                     #print("Head Loop")
-                    #pat = HeadLoopPattern(i[0],i[2])
                     nii = self.g.number_of_edges(i[0],i[0])
                     pat = HeadHalfPairPattern(i[0],i[0],nii)
                     endpat = EdgePattern(i[0],i[0],nii).then(endpat)
                     l.add(i[0])
                 else:
                     #print("Head Pair")
-                    #pat = HeadPairPattern(i[0],i[1],i[2][0],i[2][1])
                     nij = self.g.number_of_edges(i[0],i[1])
-                    nji = self.g.number_of_edges(i[1],i[0])
-                    if nij > 0:
-                        pat = HeadHalfPairPattern(i[0],i[1],nij)
-                        endpat = EdgePattern(i[0],i[1],nij).then(endpat)
-                        if nji > 0:
-                            pat.then(CheckHalfPairPattern(i[1],i[0],nji))
-                            endpat = EdgePattern(i[1],i[0],nji).then(endpat)
-                    else:
-                        pat = HeadHalfPairPattern(i[1],i[0],nji)
-                        endpat = EdgePattern(i[1],i[0],nji).then(endpat)
+                    pat = HeadHalfPairPattern(i[0],i[1],nij)
+                    endpat = EdgePattern(i[0],i[1],nij).then(endpat)
                     l.add(i[0])
                     l.add(i[1])
             elif type(i) == int:
                 continue
             else:
                 (i,j) = i
-                if i == j:
-                    #print("Check Loop")
-                    #pat = CheckLoopPattern(i,s)
-                    nii = self.g.number_of_edges(i,i)
-                    pat = CheckHalfPairPattern(i,i,nii)
-                    endpat = EdgePattern(i,i,nii).then(endpat)
-                else:
-                    nij = self.g.number_of_edges(i,j)
-                    nji = self.g.number_of_edges(j,i)
-                    if i in l:
-                        if j in l:
-                            #print("Check Pair")
-                            #pat = CheckPairPattern(i,j,s[0],s[1])
-                            if nij > 0:
-                                pat = CheckHalfPairPattern(i,j,nij)
-                                if nji > 0: pat.then(CheckHalfPairPattern(j,i,nji))
-                            else:
-                                pat = CheckHalfPairPattern(j,i,nji)
-                        else:
-                            #print("Outgoing Pair")
-                            #pat = OutgoingPairPattern(i,j,s[0],s[1])
-                            if nij > 0:
-                                pat = OutgoingHalfPairPattern(i,j,nij)
-                                if nji > 0: pat.then(CheckHalfPairPattern(j,i,nji))
-                            else:
-                                pat = IncomingHalfPairPattern(j,i,nji)
-                            l.add(j)
+                nij = self.g.number_of_edges(i,j)
+                if i in l:
+                    if j in l:
+                        #print("Check Pair")
+                        pat = CheckHalfPairPattern(i,j,nij)
                     else:
-                        if j in l:
-                            #print("Incoming Pair")
-                            #pat = IncomingPairPattern(i,j,s[0],s[1])
-                            if nij > 0:
-                                pat = IncomingHalfPairPattern(i,j,nij)
-                                if nji > 0: pat.then(CheckHalfPairPattern(j,i,nji))
-                            else:
-                                pat = OutgoingHalfPairPattern(j,i,nji)
-                            l.add(i)
-                        else:
-                            #print("WTF")
-                            continue
-                    if nij > 0: endpat = EdgePattern(i,j,nij).then(endpat)
-                    if nji > 0: endpat = EdgePattern(j,i,nji).then(endpat)
+                        #print("Outgoing Pair")
+                        pat = OutgoingHalfPairPattern(i,j,nij)
+                        l.add(j)
+                else:
+                    if j in l:
+                        #print("Incoming Pair")
+                        pat = IncomingHalfPairPattern(i,j,nij)
+                        l.add(i)
+                    else:
+                        print("WTF")
+                        continue
+                endpat = EdgePattern(i,j,nij).then(endpat)
             startpat = startpat.then(pat)
 
         return startpat.then(endpat).next
