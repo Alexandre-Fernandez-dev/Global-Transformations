@@ -84,7 +84,34 @@ class GT:
         for u in self.small_pred.edges():
             print(u)
 
+        
+        instances = nx.DiGraph()
         print(self.smalls)
+
+        print()
+        for small in self.smalls:
+            for instance in self.C.pattern_match(small.lhs, X):
+                # TODO check if not in instances
+                if instance not in instances:
+                    print(instance)
+                    instances.add_node(instance) # maybe in recursive ?
+                    def process(smallinstance, instance, rule):
+                        print(instance)
+                        for _, _, inc in self.G.out_edges(rule, keys = True):
+                            print("     " + str(inc))
+                            linc = inc.lhs
+                            rulep = inc.g_b
+                            for instancep in self.C.pattern_match(linc, instance):
+                                # if already in instances skip
+                                # else add it with all it small inclusions
+                                print(instancep)
+
+                    print("process launched")
+                    process(instance, instance, small)
+
+                    
+
+
 
 def test():
         pass
