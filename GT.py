@@ -81,28 +81,61 @@ class GT:
         for g in self.G.nodes:
             toto(g)
 
-        for u in self.small_pred.edges():
+        for u in self.small_pred.edges(keys = True):
             print(u)
 
+        print()
 
-        instances = {}
         print(self.smalls)
 
+        instances = {}
+        potatoes = []
+
+        def merge_potatoe(potatoe_a, potatoe_b, h_a, h_b):
+            (on_a,on_b) = C.merge(h_a,h_b)
+            potatoe = { 'obs_by': potatoe_a['obs_by'] + potatoe_b['obs_by'], 'partial_result': on_a.cod }
+            potatoes.append(potatoe)
+            for ins in potatoe_a['obs_by']:
+                i = instances[ins]
+                i['potatoe'] = potatoe
+                i['potatoe_inc'] = on_a if i['potatoe_inc'] == None else i['potatoe_inc'].compose(on_a)
+            for ins in potatoe_b['obs_by']:
+                i = instances[ins]
+                i['potatoe'] = potatoe
+                i['potatoe_inc'] = on_b if i['potatoe_inc'] == None else i['potatoe_inc'].compose(on_b)
+            return potatoe, h_a.compose(on_a)
 
         def process(ins, rule):
             print("IN process: " + str(ins))
             is_top_ins = True
+            potatoe = None
+            potatoe_inc = None
             for _, over_rule, inc in self.G.out_edges(rule, keys = True):
                 print("    " + str(inc))
                 for over_ins in self.C.pattern_match(inc.lhs, ins):
                     is_top_ins = False
                     if over_ins not in instances:
                         over_ins.clean()
-                        instances[over_ins] = None
+                        instances[over_ins] = { 'nb_dep': len(self.small_pred.in_edges(over_rule)) }
                         process(over_ins, over_rule)
-                    # if already in instances skip
-                    # else add it with all it small inclusions
+                    over_potatoe = instances[over_ins]['potatoe']
+                    over_potatoe_inc = instances[over_ins]['potatoe_inc']
+                    potatoe_inc_ = inc.rhs if over_potatoe_inc == None else inc.rhs.compose(over_potatoe_inc)
+                    if potatoe_inc == None:
+                        potatoe_inc = potatoe_inc_
+                        potatoe = over_potatoe
+                        potatoe['obs_by'].append(ins)
+                        instances[ins]['potatoe'] = potatoe
+                        instances[ins]['potatoe_inc'] = potatoe_inc
+                    else:
+                        potatoe, potatoe_inc = merge_potatoe(over_potatoe, potatoe, potatoe_inc_, potatoe_inc)
+
             print("OUT process. Top instance? " + str(is_top_ins))
+            if is_top_ins:
+                potatoe = { 'obs_by': [ ins ], 'partial_result': rule.rhs }
+                instances[ins]['potatoe'] = potatoe
+                instances[ins]['potatoe_inc'] = None # None for identity
+                potatoes.append(potatoe)
 
         print()
         for small_rule in self.smalls:
@@ -111,11 +144,15 @@ class GT:
                 print()
                 if small_ins not in instances:
                     small_ins.clean()
-                    instances[small_ins] = None
+                    instances[small_ins] = { 'nb_dep': 1 }
                     process(small_ins, small_rule)
 
         print()
         print(instances)
+
+        print()
+        print(len(potatoes))
+        print(potatoes)
 
 
 
