@@ -364,6 +364,8 @@ class GraphM:
         return GraphM(self.s,h.t,l)
 
     def __eq__(self, other):
+        if not isinstance(other,GraphM):
+            return False
         return self.s == other.s and self.t == other.t and self.l == other.l
 
     def __hash__(self):

@@ -7,6 +7,8 @@ class Rule:
         self.rhs = rhs
 
     def __eq__(self, other):
+        if not isinstance(other,Rule):
+            return False
         return self.lhs == other.lhs
 
     def __hash__(self):
@@ -23,6 +25,8 @@ class Inclusion:
         self.rhs = rhs
 
     def __eq__(self, other):
+        if not isinstance(other,Inclusion):
+            return False
         return self.lhs == other.lhs
 
     def __hash__(self):
@@ -92,8 +96,8 @@ class GT:
         potatoes = []
 
         def merge_potatoe(potatoe_a, potatoe_b, h_a, h_b):
-            (on_a,on_b) = C.merge(h_a,h_b)
-            potatoe = { 'obs_by': potatoe_a['obs_by'] + potatoe_b['obs_by'], 'partial_result': on_a.cod }
+            (lresult,on_a,on_b) = self.C.merge(h_a,h_b)
+            potatoe = { 'obs_by': potatoe_a['obs_by'] + potatoe_b['obs_by'], 'partial_result': lresult }
             potatoes.append(potatoe)
             for ins in potatoe_a['obs_by']:
                 i = instances[ins]
@@ -106,12 +110,13 @@ class GT:
             return potatoe, h_a.compose(on_a)
 
         def process(ins, rule):
+            print()
             print("IN process: " + str(ins))
             is_top_ins = True
             potatoe = None
             potatoe_inc = None
             for _, over_rule, inc in self.G.out_edges(rule, keys = True):
-                print("    " + str(inc))
+                #print("    " + str(inc))
                 for over_ins in self.C.pattern_match(inc.lhs, ins):
                     is_top_ins = False
                     if over_ins not in instances:
@@ -121,9 +126,9 @@ class GT:
                     over_potatoe = instances[over_ins]['potatoe']
                     over_potatoe_inc = instances[over_ins]['potatoe_inc']
                     potatoe_inc_ = inc.rhs if over_potatoe_inc == None else inc.rhs.compose(over_potatoe_inc)
-                    if potatoe_inc == None:
-                        potatoe_inc = potatoe_inc_
+                    if potatoe == None:
                         potatoe = over_potatoe
+                        potatoe_inc = potatoe_inc_
                         potatoe['obs_by'].append(ins)
                         instances[ins]['potatoe'] = potatoe
                         instances[ins]['potatoe_inc'] = potatoe_inc
@@ -137,15 +142,25 @@ class GT:
                 instances[ins]['potatoe_inc'] = None # None for identity
                 potatoes.append(potatoe)
 
+            print()
+            print("Instances:")
+            for ins in instances.items():
+                print(ins)
+            print()
+            print("Potatoes:")
+            for pot in potatoes:
+                print(pot)
+
         print()
         for small_rule in self.smalls:
-            print("small rule: " + str(small_rule))
+            # print("small rule: " + str(small_rule))
             for small_ins in self.C.pattern_match(small_rule.lhs, X):
-                print()
+                # print()
                 if small_ins not in instances:
                     small_ins.clean()
                     instances[small_ins] = { 'nb_dep': 1 }
                     process(small_ins, small_rule)
+                break
 
         print()
         print(instances)

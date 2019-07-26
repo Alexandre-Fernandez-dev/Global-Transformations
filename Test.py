@@ -118,11 +118,11 @@ inc12a = T.add_inclusion(g1,g2,incl12a,incr12a)
 inc12b = T.add_inclusion(g1,g2,incl12a.compose(incl22a),incr12a.compose(incr22a))
 inc12c = T.add_inclusion(g1,g2,incl12a.compose(incl22b),incr12a.compose(incr22b))
 
-for n in T.G.nodes(): print(n)
-print()
-for e in T.G.edges(keys=True): print(e)
-
-print()
+# for n in T.G.nodes(): print(n)
+# print()
+# for e in T.G.edges(keys=True): print(e)
+#
+# print()
 
 g = GraphO()
 # n0 = g.add_node()
@@ -143,11 +143,11 @@ e23 = g.add_edge(n2,n3)
 e31 = g.add_edge(n3,n1)
 
 T.apply(g)
-
-print()
-for n in T.G.nodes(): print(n)
-print()
-for e in T.G.edges(keys=True): print(e)
+# 
+# print()
+# for n in T.G.nodes(): print(n)
+# print()
+# for e in T.G.edges(keys=True): print(e)
 
 
 import sys
