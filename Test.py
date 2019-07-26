@@ -125,6 +125,16 @@ for e in T.G.edges(keys=True): print(e)
 print()
 
 g = GraphO()
+# n0 = g.add_node()
+# n0 = g.add_node()
+# n0 = g.add_node()
+# n0 = g.add_node()
+# n0 = g.add_node()
+# n0 = g.add_node()
+# n0 = g.add_node()
+# n0 = g.add_node()
+# n0 = g.add_node()
+# n0 = g.add_node()
 n1 = g.add_node()
 n2 = g.add_node()
 n3 = g.add_node()
@@ -133,6 +143,12 @@ e23 = g.add_edge(n2,n3)
 e31 = g.add_edge(n3,n1)
 
 T.apply(g)
+
+print()
+for n in T.G.nodes(): print(n)
+print()
+for e in T.G.edges(keys=True): print(e)
+
 
 import sys
 sys.exit(0)

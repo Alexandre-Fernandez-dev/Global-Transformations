@@ -429,9 +429,10 @@ class Graph:
             ctx = Graph.Ctx(g.cod)
             for i_eij, ii_eeij in g.l.items():
                 if type(i_eij) == int:
-                    ctx.curse(i_eij)
+                    ctx.curse(ii_eeij)
                 ctx.l[p.l[i_eij]] = ii_eeij
             print("=================> " + str(pat))
+            print("=================> " + str(ctx.l))
             print("=================> " + str(ctx.l))
             for l in pat.match(ctx):
                 yield GraphM(p.cod,g.cod,l)
