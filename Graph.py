@@ -369,8 +369,9 @@ class GraphM:
     def __hash__(self):
         r = hash(self.s) ^ hash(self.t)
         for k, v in self.l.items():
-            r = 31 * r + hash(k)
-            r = 31 * r + hash(v)
+            r ^= 31 * hash(k) + hash(v)
+            # r = 31 * r + hash(k)
+            # r = 31 * r + hash(v)
         return r
 
     def apply(self, e):
@@ -431,9 +432,9 @@ class Graph:
                 if type(i_eij) == int:
                     ctx.curse(ii_eeij)
                 ctx.l[p.l[i_eij]] = ii_eeij
-            print("=================> " + str(pat))
-            print("=================> " + str(ctx.l))
-            print("=================> " + str(ctx.l))
+            # print("=================> " + str(pat))
+            # print("=================> " + str(ctx.l))
+            # print("=================> " + str(ctx.l))
             for l in pat.match(ctx):
                 yield GraphM(p.cod,g.cod,l)
 
