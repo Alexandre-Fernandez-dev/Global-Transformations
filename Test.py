@@ -75,7 +75,7 @@ incl22a = GraphM(l2,l2,{
     nl2c: nl2a,
     el2ab: el2bc,
     el2bc: el2ca,
-    el2ca: el2ab,
+    el2ca: el2ab
 })
 incr22a = GraphM(r2,r2,{
     nr2a:nr2b,
@@ -96,10 +96,10 @@ incr22a = GraphM(r2,r2,{
 })
 
 inc22a = T.add_inclusion(g2,g2,incl22a,incr22a)
-inc22b = T.add_inclusion(g2,g2,incl22a.compose(incl22a),incr22a.compose(incr22a))
 
-print(incr22a.compose(incr22a).compose(incr22a))
-print()
+incl22b = incl22a.compose(incl22a)
+incr22b = incr22a.compose(incr22a)
+inc22b = T.add_inclusion(g2,g2,incl22b,incr22b)
 
 incl12a = GraphM(l1,l2,{
     nl1a: nl2a,
@@ -116,10 +116,11 @@ incr12a = GraphM(r1,r2,{
 
 inc12a = T.add_inclusion(g1,g2,incl12a,incr12a)
 inc12b = T.add_inclusion(g1,g2,incl12a.compose(incl22a),incr12a.compose(incr22a))
-inc12b = T.add_inclusion(g1,g2,incl12a.compose(incl22a).compose(incl22a),incr12a.compose(incr22a).compose(incr22a))
+inc12c = T.add_inclusion(g1,g2,incl12a.compose(incl22b),incr12a.compose(incr22b))
 
-print(T.G.nodes())
-print(T.G.edges(keys=True))
+for n in T.G.nodes(): print(n)
+print()
+for e in T.G.edges(keys=True): print(e)
 
 print()
 
@@ -136,7 +137,6 @@ T.apply(g)
 import sys
 sys.exit(0)
 
-inc01b = T.add_inclusion(g0,g1,incl01b,incr01b)
 
 
 

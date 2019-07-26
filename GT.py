@@ -13,7 +13,7 @@ class Rule:
         return hash(self.lhs)
 
     def __repr__(self):
-        return str(self.lhs) + ' => ' + str(self.rhs)
+        return str(self.lhs) + ' => ...' # + str(self.rhs)
 
 class Inclusion:
     def __init__(self, g_a, g_b, lhs, rhs):
@@ -29,7 +29,7 @@ class Inclusion:
         return hash(self.lhs)
 
     def __repr__(self):
-        return str(self.lhs) + ' => ' + str(self.rhs)
+        return str(self.lhs) + ' => ...' #+ str(self.rhs)
 
     def compose(self, other):
         return Inclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), self.rhs.compose(other.rhs))
@@ -84,32 +84,37 @@ class GT:
         for u in self.small_pred.edges():
             print(u)
 
-        
-        instances = nx.DiGraph()
+
+        instances = {}
         print(self.smalls)
 
+
         print()
-        for small in self.smalls:
-            for instance in self.C.pattern_match(small.lhs, X):
-                # TODO check if not in instances
-                if instance not in instances:
-                    print(instance)
-                    instances.add_node(instance) # maybe in recursive ?
-                    def process(smallinstance, instance, rule):
-                        print(instance)
-                        for _, _, inc in self.G.out_edges(rule, keys = True):
-                            print("     " + str(inc))
-                            linc = inc.lhs
-                            rulep = inc.g_b
-                            for instancep in self.C.pattern_match(linc, instance):
-                                # if already in instances skip
-                                # else add it with all it small inclusions
-                                print(instancep)
+        for small_rule in self.smalls:
+            print("small rule: " + str(small_rule))
+            for small_ins in self.C.pattern_match(small_rule.lhs, X):
+                def process(ins, rule):
+                    print("IN process: " + str(ins))
+                    is_top_ins = True
+                    for _, over_rule, inc in self.G.out_edges(rule, keys = True):
+                        print("    " + str(inc))
+                        for over_ins in self.C.pattern_match(inc.lhs, ins):
+                            is_top_ins = False
+                            #if over_ins not in instances:
+                                #over_ins.clean()
+                                #instances[over_ins] = None
+                            process(over_ins, over_rule)
+                            # if already in instances skip
+                            # else add it with all it small inclusions
+                    print("OUT process. Top instance? " + str(is_top_ins))
+                print()
+                #if small_ins not in instances:
+                    #small_ins.clean()
+                    #instances[small_ins] = None
+                process(small_ins, small_rule)
 
-                    print("process launched")
-                    process(instance, instance, small)
-
-                    
+        print()
+        print(instances)
 
 
 

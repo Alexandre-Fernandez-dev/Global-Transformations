@@ -377,7 +377,7 @@ class GraphM:
         return self.l[e]
 
     def __repr__(self):
-        return "[ " + str(self.l) + " ]"
+        return "[ " + str(self.s) + " -> " + str(self.t) + ": " + str(self.l) + " ]"
 
     @property
     def dom(self):
@@ -394,9 +394,11 @@ class GraphM:
             for (i,j,e) in self.s.edges:
                 (ii,jj,ee) = self.l[(i,j,e)]
                 known_edges.setdefault((ii,jj),set()).add(ee)
-            self.__pattern = self.t.pat(known_nodes = known_nodes, known_edges = known_edges) # TODO: compute known_nodes and known_edges here
+            self.__pattern = self.t.pat(known_nodes = known_nodes, known_edges = known_edges)
         return self.__pattern
 
+    def clean(self):
+        self.l = self.l.copy()
 
 class Graph:
 
@@ -424,13 +426,15 @@ class Graph:
                 yield GraphM(p,g,l)
         else:
             pat = p.pattern()
-            ctx = Graph.Ctx(g)
-            for i_eij, ii_eeij in p.l.items():
+            ctx = Graph.Ctx(g.cod)
+            for i_eij, ii_eeij in g.l.items():
                 if type(i_eij) == int:
                     ctx.curse(i_eij)
                 ctx.l[p.l[i_eij]] = ii_eeij
+            print("=================> " + str(pat))
+            print("=================> " + str(ctx.l))
             for l in pat.match(ctx):
-                yield GraphM(p.t,g,l)
+                yield GraphM(p.cod,g.cod,l)
 
     @staticmethod
     def merge(m1, m2):
@@ -541,11 +545,74 @@ def test_pmatching2():
 
     print(h.pattern())
 
-    for l in Graph.pattern_match(h,g2):
+    for l in Graph.pattern_match(h,h):
         print(str(l))
 
+def test_pmatching3():
+    p1 = GraphO()
+    p1n1 = p1.add_node()
+    p1n2 = p1.add_node()
+    p1e12 = p1.add_edge(p1n1,p1n2)
+
+    p2 = GraphO()
+    p2n1 = p2.add_node()
+    p2n2 = p2.add_node()
+    p2n3 = p2.add_node()
+    p2e12 = p2.add_edge(p2n1,p2n2)
+    p2e23 = p2.add_edge(p2n2,p2n3)
+    p2e31 = p2.add_edge(p2n3,p2n1)
+
+    g = GraphO()
+    g.add_node()
+    g.add_node()
+    g.add_node()
+    g.add_node()
+    g.add_node()
+    g.add_node()
+    g.add_node()
+    g.add_node()
+    g.add_node()
+    g.add_node()
+    gn1 = g.add_node()
+    gn2 = g.add_node()
+    gn3 = g.add_node()
+    ge12 = g.add_edge(gn1,gn2)
+    ge23 = g.add_edge(gn2,gn3)
+    ge31 = g.add_edge(gn3,gn1)
+
+    print(g)
+
+    i = GraphM(p1,p2,{
+        p1n1: p2n1,
+        p1n2: p2n2,
+        p1e12: p2e12
+    })
+
+    print(i)
+
+    b1 = GraphM(p1,g,{
+        p1n1: gn1,
+        p1n2: gn2,
+        p1e12: ge12
+    })
+
+    b2 = GraphM(p1,g,{
+        p1n1: gn2,
+        p1n2: gn3,
+        p1e12: ge23
+    })
+
+    print(b1)
+    print(b2)
+
+    for m in list(Graph.pattern_match(i,b1)):
+        print(m)
+
+    for m in list(Graph.pattern_match(i,b2)):
+        print(m)
 
 if __name__ == "__main__":
-    test_merge()
-    test_pmatching()
-    test_pmatching2()
+    # test_merge()
+    # test_pmatching()
+    # test_pmatching2()
+    test_pmatching3()
