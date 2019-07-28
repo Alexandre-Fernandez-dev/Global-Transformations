@@ -441,6 +441,23 @@ class Graph:
                 yield GraphM(p.cod,g.cod,l)
 
     @staticmethod
+    def quotient(m1, m2):
+        if m1.s != m2.s or m1.t != m2.t:
+            raise Exception("Not same source")
+        s = m1.s
+        t = m1.t
+        l = {}
+        r = s.copy()
+
+        for i in s.nodes:
+            l[i] = i
+
+        for e in s.edges:
+            l[e] = e
+
+
+
+    @staticmethod
     def merge(m1, m2):
         if m1.s != m2.s:
             raise Exception("Not same source")
