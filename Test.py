@@ -47,7 +47,7 @@ er2abca = r2.add_edge(nr2ab,nr2ca)
 er2cabc = r2.add_edge(nr2ca,nr2bc)
 er2bcab = r2.add_edge(nr2bc,nr2ab)
 
-g2 = T.add_rule(l2,r2)
+# g2 = T.add_rule(l2,r2)
 
 
 incl01a = GraphM(l0,l1,{
@@ -95,11 +95,11 @@ incr22a = GraphM(r2,r2,{
     er2bcab:er2cabc
 })
 
-inc22a = T.add_inclusion(g2,g2,incl22a,incr22a)
+# inc22a = T.add_inclusion(g2,g2,incl22a,incr22a)
 
 incl22b = incl22a.compose(incl22a)
 incr22b = incr22a.compose(incr22a)
-inc22b = T.add_inclusion(g2,g2,incl22b,incr22b)
+# inc22b = T.add_inclusion(g2,g2,incl22b,incr22b)
 
 incl12a = GraphM(l1,l2,{
     nl1a: nl2a,
@@ -114,9 +114,9 @@ incr12a = GraphM(r1,r2,{
     er1abb: er2abb
 })
 
-inc12a = T.add_inclusion(g1,g2,incl12a,incr12a)
-inc12b = T.add_inclusion(g1,g2,incl12a.compose(incl22a),incr12a.compose(incr22a))
-inc12c = T.add_inclusion(g1,g2,incl12a.compose(incl22b),incr12a.compose(incr22b))
+# inc12a = T.add_inclusion(g1,g2,incl12a,incr12a)
+# inc12b = T.add_inclusion(g1,g2,incl12a.compose(incl22a),incr12a.compose(incr22a))
+# inc12c = T.add_inclusion(g1,g2,incl12a.compose(incl22b),incr12a.compose(incr22b))
 
 # for n in T.G.nodes(): print(n)
 # print()
@@ -137,13 +137,38 @@ g = GraphO()
 # n0 = g.add_node()
 n1 = g.add_node()
 n2 = g.add_node()
-n3 = g.add_node()
+# n3 = g.add_node()
+#n4 = g.add_node()
 e12 = g.add_edge(n1,n2)
-e23 = g.add_edge(n2,n3)
-e31 = g.add_edge(n3,n1)
+e21 = g.add_edge(n2,n1)
+# e23 = g.add_edge(n2,n3)
+# e31 = g.add_edge(n3,n1)
+#e34 = g.add_edge(n3,n4)
+#e42 = g.add_edge(n4,n2)
 
-T.apply(g)
-# 
+# g = GraphO()
+# n1 = g.add_node()
+# n12 = g.add_node()
+# n2 = g.add_node()
+# n23 = g.add_node()
+# n3 = g.add_node()
+# n31 = g.add_node()
+# #n4 = g.add_node()
+# e112 = g.add_edge(n1,n12)
+# e122 = g.add_edge(n12,n2)
+# e223 = g.add_edge(n2,n23)
+# e233 = g.add_edge(n23,n3)
+# e331 = g.add_edge(n3,n31)
+# e311 = g.add_edge(n31,n1)
+
+for i in range(1):
+    g_ = T.apply(g)
+    g = tuple(g_)[0].object
+    print(g)
+
+
+
+#
 # print()
 # for n in T.G.nodes(): print(n)
 # print()
