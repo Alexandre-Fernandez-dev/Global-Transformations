@@ -443,18 +443,34 @@ class Graph:
     @staticmethod
     def quotient(m1, m2):
         if m1.s != m2.s or m1.t != m2.t:
-            raise Exception("Not same source")
+            raise ValueError("Graph: Graph: quotient: morphisms should have same signature")
         s = m1.s
         t = m1.t
         l = {}
         r = s.copy()
+        l_ = {}
 
         for i in s.nodes:
             l[i] = i
+            l_[m1.l[i]] = i
+            l_[m2.l[i]] = i
 
         for e in s.edges:
             l[e] = e
+            l_[m1.l[e]] = e
+            l_[m2.l[e]] = e
 
+        for i in t.nodes:
+            if i not in l_:
+                l_[i] = r.add_node()
+
+        for e in t.edges:
+            if e not in l_:
+                l_[e] = r.add_edge(l_[e[0]],l_[e[1]])
+
+        m_ = GraphM(t, r, l_)
+
+        return r, lambda m: m.compose(m_)
 
 
     @staticmethod

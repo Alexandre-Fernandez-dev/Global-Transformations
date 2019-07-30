@@ -1,5 +1,5 @@
 import networkx as nx
-
+import queue
 
 class Rule:
     def __init__(self, lhs, rhs):
@@ -130,6 +130,7 @@ class GT:
                 self.ins = ins          # C[rule.lhs, X]
                 self.result = None      # Result or None
                 self.subresult = None   # C[rule.rhs, self.result.object] or None
+                self.processed = False
 
             def observe(self, res, m):
                 assert m == None or (m.dom == self.rule.rhs and m.cod == res.object)
@@ -160,7 +161,12 @@ class GT:
                     res_b.object = None
                     results.remove(res_b)
                 elif res_a is res_b:
-                    assert h_a == h_b
+                    if h_a != h_b:
+                        (obj,lift) = self.C.quotient(h_a, h_b)
+                        res_a.object = obj
+                        for ins in res_a.obs_by:
+                            assert ins.subresult != None
+                            ins.subresult = lift(ins.subresult)
                 else:
                     assert h_a.dom == h_b.dom
                     (obj, on_a, on_b) = self.C.merge(h_a, h_b)
@@ -196,31 +202,31 @@ class GT:
                 matches[match_] = ins_
             return ins
 
-        def process(rule, match):
-            print("IN process: " + str(match))
-            ins = add_instance(rule, match)
-            is_top_ins = True
+        def process(ins):
+            # print("IN process: " + str(match))
+            is_top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.C.pattern_match(inc.lhs, ins.ins):
-                    print("OVER MATCH FOUND: " + str(over_match))
-                    print("FOR INCLUSION: " + str(inc))
-                    is_top_ins = False
+                    is_top = False
+                    # print("OVER MATCH FOUND: " + str(over_match))
+                    # print("FOR INCLUSION: " + str(inc))
                     if over_match not in matches:
                         over_match.clean()
-                        process(over_rule, over_match)
-                    over_ins = matches[over_match]
+                        over_ins = add_instance(over_rule, over_match)
+                        process(over_ins)
+                    else:
+                        over_ins = matches[over_match]
                     subresult = inc.rhs if over_ins.subresult == None else inc.rhs.compose(over_ins.subresult)
                     Result.merge(over_ins.result, subresult, ins.result, ins.subresult)
-            print("OUT process: " + str(match))
+            ins.processed = True
+            # print("OUT process: " + str(match))
 
-        print()
         for small_rule in self.smalls:
-            # print("small rule: " + str(small_rule))
             for small_match in self.C.pattern_match(small_rule.lhs, X):
-                # print()
                 if small_match not in matches:
                     small_match.clean()
-                    process(small_rule, small_match)
+                    small_ins = add_instance(small_rule, small_match)
+                    process(small_ins)
 
         return results
 
