@@ -130,7 +130,7 @@ class GT:
                 self.ins = ins          # C[rule.lhs, X]
                 self.result = None      # Result or None
                 self.subresult = None   # C[rule.rhs, self.result.object] or None
-                self.processed = False
+                self.processed = False  # Boolean
 
             def observe(self, res, m):
                 assert m == None or (m.dom == self.rule.rhs and m.cod == res.object)
@@ -138,6 +138,11 @@ class GT:
                 self.result = res
                 self.subresult = m
                 res.obs_by.append(self)
+
+        class SmllInstance(Instance):
+            def __init__(self, rule, ins):
+                Instance.__init__(self, rule, ins)
+                self.upperCone = []
 
         class Result():
             def __init__(self,obj):
@@ -189,6 +194,10 @@ class GT:
             def __repr__(self):
                 return str(self.object) + ", observed by " + str(-1 if self.obs_by == None else len(self.obs_by)) + " instance(s)"
 
+        class Smalls():
+            def __init__(self):
+                self.fifo = queue.Queue()
+
         def add_instance(rule, match):
             res = Result(rule.rhs)
             results.add(res)
@@ -226,6 +235,9 @@ class GT:
                 if small_match not in matches:
                     small_match.clean()
                     small_ins = add_instance(small_rule, small_match)
+                else:
+                    small_ins = matches[small_match]
+                if not small_ins.processed:
                     process(small_ins)
 
         return results
