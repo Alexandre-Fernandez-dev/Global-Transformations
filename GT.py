@@ -90,47 +90,35 @@ class GT:
         for g in self.G.nodes:
             toto(g)
 
-        # for u in self.small_pred.edges(keys = True):
-        #     print(u)
-        #
-        # print()
-        #
-        # print(self.smalls)
-
         matches = {}
         results = set()
 
         def prdebug():
             print("Instances:")
             for _, ins_ in matches.items():
-                print(str(ins_.ins.l) + " observes [" + str(ins_.result) + "] by " + str(ins_.subresult))
+                print(str(ins_.ins.l) + "(nbDep: " + str(ins_.nb_dep) + ") observes [" + str(ins_.result) + "] by " + str(ins_.subresult))
             print("Results:")
             for res_ in results:
                 print(res_)
 
-
         class Instance():
-            # def __eq__(self, other):
-            #     if isinstance(other, Instance):
-            #         return self.ins = other.ins
-            #     elif isinstance(other, C.Morphism):
-            #         return self.ins == other
-            #     else:
-            #         return False
-            #
-            # def __hash__(self):
-            #     return hash(self.ins)
-
-            def __init__(self, rule, ins):
+            def __init__(self_, rule, ins):
                 assert isinstance(rule, Rule)
                 assert ins.dom == rule.lhs
                 assert ins.cod == X
-                #self.nb_dep = len(self.small_pred.in_edges(rule))
-                self.rule = rule        # Rule
-                self.ins = ins          # C[rule.lhs, X]
-                self.result = None      # Result or None
-                self.subresult = None   # C[rule.rhs, self.result.object] or None
-                self.processed = False  # Boolean
+                self_.nb_dep = len(self.small_pred.in_edges(rule))
+                for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
+                    small_match = inc.lhs.compose(ins)
+                    if small_match not in matches:
+                        small_ins = add_instance(small_rule, small_match)
+                    else:
+                        small_ins = matches[small_match]
+                    small_ins.upperCone.append(self_)
+                self_.rule = rule        # Rule
+                self_.ins = ins          # C[rule.lhs, X]
+                self_.result = None      # Result or None
+                self_.subresult = None   # C[rule.rhs, self.result.object] or None
+                self_.upperCone = []
 
             def observe(self, res, m):
                 assert m == None or (m.dom == self.rule.rhs and m.cod == res.object)
@@ -139,10 +127,15 @@ class GT:
                 self.subresult = m
                 res.obs_by.append(self)
 
-        class SmllInstance(Instance):
-            def __init__(self, rule, ins):
-                Instance.__init__(self, rule, ins)
-                self.upperCone = []
+            def decrNbDep(self):
+                self.nb_dep -= 1
+                if self.nb_dep == 0:
+                    self.result.obs_by.remove(self)
+                    if len(self.result.obs_by) == 0:
+                        self.result = None
+                        self.subresult = None
+                        results.remove(self.result)
+                    del matches[self.ins]
 
         class Result():
             def __init__(self,obj):
@@ -155,7 +148,7 @@ class GT:
                 # prdebug()
                 # print("#######################")
                 if h_a == None:
-                    raise ValueError("First argument should not be None")
+                    raise ValueError("First argument cannot be None")
                 elif h_b == None:
                     assert h_a.dom == res_b.object
                     on_b = h_a
@@ -213,10 +206,8 @@ class GT:
 
         def process(ins):
             # print("IN process: " + str(match))
-            is_top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.C.pattern_match(inc.lhs, ins.ins):
-                    is_top = False
                     # print("OVER MATCH FOUND: " + str(over_match))
                     # print("FOR INCLUSION: " + str(inc))
                     if over_match not in matches:
@@ -227,7 +218,6 @@ class GT:
                         over_ins = matches[over_match]
                     subresult = inc.rhs if over_ins.subresult == None else inc.rhs.compose(over_ins.subresult)
                     Result.merge(over_ins.result, subresult, ins.result, ins.subresult)
-            ins.processed = True
             # print("OUT process: " + str(match))
 
         for small_rule in self.smalls:
@@ -237,9 +227,13 @@ class GT:
                     small_ins = add_instance(small_rule, small_match)
                 else:
                     small_ins = matches[small_match]
-                if not small_ins.processed:
-                    process(small_ins)
+                process(small_ins)
+                for dep_ins in small_ins.upperCone:
+                    dep_ins.decrNbDep()
+                small_ins.result.obs_by.remove(small_ins)
+                del matches[small_match]
 
+        prdebug()
         return results
 
 def test():

@@ -170,16 +170,18 @@ options = {
     'width': 1,
 }
 
-nx.draw_kamada_kawai(g.g, **options)
-plt.show()
-for i in range(3):
+# nx.draw_kamada_kawai(g.g, **options)
+# plt.show()
+for i in range(5):
     g_ = T.apply(g)
     print(g_)
     g = tuple(g_)[0].object
-    nx.draw_kamada_kawai(g.g, **options)
-    plt.show()
+    # nx.draw_kamada_kawai(g.g, **options)
+    # plt.show()
 
-
+print(len(g.nodes))
+print(len(g.edges))
+print(1 + len(g.edges) - len(g.nodes))
 # print()
 # for n in T.G.nodes(): print(n)
 # print()
