@@ -220,6 +220,24 @@ class GT:
                     Result.merge(over_ins.result, subresult, ins.result, ins.subresult)
             # print("OUT process: " + str(match))
 
+        visited = {}
+
+        def small_gen():
+            for small_rule in self.smalls:
+                for small_match in self.C.pattern_match(small_rule.lhs, X):
+                    if small_match not in matches:
+                        small_match.clean()
+                        small_ins = add_instance(small_rule, small_match)
+                    else:
+                        small_ins = matches[small_match]
+                    yield small_ins
+
+        fifo = queue.Queue()
+
+        def next_small():
+            if fifo.empty():
+                yield small_gen()
+
         for small_rule in self.smalls:
             for small_match in self.C.pattern_match(small_rule.lhs, X):
                 if small_match not in matches:
