@@ -92,6 +92,7 @@ class GT:
 
         matches = {}
         results = set()
+        fifo = []
 
         def prdebug():
             print("Instances:")
@@ -111,6 +112,7 @@ class GT:
                     small_match = inc.lhs.compose(ins)
                     if small_match not in matches:
                         small_ins = add_instance(small_rule, small_match)
+                        fifo.insert(0, (small_rule, small_match))
                     else:
                         small_ins = matches[small_match]
                     small_ins.upperCone.append(self_)
@@ -187,9 +189,9 @@ class GT:
             def __repr__(self):
                 return str(self.object) + ", observed by " + str(-1 if self.obs_by == None else len(self.obs_by)) + " instance(s)"
 
-        class Smalls():
-            def __init__(self):
-                self.fifo = queue.Queue()
+        # class Smalls():
+        #     def __init__(self):
+        #         self.fifo = queue.Queue()
 
         def add_instance(rule, match):
             res = Result(rule.rhs)
@@ -206,6 +208,7 @@ class GT:
 
         def process(ins):
             # print("IN process: " + str(match))
+            out = self.G.out_edges(ins.rule, keys = True)
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.C.pattern_match(inc.lhs, ins.ins):
                     # print("OVER MATCH FOUND: " + str(over_match))
@@ -220,38 +223,36 @@ class GT:
                     Result.merge(over_ins.result, subresult, ins.result, ins.subresult)
             # print("OUT process: " + str(match))
 
-        visited = {}
-
-        def small_gen():
+        def next_small():
             for small_rule in self.smalls:
                 for small_match in self.C.pattern_match(small_rule.lhs, X):
-                    if small_match not in matches:
-                        small_match.clean()
-                        small_ins = add_instance(small_rule, small_match)
-                    else:
-                        small_ins = matches[small_match]
-                    yield small_ins
+                    yield (small_rule, small_match)
+            yield (None, None)
 
-        fifo = queue.Queue()
+        for r, m in next_small():
+            print((r, m))
+            f = (r, m)
+            fifo.insert(0, f)
+            break
 
-        def next_small():
-            if fifo.empty():
-                yield small_gen()
+        # for small_rule in self.smalls:
+        #     for small_match in self.C.pattern_match(small_rule.lhs, X):
+        while len(fifo) > 0:
+            getted = fifo.pop()
+            print('lol', getted)
+            small_rule, small_match = getted
+            if small_match not in matches:
+                small_match.clean()
+                small_ins = add_instance(small_rule, small_match)
+            else:
+                small_ins = matches[small_match]
+            process(small_ins)
+            for dep_ins in small_ins.upperCone:
+                dep_ins.decrNbDep()
+            small_ins.result.obs_by.remove(small_ins)
+            del matches[small_match]
 
-        for small_rule in self.smalls:
-            for small_match in self.C.pattern_match(small_rule.lhs, X):
-                if small_match not in matches:
-                    small_match.clean()
-                    small_ins = add_instance(small_rule, small_match)
-                else:
-                    small_ins = matches[small_match]
-                process(small_ins)
-                for dep_ins in small_ins.upperCone:
-                    dep_ins.decrNbDep()
-                small_ins.result.obs_by.remove(small_ins)
-                del matches[small_match]
-
-        prdebug()
+        # prdebug()
         return results
 
 def test():
