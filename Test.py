@@ -161,8 +161,8 @@ e31 = g.add_edge(n3,n1)
 # e331 = g.add_edge(n3,n31)
 # e311 = g.add_edge(n31,n1)
 
-import matplotlib.pyplot as plt
-plt.subplot(121)
+# import matplotlib.pyplot as plt
+# plt.subplot(121)
 
 options = {
     'node_color': 'black',
@@ -174,7 +174,7 @@ options = {
 # plt.show()
 for i in range(5):
     g_ = T.apply(g)
-    print(g_)
+    # print(g_)
     g = tuple(g_)[0].object
     # nx.draw_kamada_kawai(g.g, **options)
     # plt.show()

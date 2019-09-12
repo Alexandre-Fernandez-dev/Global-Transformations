@@ -1,5 +1,6 @@
 import networkx as nx
-import queue
+
+depth = 0
 
 class Rule:
     def __init__(self, lhs, rhs):
@@ -17,6 +18,7 @@ class Rule:
 
     def __repr__(self):
         return str(self.lhs) + " => " + str(self.rhs)
+
 
 class Inclusion():
     def __init__(self, g_a, g_b, lhs, rhs):
@@ -41,40 +43,40 @@ class Inclusion():
 
 
 class GT:
-
-    def __init__(self,C):
+    def __init__(self, C):
         self.C = C
         self.G = nx.MultiDiGraph()
         self.smalls = set()
-        pass
 
-    def add_rule(self,l,r):
-        rule = Rule(l,r)
+    def add_rule(self, l, r):
+        rule = Rule(l, r)
         self.G.add_node(rule)
         return rule
 
-    def add_inclusion(self,g_a,g_b,l,r):
+    def add_inclusion(self, g_a, g_b, l, r):
         assert g_a.lhs == l.dom
         assert g_b.lhs == l.cod
         assert g_a.rhs == r.dom
         assert g_b.rhs == r.cod
-        inc = Inclusion(g_a,g_b,l,r)
+        inc = Inclusion(g_a, g_b, l, r)
         if g_a == g_b:
             g_a.self_inclusions.add(inc)
         else:
             e = self.G.add_edge(g_a, g_b, key = inc)
-        return (g_a,g_b,inc)
+        return (g_a, g_b, inc)
+    
+    def apply(self, X):
 
-    def apply(self,X):
         self.small_pred = nx.MultiDiGraph()
 
-        def toto(g):
+        #TODO no need to compute morphisms
+        def compute_small_rules(g):
             if g in self.small_pred.nodes():
                 return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
             self.small_pred.add_node(g)
             l = []
             for s, _, inc in self.G.in_edges(g, keys = True):
-                r = toto(s)
+                r = compute_small_rules(s)
                 if r == []:
                     l.append(inc)
                 else:
@@ -88,39 +90,21 @@ class GT:
 
 
         for g in self.G.nodes:
-            toto(g)
-
-        matches = {}
-        results = set()
-        fifo = []
-
-        def prdebug():
-            print("Instances:")
-            for _, ins_ in matches.items():
-                print(str(ins_.ins.l) + "(nbDep: " + str(ins_.nb_dep) + ") observes [" + str(ins_.result) + "] by " + str(ins_.subresult))
-            print("Results:")
-            for res_ in results:
-                print(res_)
+            compute_small_rules(g)
 
         class Instance():
-            def __init__(self_, rule, ins):
+            def __init__(self_, rule, ins, black, green):
+                # print("test", ins.dom, rule.lhs)
                 assert isinstance(rule, Rule)
                 assert ins.dom == rule.lhs
                 assert ins.cod == X
+                self_.black = black
+                self_.green = green
                 self_.nb_dep = len(self.small_pred.in_edges(rule))
-                for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
-                    small_match = inc.lhs.compose(ins)
-                    if small_match not in matches:
-                        small_ins = add_instance(small_rule, small_match)
-                        fifo.insert(0, (small_rule, small_match))
-                    else:
-                        small_ins = matches[small_match]
-                    small_ins.upperCone.append(self_)
                 self_.rule = rule        # Rule
                 self_.ins = ins          # C[rule.lhs, X]
                 self_.result = None      # Result or None
                 self_.subresult = None   # C[rule.rhs, self.result.object] or None
-                self_.upperCone = []
 
             def observe(self, res, m):
                 assert m == None or (m.dom == self.rule.rhs and m.cod == res.object)
@@ -138,17 +122,18 @@ class GT:
                         self.subresult = None
                         results.remove(self.result)
                     del matches[self.ins]
+            
+            def __repr__(self):
+                return "Instance : [" + " rule : " + str(self.rule) + " | match : " + str(self.ins) + " | result : " + str(self.result) + " | subresult : " + str(self.subresult) + "]"
 
         class Result():
-            def __init__(self,obj):
+            def __init__(self,obj,isrhs):
                 self.object = obj     # C.Object
+                self.is_rhs = isrhs
                 self.obs_by = []      # List of ins:Instance with ins/result = self
 
             @staticmethod
             def merge(res_a, h_a, res_b, h_b):
-                # print("IN MERGE " + str(res_a is res_b))
-                # prdebug()
-                # print("#######################")
                 if h_a == None:
                     raise ValueError("First argument cannot be None")
                 elif h_b == None:
@@ -169,109 +154,143 @@ class GT:
                             ins.subresult = lift(ins.subresult)
                 else:
                     assert h_a.dom == h_b.dom
-                    (obj, on_a, on_b) = self.C.merge(h_a, h_b)
-                    res = Result(obj)
-                    results.add(res)
-                    for ins in res_a.obs_by:
-                        ins.observe(res, on_a if ins.subresult == None else ins.subresult.compose(on_a))
-                    res_a.obs_by = None
-                    res_a.object = None
-                    results.remove(res_a)
-                    for ins in res_b.obs_by:
-                        ins.observe(res, on_b if ins.subresult == None else ins.subresult.compose(on_b))
-                    res_b.obs_by = None
-                    res_b.object = None
-                    results.remove(res_b)
-                    # return res, h_a.compose(on_a)
-                # prdebug()
-                # print("OUT MERGE")
+                    if res_a.is_rhs and res_b.is_rhs:
+                        (obj, on_a, on_b) = self.C.merge(h_a, h_b)
+                        res = Result(obj, False)
+                        results.add(res)
+                        for ins in res_a.obs_by:
+                            ins.observe(res, on_a if ins.subresult == None else ins.subresult.compose(on_a))
+                        res_a.obs_by = None
+                        res_a.object = None
+                        results.remove(res_a)
+                        for ins in res_b.obs_by:
+                            ins.observe(res, on_b if ins.subresult == None else ins.subresult.compose(on_b))
+                        res_b.obs_by = None
+                        res_b.object = None
+                        results.remove(res_b)
+                    else:
+                        # TODO clean
+                        if not res_a.is_rhs and not res_b.is_rhs:
+                            (obj, on_bl) = self.C.merge_2_in_1(h_a, h_b)
+                        elif not res_a.is_rhs and res_b.is_rhs:
+                            (obj, on_bl) = self.C.merge_2_in_1(h_a, h_b)
+                        elif res_a.is_rhs and not res_b.is_rhs:
+                            temp = h_a
+                            h_a = h_b
+                            h_b = temp
+                            temp = res_a
+                            res_a = res_b
+                            res_b = temp
+                            (obj, on_bl) = self.C.merge_2_in_1(h_a, h_b)
+                        res = res_a
+                        for ins in res_b.obs_by:
+                            ins.observe(res, on_bl if ins.subresult == None else
+                                        ins.subresult.compose(on_bl))
+                        res_b.obs_by = None
+                        res_b.object = None
+                        results.remove(res_b)
 
             def __repr__(self):
                 return str(self.object) + ", observed by " + str(-1 if self.obs_by == None else len(self.obs_by)) + " instance(s)"
 
-        # class Smalls():
-        #     def __init__(self):
-        #         self.fifo = queue.Queue()
+        matches = {}
+        results = set()
+        fifo = []
+        depth = 0
 
-        def add_instance(rule, match):
-            res = Result(rule.rhs)
+        def add_instance(rule, match, black, green):
+            # print("add i rule.l : " + str(rule.lhs) + " | " + str(match))
+            res = Result(rule.rhs, True)
             results.add(res)
-            ins = Instance(rule, match)
-            ins.observe(res,None)
+            ins = Instance(rule, match, black, green)
+            ins.observe(res, None)
             matches[match] = ins
             for auto in rule.self_inclusions:
                 match_ = auto.lhs.compose(match)
-                ins_ = Instance(rule, match_)
+                ins_ = Instance(rule, match_, black, green)
                 ins_.observe(res,auto.rhs)
                 matches[match_] = ins_
             return ins
 
-        def process(ins):
-            # print("IN process: " + str(match))
-            out = self.G.out_edges(ins.rule, keys = True)
+        def close(ins):
+            global depth
+            # print("  " * depth + "close " + str(ins))
+            # print()
+            ins.green = True
+            small = True
+            for under_rule, _, inc in self.G.in_edges(ins.rule, keys = True):
+                small = False
+                under_match = inc.lhs.compose(ins.ins)
+                # print("  " * depth + "under rule : " + str(under_rule) + " under match : " + str(under_match))
+                cont = True
+                if under_match not in matches:
+                    under_match.clean()
+                    under_ins = add_instance(under_rule, under_match, False, False)
+                else:
+                    under_ins = matches[under_match]
+                    if under_ins.green:
+                        # print("  " * depth + "under green")
+                        cont = False
+                subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
+                Result.merge(ins.result, subresult, under_ins.result, under_ins.subresult)
+                if cont:
+                    depth -= 1
+                    close(under_ins)
+                    depth += 1
+                # print("  " * depth + "exit under")
+            if small and not ins.black:
+                # print("  " * depth + ">>>>>>>>>>>SMALL<<<<<<<<<<<")
+                fifo.insert(0, ins)
+                
+        def star(ins):
+            global depth
+            ins.black = True
+            # print("  " * depth + "star " + str(ins))
+            # print()
+            upcone = []
+            top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.C.pattern_match(inc.lhs, ins.ins):
-                    # print("OVER MATCH FOUND: " + str(over_match))
-                    # print("FOR INCLUSION: " + str(inc))
-                    if over_match not in matches:
-                        over_match.clean()
-                        over_ins = add_instance(over_rule, over_match)
-                        process(over_ins)
-                    else:
+                    # print("  " * depth + "over")
+                    top = False
+                    if over_match in matches:
+                        # print("  " * depth + "over in")
+                        # print("  " * depth + "match " + str(over_match))
                         over_ins = matches[over_match]
-                    subresult = inc.rhs if over_ins.subresult == None else inc.rhs.compose(over_ins.subresult)
-                    Result.merge(over_ins.result, subresult, ins.result, ins.subresult)
-            # print("OUT process: " + str(match))
-
+                        if over_ins.black:
+                            continue
+                    else:
+                        # print("  " * depth + "over not in")
+                        over_match.clean()
+                        over_ins = add_instance(over_rule, over_match, False, False)
+                    depth += 1
+                    upcone.extend(star(over_ins))
+                    depth -= 1
+                    upcone.append(over_ins)
+            if top:
+                # print("  " * depth + ">>>>>>>>>>>TOP<<<<<<<<<<<")
+                close(ins)
+            return upcone
+        
         def next_small():
             for small_rule in self.smalls:
                 for small_match in self.C.pattern_match(small_rule.lhs, X):
-                    yield (small_rule, small_match)
-            yield (None, None)
+                    small_match.clean()
+                    yield add_instance(small_rule, small_match, False, False)
 
-        for r, m in next_small():
-            print((r, m))
-            f = (r, m)
-            fifo.insert(0, f)
+        for i in next_small():
+            fifo.insert(0, i)
             break
 
-        # for small_rule in self.smalls:
-        #     for small_match in self.C.pattern_match(small_rule.lhs, X):
         while len(fifo) > 0:
-            getted = fifo.pop()
-            print('lol', getted)
-            small_rule, small_match = getted
-            if small_match not in matches:
-                small_match.clean()
-                small_ins = add_instance(small_rule, small_match)
-            else:
-                small_ins = matches[small_match]
-            process(small_ins)
-            for dep_ins in small_ins.upperCone:
-                dep_ins.decrNbDep()
-            small_ins.result.obs_by.remove(small_ins)
-            del matches[small_match]
+            depth = 0
+            small_ins = fifo.pop()
+            # print("POOOOOOOOOOOOOOOOOOP")
+            small_ins.black = True
+            assert small_ins.ins in matches
+            upcone = star(small_ins)
+            for dep_ins in upcone:
+                dep_ins.decrNbDep
+            del matches[small_ins.ins]
 
-        # prdebug()
         return results
-
-def test():
-        pass
-
-
-if __name__ == "__main__":
-    test()
-
-
-
-
-
-
-
-
-
-
-
-
-
-#

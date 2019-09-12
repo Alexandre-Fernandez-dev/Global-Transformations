@@ -472,17 +472,48 @@ class Graph:
 
         return r, lambda m: m.compose(m_)
 
+    @staticmethod
+    def merge_2_in_1(m1, m2):
+        # print("merge21")
+        t1 = m1.t
+        t2 = m2.t
+        # l1 = {}
+        l2 = {}
+        r = t1
+
+        # for i in t1.nodes:
+        #     l1[i] = i
+
+        for i in m1.s.nodes:
+            l2[m2.l[i]] = m1.l[i]
+
+        # for e in t1.edges:
+        #     l1[e] = e
+
+        for e in m1.s.edges:
+            l2[m2.l[e]] = m1.l[e]
+
+        for i in t2.nodes:
+            if i not in l2:
+                l2[i] = r.add_node()
+
+        for (i,j,e) in t2.edges:
+            if (i,j,e) not in l2:
+                l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
+
+        # return r, l1, l2
+        return r, GraphM(t2, r, l2)
+
 
     @staticmethod
     def merge(m1, m2):
         if m1.s != m2.s:
             raise Exception("Not same source")
-        s = m1.s
         t1 = m1.t
         t2 = m2.t
         l1 = {}
         l2 = {}
-        r = s.copy()
+        r = m1.s.copy()
 
         for i in r.nodes:
             l1[m1.l[i]] = i
