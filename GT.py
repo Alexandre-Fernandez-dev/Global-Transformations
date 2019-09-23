@@ -46,9 +46,12 @@ class GT:
     def __init__(self, C):
         self.C = C
         self.G = nx.MultiDiGraph()
-        self.smalls = set()
+        self.smalls = None
+        self.small_pred = None
 
     def add_rule(self, l, r):
+        self.smalls = None
+        self.small_pred = None
         rule = Rule(l, r)
         self.G.add_node(rule)
         return rule
@@ -58,39 +61,40 @@ class GT:
         assert g_b.lhs == l.cod
         assert g_a.rhs == r.dom
         assert g_b.rhs == r.cod
+        self.smalls = None
+        self.small_pred = None
         inc = Inclusion(g_a, g_b, l, r)
         if g_a == g_b:
             g_a.self_inclusions.add(inc)
         else:
             e = self.G.add_edge(g_a, g_b, key = inc)
         return (g_a, g_b, inc)
-    
+
+    # TODO no need to compute morphisms
+    def compute_small_rules(self, g):
+        if g in self.small_pred.nodes():
+            return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
+        self.small_pred.add_node(g)
+        l = []
+        for s, _, inc in self.G.in_edges(g, keys = True):
+            r = self.compute_small_rules(s)
+            if r == []:
+                l.append(inc)
+            else:
+                l = l + [ incp.compose(inc) for incp in r ]
+        if l == []:
+            self.smalls.add(g)
+            # self.small_pred.add_edge(g, g, None)
+        for inc in l:
+            self.small_pred.add_edge(inc.g_a, g, inc)
+        return l
+
     def apply(self, X):
-
-        self.small_pred = nx.MultiDiGraph()
-
-        #TODO no need to compute morphisms
-        def compute_small_rules(g):
-            if g in self.small_pred.nodes():
-                return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
-            self.small_pred.add_node(g)
-            l = []
-            for s, _, inc in self.G.in_edges(g, keys = True):
-                r = compute_small_rules(s)
-                if r == []:
-                    l.append(inc)
-                else:
-                    l = l + [ incp.compose(inc) for incp in r ]
-            if l == []:
-                self.smalls.add(g)
-                #self.small_pred.add_edge(g, g, None)
-            for inc in l:
-                self.small_pred.add_edge(inc.g_a, g, inc)
-            return l
-
-
-        for g in self.G.nodes:
-            compute_small_rules(g)
+        if self.smalls == None:
+            self.smalls = set()
+            self.small_pred = nx.MultiDiGraph()
+            for g in self.G.nodes:
+                self.compute_small_rules(g)
 
         class Instance():
             def __init__(self_, rule, ins, black, green):
@@ -100,11 +104,20 @@ class GT:
                 assert ins.cod == X
                 self_.black = black
                 self_.green = green
+                self_.rule = rule
                 self_.nb_dep = len(self.small_pred.in_edges(rule))
-                self_.rule = rule        # Rule
                 self_.ins = ins          # C[rule.lhs, X]
                 self_.result = None      # Result or None
                 self_.subresult = None   # C[rule.rhs, self.result.object] or None
+                self_.uppercone = []
+                # for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
+                #     small_match = inc.lhs.compose(ins)
+                #     if small_match not in matches:
+                #         small_ins = add_instance(small_rule, small_match, False, False)
+                #         fifo.insert(0, small_ins)
+                #     else:
+                #         small_ins = matches[small_match]
+                #     small_ins.upperCone.append(self_)
 
             def observe(self, res, m):
                 assert m == None or (m.dom == self.rule.rhs and m.cod == res.object)
@@ -130,10 +143,10 @@ class GT:
             def __init__(self,obj,isrhs):
                 self.object = obj     # C.Object
                 self.is_rhs = isrhs
-                self.obs_by = []      # List of ins:Instance with ins/result = self
+                self.obs_by = []      # List of ins:Instance with  ins/result = self
 
             @staticmethod
-            def merge(res_a, h_a, res_b, h_b):
+            def merge(res_a, h_a, res_b, h_b): 
                 if h_a == None:
                     raise ValueError("First argument cannot be None")
                 elif h_b == None:
@@ -247,7 +260,6 @@ class GT:
             ins.black = True
             # print("  " * depth + "star " + str(ins))
             # print()
-            upcone = []
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.C.pattern_match(inc.lhs, ins.ins):
@@ -258,19 +270,21 @@ class GT:
                         # print("  " * depth + "match " + str(over_match))
                         over_ins = matches[over_match]
                         if over_ins.black:
+                            ins.uppercone.append(over_ins)
+                            ins.uppercone.extend(over_ins.uppercone)
                             continue
                     else:
                         # print("  " * depth + "over not in")
                         over_match.clean()
                         over_ins = add_instance(over_rule, over_match, False, False)
                     depth += 1
-                    upcone.extend(star(over_ins))
+                    star(over_ins)
                     depth -= 1
-                    upcone.append(over_ins)
+                    ins.uppercone.append(over_ins)
+                    ins.uppercone.extend(over_ins.uppercone)
             if top:
                 # print("  " * depth + ">>>>>>>>>>>TOP<<<<<<<<<<<")
                 close(ins)
-            return upcone
         
         def next_small():
             for small_rule in self.smalls:
@@ -288,9 +302,10 @@ class GT:
             # print("POOOOOOOOOOOOOOOOOOP")
             small_ins.black = True
             assert small_ins.ins in matches
-            upcone = star(small_ins)
-            for dep_ins in upcone:
-                dep_ins.decrNbDep
+            star(small_ins)
+            for dep_ins in small_ins.uppercone:
+                dep_ins.decrNbDep()
             del matches[small_ins.ins]
 
+        print(len(results), len(matches))
         return results
