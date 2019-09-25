@@ -187,6 +187,46 @@ print(1 + len(g.edges) - len(g.nodes))
 # print()
 # for e in T.G.edges(keys=True): print(e)
 
+# SEQUENCES
+from Sequence import *
+l0 = SequenceO([])
+r0 = SequenceO([])
+
+l1 = SequenceO(['a'])
+r1 = SequenceO(['a', 'b'])
+
+l2 = SequenceO(['b'])
+r2 = SequenceO(['a'])
+
+incl01a = SequenceM(l0, l1, 0)
+incl01b = SequenceM(l0, l1, 1)
+
+incr01a = SequenceM(r0, r1, 0)
+incr01b = SequenceM(r0, r1, 2)
+
+incl02a = SequenceM(l0, l2, 0)
+incl02b = SequenceM(l0, l2, 1)
+
+incr02a = SequenceM(r0, r2, 0)
+incr02b = SequenceM(r0, r2, 1)
+
+T = GT(Sequence)
+g0 = T.add_rule(l0, r0)
+g1 = T.add_rule(l1, r1)
+g2 = T.add_rule(l2, r2)
+
+T.add_inclusion(g0, g1, incl01a, incr01a)
+T.add_inclusion(g0, g1, incl01b, incr01b)
+
+T.add_inclusion(g0, g2, incl02a, incr02a)
+T.add_inclusion(g0, g2, incl02b, incr02b)
+
+s = SequenceO(['a'])
+
+for i in range(10):
+    s_ = T.apply(s)
+    print(s_)
+    s = tuple(s_)[0].object
 
 import sys
 sys.exit(0)
