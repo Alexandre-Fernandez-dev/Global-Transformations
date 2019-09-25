@@ -32,6 +32,7 @@
 class SequenceO:
     def __init__(self, s):
         self.s = s
+        self.partial = None # memoized partials matches
     
     def __eq__(self, other):
         return self.s == other.s
@@ -87,21 +88,58 @@ class SequenceM:
     def __repr__(self):
         return repr(self.s) + " -> " + repr(self.t) + " : " + str(self.i)
 
+class KMP:
+    def partial(self, pattern):
+            """ Calculate partial match table: String -> [Int]"""
+            ret = [0]
+            
+            for i in range(1, len(pattern)):
+                j = ret[i - 1]
+                while j > 0 and pattern[j] != pattern[i]:
+                    j = ret[j - 1]
+                ret.append(j + 1 if pattern[j] == pattern[i] else j)
+            return ret
+            
+    def search(self, T, P):
+        """ 
+        KMP search main algorithm: String -> String -> [Int] 
+        Return all the matching position of pattern string P in T
+        """
+        if P.partial == None:
+            P.partial = self.partial(P.s)
+        ret, j = [], 0
+        
+        for i in range(len(T.s)):
+            while j > 0 and T.s[i] != P.s[j]:
+                j = P.partial[j - 1]
+            if T.s[i] == P.s[j]: j += 1
+            if j == len(P.s): 
+                ret.append(i - (j - 1))
+                j = P.partial[j - 1]
+            
+        return ret
+
+k = KMP()
+
 class Sequence:
 
     @staticmethod
     def pattern_match(p, s):
         # print("match", p, s)
         if isinstance(p, SequenceO):
-            l = []
-            for i in range(0, len(s.s)-len(p.s)):
-                valid = True
-                for j in range(0, len(p.s)):
-                    if s.s[i+j] != p.s[j]:
-                        valid = False
-                        break
-                if valid:
-                    l.append(i)
+            # l = []
+            # for i in range(0, len(s.s)-len(p.s)):
+            #     valid = True
+            #     for j in range(0, len(p.s)):
+            #         if s.s[i+j] != p.s[j]:
+            #             valid = False
+            #             break
+            #     if valid:
+            #         l.append(i)
+            if(p.s == []):
+                l = [ i for i in range(0, len(s.s) + 1) ]
+            else:
+                l = k.search(s, p)
         else:
             # print(p.dom.s, p.cod.s, p.i)
             # print(s.dom.s, s.cod.s, s.i)
