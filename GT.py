@@ -43,8 +43,9 @@ class Inclusion():
 
 
 class GT:
-    def __init__(self, C):
-        self.C = C
+    def __init__(self, CS, CD):
+        self.CS = CS
+        self.CD = CD
         self.G = nx.MultiDiGraph()
         self.smalls = None
         self.small_pred = None
@@ -160,7 +161,7 @@ class GT:
                     results.remove(res_b)
                 elif res_a is res_b:
                     if h_a != h_b:
-                        (obj,lift) = self.C.quotient(h_a, h_b)
+                        (obj,lift) = self.CD.quotient(h_a, h_b)
                         res_a.object = obj
                         for ins in res_a.obs_by:
                             assert ins.subresult != None
@@ -168,7 +169,7 @@ class GT:
                 else:
                     assert h_a.dom == h_b.dom
                     if res_a.is_rhs and res_b.is_rhs:
-                        (obj, on_a, on_b) = self.C.merge(h_a, h_b)
+                        (obj, on_a, on_b) = self.CD.merge(h_a, h_b)
                         res = Result(obj, False)
                         results.add(res)
                         for ins in res_a.obs_by:
@@ -184,9 +185,9 @@ class GT:
                     else:
                         # TODO clean
                         if not res_a.is_rhs and not res_b.is_rhs:
-                            (obj, on_bl) = self.C.merge_2_in_1(h_a, h_b)
+                            (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
                         elif not res_a.is_rhs and res_b.is_rhs:
-                            (obj, on_bl) = self.C.merge_2_in_1(h_a, h_b)
+                            (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
                         elif res_a.is_rhs and not res_b.is_rhs:
                             temp = h_a
                             h_a = h_b
@@ -194,7 +195,7 @@ class GT:
                             temp = res_a
                             res_a = res_b
                             res_b = temp
-                            (obj, on_bl) = self.C.merge_2_in_1(h_a, h_b)
+                            (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
                         res = res_a
                         for ins in res_b.obs_by:
                             ins.observe(res, on_bl if ins.subresult == None else
@@ -248,7 +249,7 @@ class GT:
             global depth
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
-                for over_match in self.C.pattern_match(inc.lhs, ins.ins):
+                for over_match in self.CS.pattern_match(inc.lhs, ins.ins):
                     top = False
                     if over_match in matches:
                         over_ins = matches[over_match]
@@ -266,7 +267,7 @@ class GT:
 
         def next_small():
             for small_rule in self.smalls:
-                for small_match in self.C.pattern_match(small_rule.lhs, X):
+                for small_match in self.CS.pattern_match(small_rule.lhs, X):
                     small_match.clean()
                     yield add_instance(small_rule, small_match, False, False)
 

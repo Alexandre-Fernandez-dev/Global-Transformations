@@ -1,7 +1,9 @@
 from Graph import *
 from GT import *
+import matplotlib.pyplot as plt
+from Sequence import *
 
-T = GT(Graph)
+T = GT(Graph, Graph)
 
 l0 = GraphO()
 nl0 = l0.add_node()
@@ -160,10 +162,7 @@ e31 = g.add_edge(n3,n1)
 # e233 = g.add_edge(n23,n3)
 # e331 = g.add_edge(n3,n31)
 # e311 = g.add_edge(n31,n1)
-
-# import matplotlib.pyplot as plt
-# plt.subplot(121)
-
+plt.subplot(121)
 options = {
     'node_color': 'black',
     'node_size': 10,
@@ -188,7 +187,6 @@ print(1 + len(g.edges) - len(g.nodes))
 # for e in T.G.edges(keys=True): print(e)
 
 # SEQUENCES
-from Sequence import *
 l0 = SequenceO([])
 r0 = SequenceO([])
 
@@ -210,7 +208,7 @@ incl02b = SequenceM(l0, l2, 1)
 incr02a = SequenceM(r0, r2, 0)
 incr02b = SequenceM(r0, r2, 1)
 
-T = GT(Sequence)
+T = GT(Sequence, Sequence)
 g0 = T.add_rule(l0, r0)
 g1 = T.add_rule(l1, r1)
 g2 = T.add_rule(l2, r2)
@@ -227,6 +225,43 @@ for i in range(20):
     s_ = T.apply(s)
     print(s_)
     s = tuple(s_)[0].object
+
+Graphify = GT(Sequence, Graph)
+l0 = SequenceO([])
+r0 = GraphO()
+nr0 = r0.add_node()
+
+l1 = SequenceO([None])
+r1 = GraphO()
+nr1a = r1.add_node()
+nr1b = r1.add_node()
+er1ab = r1.add_edge(nr1a,nr1b)
+
+incl01a = SequenceM(l0, l1, 0)
+incl01b = SequenceM(l0, l1, 1)
+
+incr01a = GraphM(r0,r1,{
+    nr0: nr1a
+})
+incr01b = GraphM(r0,r1,{
+    nr0: nr1b
+})
+g0 = Graphify.add_rule(l0, r0)
+g1 = Graphify.add_rule(l1, r1)
+
+Graphify.add_inclusion(g0, g1, incl01a, incr01a)
+Graphify.add_inclusion(g0, g1, incl01b, incr01b)
+
+s = SequenceO([None] * 1000)
+g_ = Graphify.apply(s)
+print(g_)
+g = tuple(g_)[0].object
+nx.draw_kamada_kawai(g.g, **options)
+plt.show()
+
+print(len(g.nodes))
+print(len(g.edges))
+print(1 + len(g.edges) - len(g.nodes))
 
 import sys
 sys.exit(0)
