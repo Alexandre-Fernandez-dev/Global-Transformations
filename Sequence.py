@@ -1,5 +1,5 @@
 
-# 
+#
 # 1, 2, 1, 2, 3
 #
 # a, b, c, d, e, f, g, h, i, j
@@ -33,21 +33,21 @@ class SequenceO:
     def __init__(self, s):
         self.s = s
         self.partial = None # memoized partials matches
-    
-    def __eq__(self, other):
-        return self.s == other.s
-        
-    def __hash__(self):
-        r = len(self.s)
-        for i in self.s:
-            r ^= 31 * hash(i)
-        return r
-    
+
+    # def __eq__(self, other):
+    #     return self.s == other.s
+    #
+    # def __hash__(self):
+    #     r = len(self.s)
+    #     for i in self.s:
+    #         r ^= 31 * hash(i)
+    #     return r
+    #
     def __len__(self):
         return len(self.s)
-    
+
     def __repr__(self):
-        return repr(self.s)
+        return str(len(self.s)) + " " + repr(self.s)
 
 class SequenceM:
     def __init__(self, s, t, i):
@@ -60,7 +60,7 @@ class SequenceM:
     def compose(self, h):
         assert self.t == h.s
         return SequenceM(self.s, h.t, self.i + h.i)
-    
+
     def __eq__(self, other):
         if not isinstance(other, SequenceM):
             return False
@@ -70,7 +70,7 @@ class SequenceM:
         r = hash(self.s) ^ hash(self.t)
         r ^= 31 * self.i
         return r
-    
+
     def apply(self, e):
         return self.i + e
 
@@ -83,8 +83,8 @@ class SequenceM:
         return self.t
 
     def clean(self):
-        self.s = SequenceO(self.s.s.copy()) # TODO really needed ?
-    
+        pass
+
     def __repr__(self):
         return repr(self.s) + " -> " + repr(self.t) + " : " + str(self.i)
 
@@ -92,31 +92,32 @@ class KMP:
     def partial(self, pattern):
             """ Calculate partial match table: String -> [Int]"""
             ret = [0]
-            
+
             for i in range(1, len(pattern)):
                 j = ret[i - 1]
                 while j > 0 and pattern[j] != pattern[i]:
                     j = ret[j - 1]
                 ret.append(j + 1 if pattern[j] == pattern[i] else j)
             return ret
-            
+
     def search(self, T, P):
-        """ 
-        KMP search main algorithm: String -> String -> [Int] 
+        """
+        KMP search main algorithm: String -> String -> [Int]
         Return all the matching position of pattern string P in T
         """
         if P.partial == None:
             P.partial = self.partial(P.s)
-        ret, j = [], 0
-        
+        j = 0
+
         for i in range(len(T.s)):
             while j > 0 and T.s[i] != P.s[j]:
                 j = P.partial[j - 1]
             if T.s[i] == P.s[j]: j += 1
-            if j == len(P.s): 
-                ret.append(i - (j - 1))
+            if j == len(P.s):
+                # ret.append(i - (j - 1))
+                yield (i - (j - 1))
                 j = P.partial[j - 1]
-            
+
         return ret
 
 k = KMP()
@@ -137,9 +138,11 @@ class Sequence:
             #     if valid:
             #         l.append(i)
             if(p.s == []):
-                l = [ i for i in range(0, len(s.s) + 1) ]
+                for i in range(0, len(s.s) + 1):
+                    yield SequenceM(p, s, i)
             else:
-                l = k.search(s, p)
+                for i in k.search(s, p):
+                    yield SequenceM(p, s, i)
         else:
             # print(p.dom.s, p.cod.s, p.i)
             # print(s.dom.s, s.cod.s, s.i)
@@ -149,30 +152,23 @@ class Sequence:
             start2 = start1 + len(p.dom.s) + p.i
             end2 = start1 + len(p.cod.s)
             # print(start2, end2)
-            if start1 < 0:
+            if start1 < 0 or end2 > len(s.cod.s):
                return
             for i in range(start1, end1):
                 # print("i : ", i, "s.cod: ", s.cod, "p.cod: ", p.cod, "i - p.i", i - p.i)
                 if s.cod.s[i] != p.cod.s[i - start1]:
                     return
-            if end2 > len(s.cod.s):
-               return
             for i in range(start2, end2):
                 # print("i : ", i)
                 if s.cod.s[i] != p.cod.s[i - start1]:
                     return
-            
-            l = [start1]
-            p = p.cod
-            s = s.cod
-        for i in l:
-            # print(SequenceM(p, s, i))
-            yield SequenceM(p, s, i)
+
+            yield SequenceM(p.cod, s.cod, start1)
 
     @staticmethod
     def quotient(m1, m2):
         print("quotient", m1, m2)
-    
+
     @staticmethod
     def merge_2_in_1(m1, m2):
         if m1.s != m2.s:
@@ -199,7 +195,7 @@ class Sequence:
                             return None
         return m1.t, SequenceM(m2.t, m1.t, m1.i - m2.i)
 
-        
+
     @staticmethod
     def merge(m1, m2):
         if m1.s != m2.s:

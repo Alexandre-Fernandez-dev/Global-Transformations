@@ -223,7 +223,7 @@ T.add_inclusion(g0, g2, incl02b, incr02b)
 
 s = SequenceO(['a'])
 
-for i in range(20):
+for i in range(10):
     s_ = T.apply(s)
     print(s_)
     s = tuple(s_)[0].object
