@@ -110,14 +110,14 @@ class GT:
                 self_.result = None      # Result or None
                 self_.subresult = None   # C[rule.rhs, self.result.object] or None
                 self_.uppercone = []
-                # for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
-                #     small_match = inc.lhs.compose(ins)
-                #     if small_match not in matches:
-                #         small_ins = add_instance(small_rule, small_match, False, False)
-                #         fifo.insert(0, small_ins)
-                #     else:
-                #         small_ins = matches[small_match]
-                #     small_ins.upperCone.append(self_)
+                for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
+                    small_match = inc.lhs.compose(ins)
+                    if small_match not in matches:
+                        small_ins = add_instance(small_rule, small_match, False, False)
+                        fifo.insert(0, small_ins)
+                    else:
+                        small_ins = matches[small_match]
+                    small_ins.uppercone.append(self_)
 
             def observe(self, res, m):
                 assert m == None or (m.dom == self.rule.rhs and m.cod == res.object)
@@ -135,7 +135,7 @@ class GT:
                         self.subresult = None
                         results.remove(self.result)
                     del matches[self.ins]
-            
+
             def __repr__(self):
                 return "Instance : [" + " rule : " + str(self.rule) + " | match : " + str(self.ins) + " | result : " + str(self.result) + " | subresult : " + str(self.subresult) + "]"
 
@@ -146,7 +146,7 @@ class GT:
                 self.obs_by = []      # List of ins:Instance with  ins/result = self
 
             @staticmethod
-            def merge(res_a, h_a, res_b, h_b): 
+            def merge(res_a, h_a, res_b, h_b):
                 if h_a == None:
                     raise ValueError("First argument cannot be None")
                 elif h_b == None:
@@ -227,65 +227,48 @@ class GT:
 
         def close(ins):
             global depth
-            # print("  " * depth + "close " + str(ins))
-            # print()
-            ins.green = True
+            if ins.green:
+                return
             small = True
             for under_rule, _, inc in self.G.in_edges(ins.rule, keys = True):
-                small = False
                 under_match = inc.lhs.compose(ins.ins)
-                # print("  " * depth + "under rule : " + str(under_rule) + " under match : " + str(under_match))
-                cont = True
+                small = False
                 if under_match not in matches:
                     under_match.clean()
                     under_ins = add_instance(under_rule, under_match, False, False)
                 else:
                     under_ins = matches[under_match]
-                    if under_ins.green:
-                        # print("  " * depth + "under green")
-                        cont = False
+                depth -= 1
+                close(under_ins)
+                depth += 1
                 subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
                 Result.merge(ins.result, subresult, under_ins.result, under_ins.subresult)
-                if cont:
-                    depth -= 1
-                    close(under_ins)
-                    depth += 1
-                # print("  " * depth + "exit under")
-            if small and not ins.black:
-                # print("  " * depth + ">>>>>>>>>>>SMALL<<<<<<<<<<<")
-                fifo.insert(0, ins)
-                
+            ins.green = True
+            # if small and not ins.black:
+            #     fifo.insert(0, ins)
+
         def star(ins):
             global depth
-            ins.black = True
-            # print("  " * depth + "star " + str(ins))
-            # print()
+            if ins.black:
+                return
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.C.pattern_match(inc.lhs, ins.ins):
-                    # print("  " * depth + "over")
                     top = False
                     if over_match in matches:
-                        # print("  " * depth + "over in")
-                        # print("  " * depth + "match " + str(over_match))
                         over_ins = matches[over_match]
-                        if over_ins.black:
-                            ins.uppercone.append(over_ins)
-                            ins.uppercone.extend(over_ins.uppercone)
-                            continue
                     else:
-                        # print("  " * depth + "over not in")
                         over_match.clean()
                         over_ins = add_instance(over_rule, over_match, False, False)
                     depth += 1
                     star(over_ins)
                     depth -= 1
-                    ins.uppercone.append(over_ins)
-                    ins.uppercone.extend(over_ins.uppercone)
+                    # ins.uppercone.append(over_ins)
+                    # ins.uppercone.extend(over_ins.uppercone)
+            ins.black = True
             if top:
-                # print("  " * depth + ">>>>>>>>>>>TOP<<<<<<<<<<<")
                 close(ins)
-        
+
         def next_small():
             for small_rule in self.smalls:
                 for small_match in self.C.pattern_match(small_rule.lhs, X):
@@ -300,7 +283,7 @@ class GT:
             depth = 0
             small_ins = fifo.pop()
             # print("POOOOOOOOOOOOOOOOOOP")
-            small_ins.black = True
+            # small_ins.black = True
             assert small_ins.ins in matches
             star(small_ins)
             for dep_ins in small_ins.uppercone:
