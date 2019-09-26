@@ -283,6 +283,7 @@ class GT:
             star(small_ins)
             for dep_ins in small_ins.uppercone:
                 dep_ins.decrNbDep()
+            small_ins.result.obs_by.remove(small_ins)
             del matches[small_ins.ins]
 
         print(len(results), len(matches))
