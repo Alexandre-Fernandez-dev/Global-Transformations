@@ -227,8 +227,6 @@ class GT:
 
         def close(ins):
             global depth
-            if ins.green:
-                return
             small = True
             for under_rule, _, inc in self.G.in_edges(ins.rule, keys = True):
                 under_match = inc.lhs.compose(ins.ins)
@@ -238,19 +236,16 @@ class GT:
                     under_ins = add_instance(under_rule, under_match, False, False)
                 else:
                     under_ins = matches[under_match]
-                depth -= 1
-                close(under_ins)
-                depth += 1
                 subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
                 Result.merge(ins.result, subresult, under_ins.result, under_ins.subresult)
+                if not under_ins.green:
+                    depth -= 1
+                    close(under_ins)
+                    depth += 1
             ins.green = True
-            # if small and not ins.black:
-            #     fifo.insert(0, ins)
 
         def star(ins):
             global depth
-            if ins.black:
-                return
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.C.pattern_match(inc.lhs, ins.ins):
@@ -260,13 +255,13 @@ class GT:
                     else:
                         over_match.clean()
                         over_ins = add_instance(over_rule, over_match, False, False)
-                    depth += 1
-                    star(over_ins)
-                    depth -= 1
-                    # ins.uppercone.append(over_ins)
-                    # ins.uppercone.extend(over_ins.uppercone)
+                    if not over_ins.black:
+                        depth += 1
+                        star(over_ins)
+                        depth -= 1
             ins.black = True
             if top:
+                assert not ins.green
                 close(ins)
 
         def next_small():
@@ -284,7 +279,7 @@ class GT:
             small_ins = fifo.pop()
             # print("POOOOOOOOOOOOOOOOOOP")
             # small_ins.black = True
-            assert small_ins.ins in matches
+            assert not small_ins.black
             star(small_ins)
             for dep_ins in small_ins.uppercone:
                 dep_ins.decrNbDep()

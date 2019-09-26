@@ -174,7 +174,7 @@ options = {
 # plt.show()
 for i in range(5):
     g_ = T.apply(g)
-    # print(g_)
+    print(g_)
     g = tuple(g_)[0].object
     # nx.draw_kamada_kawai(g.g, **options)
     # plt.show()
