@@ -3,12 +3,41 @@ import networkx as nx
 depth = 0
 
 class Rule:
+    """
+    A rule of a global transformation.
+
+    Attributes
+    ----------
+    lhs : ??.Object
+        the left hand side of the rule
+    rhs : ??.Object
+        the right hand side of the rule
+    self_inclusions : Inclusion
+        inclusions of the rule in itself (automorphisms)
+    """
+
     def __init__(self, lhs, rhs):
+        """
+        Parameters
+        ----------
+        lhs : ??.Object
+            the left hand side of the rule
+        rhs : ??.Object
+            the right hand side of the rule
+        """
+
         self.lhs = lhs
         self.rhs = rhs
         self.self_inclusions = set()
 
     def __eq__(self, other):
+        """
+        Parameters
+        ----------
+        other : Rule
+            an other rule
+        """
+
         if not isinstance(other,Rule):
             return False
         return self.lhs == other.lhs
@@ -21,6 +50,26 @@ class Rule:
 
 
 class Inclusion():
+    """
+    A rule inclusion
+
+    Attributes
+    ----------
+    g_a : Rule
+        source rule
+    g_b : Rule
+        destination rule
+    lhs : ??.Morphism
+        a morphism that includes g_a.lhs in g_b.lhs
+    rhs : ??.Morphism
+        a morphism that includes g_a.rhs in g_b.rhs
+    
+    Methods
+    -------
+    compose(other)
+        composes the inclusion with the other inclusions if domain and codomains matches (TODO self . other or other . self)
+    """
+
     def __init__(self, g_a, g_b, lhs, rhs):
         self.g_a = g_a
         self.g_b = g_b
@@ -39,10 +88,60 @@ class Inclusion():
         return str(self.lhs) + ' => ...' #+ str(self.rhs)
 
     def compose(self, other):
+        """
+        composes the inclusion with the other inclusions if domain and codomains matches (TODO self . other or other . self)
+
+        Parameters
+        ----------
+        other : Inclusion
+            an other inclusion with matching domain (TODO ?)
+
+        Returns
+        -------
+        Inclusion
+            the composition
+        
+        """
         return Inclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), self.rhs.compose(other.rhs))
 
 
 class GT:
+    """
+    A global transformation T from the category CS to the category CD
+
+    Attributes
+    ----------
+    CS : Datatype (TODO use Datatype as category)
+        the source Datatype
+    
+    CD : Datatype
+        the destination Datatype
+    
+    G : nx.MultiDiGraph
+        the MultiDiGraph of the rules and rules inclusions of the GT
+    
+    smalls : Set
+        the set of bottom rules
+    
+    small_pred : nx.MultiDiGraph (TODO hide ?)
+        the graph associating to each rule the bottom rules under it
+    
+    Methods
+    -------
+    add_rule(l, r)
+        add a new rule with lhs l and rhs r in G and returns it
+
+    add_inclusion(g_a, g_b, l, r)
+        add a new rule inclusion from g_a to g_b with l the inclusion of lhs and r the inclusion of rhs
+    
+    compute_small_rules(g) (TODO hide ?)
+        initialize small_pred for the given rule g
+    
+    apply(X)
+        compute T(X)
+
+    """
+
     def __init__(self, CS, CD):
         self.CS = CS
         self.CD = CD
@@ -51,6 +150,22 @@ class GT:
         self.small_pred = None
 
     def add_rule(self, l, r):
+        """
+        creates and add a new rule with lhs l and rhs r in G and returns it
+
+        Parameters
+        ----------
+        l : CS.O
+            the left hand side of the rule
+
+        r : CD.O
+            the right hand side of the rule
+        
+        Returns
+        -------
+        Rule
+            the new rule
+        """
         self.smalls = None
         self.small_pred = None
         rule = Rule(l, r)
@@ -58,6 +173,28 @@ class GT:
         return rule
 
     def add_inclusion(self, g_a, g_b, l, r):
+        """
+        creates and add a new inclusion of rules from g_a to g_b and returns it
+
+        Parameters
+        ----------
+        g_a : Rule
+            the source rule
+
+        g_b : Rule
+            the destination rule
+
+        l : CS.M
+            the inclusions of the left hand sides g_a.lhs -> g_b.lhs
+
+        r : CD.M
+            the inclusions of the right hand sides g_a.rhs -> g_b.rhs
+        
+        Returns
+        -------
+        Inclusion
+            the new inclusion
+        """
         assert g_a.lhs == l.dom
         assert g_b.lhs == l.cod
         assert g_a.rhs == r.dom
@@ -68,11 +205,24 @@ class GT:
         if g_a == g_b:
             g_a.self_inclusions.add(inc)
         else:
-            e = self.G.add_edge(g_a, g_b, key = inc)
+            self.G.add_edge(g_a, g_b, key = inc)
         return (g_a, g_b, inc)
 
     # TODO no need to compute morphisms
     def compute_small_rules(self, g):
+        """ (TODO remove doc ?)
+        initialize small_pred for the given rule g
+
+        Parameters
+        ----------
+        g : Rule
+            a rule of G
+        
+        Returns
+        -------
+        List
+            the list of small rules under g
+        """
         if g in self.small_pred.nodes():
             return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
         self.small_pred.add_node(g)
@@ -91,6 +241,19 @@ class GT:
         return l
 
     def apply(self, X):
+        """
+        compute T(X)
+
+        Parameters
+        ----------
+        X : CS.O
+            the input object
+        
+        Returns
+        -------
+        CD.O
+            the result
+        """
         if self.smalls == None:
             self.smalls = set()
             self.small_pred = nx.MultiDiGraph()
