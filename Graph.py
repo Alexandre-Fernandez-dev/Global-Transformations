@@ -1,5 +1,6 @@
 import math
 import networkx as nx
+from DataStructure import DataStructure
 
 def kth_injection(p,q,k):
     if (p,q) not in kth_injection.mem: kth_injection.mem[(p,q)] = [ None ] * (math.factorial(q) // math.factorial(q-p))
@@ -43,7 +44,7 @@ class ContPattern():
         return self
 
     def __repr__(self):
-        return self.pr() + " => " + str(self.next)
+        return " => " + str(self.next)
 
 class HeadNodePattern(ContPattern):
     def __init__(self, i):
@@ -403,7 +404,15 @@ class GraphM:
     def clean(self):
         self.l = self.l.copy()
 
-class Graph:
+class Graph(DataStructure):
+
+    @staticmethod
+    def TO():
+        return GraphO
+
+    @staticmethod
+    def TM():
+        return GraphM
 
     class Ctx():
         def __init__(self,g):

@@ -1,48 +1,10 @@
-
-#
-# 1, 2, 1, 2, 3
-#
-# a, b, c, d, e, f, g, h, i, j
-# 1, x, ?, ?, ?
-#    ^
-# 1, 2, x, ?, ?
-#          ^
-# 1, 2, 1, x, ?
-#          ^
-# 1, 2, 1, 2, x
-#       ^
-# 1, 2, 1, 2, 3
-#               ^
-#
-# 1, 2, 1, 2, 1
-#
-# a, b, c, d, e, f, g, h, i, j
-# 1, x, ?, ?, ?
-#    ^
-# 1, 2, x, ?, ?
-#          ^
-# 1, 2, 1, x, ?
-#          ^
-# 1, 2, 1, 2, x
-#       ^
-# 1, 2, 1, 2, 3
-#               ^
-#
+from DataStructure import DataStructure
 
 class SequenceO:
     def __init__(self, s):
         self.s = s
         self.partial = None # memoized partials matches
 
-    # def __eq__(self, other):
-    #     return self.s == other.s
-    #
-    # def __hash__(self):
-    #     r = len(self.s)
-    #     for i in self.s:
-    #         r ^= 31 * hash(i)
-    #     return r
-    #
     def __len__(self):
         return len(self.s)
 
@@ -114,29 +76,24 @@ class KMP:
                 j = P.partial[j - 1]
             if T.s[i] == P.s[j]: j += 1
             if j == len(P.s):
-                # ret.append(i - (j - 1))
                 yield (i - (j - 1))
                 j = P.partial[j - 1]
 
-        return ret
-
 k = KMP()
 
-class Sequence:
+class Sequence(DataStructure):
+
+    @staticmethod
+    def TO():
+        return SequenceO
+
+    @staticmethod
+    def TM():
+        return SequenceM
 
     @staticmethod
     def pattern_match(p, s):
-        # print("match", p, s)
         if isinstance(p, SequenceO):
-            # l = []
-            # for i in range(0, len(s.s)-len(p.s)):
-            #     valid = True
-            #     for j in range(0, len(p.s)):
-            #         if s.s[i+j] != p.s[j]:
-            #             valid = False
-            #             break
-            #     if valid:
-            #         l.append(i)
             if(p.s == []):
                 for i in range(0, len(s.s) + 1):
                     yield SequenceM(p, s, i)
@@ -144,22 +101,16 @@ class Sequence:
                 for i in k.search(s, p):
                     yield SequenceM(p, s, i)
         else:
-            # print(p.dom.s, p.cod.s, p.i)
-            # print(s.dom.s, s.cod.s, s.i)
             start1 = s.i - p.i
             end1 = s.i
-            # print(start1, end1)
             start2 = start1 + len(p.dom.s) + p.i
             end2 = start1 + len(p.cod.s)
-            # print(start2, end2)
             if start1 < 0 or end2 > len(s.cod.s):
                return
             for i in range(start1, end1):
-                # print("i : ", i, "s.cod: ", s.cod, "p.cod: ", p.cod, "i - p.i", i - p.i)
                 if s.cod.s[i] != p.cod.s[i - start1]:
                     return
             for i in range(start2, end2):
-                # print("i : ", i)
                 if s.cod.s[i] != p.cod.s[i - start1]:
                     return
 
@@ -173,25 +124,20 @@ class Sequence:
     def merge_2_in_1(m1, m2):
         if m1.s != m2.s:
                 raise Exception("Not same source")
-        s = m1.s
         assert m2.i <= m1.i
-        end = min(len(m1.t) - m1.i, len(m2.t) - m2.i)
         if len(m1.t) - m1.i < len(m2.t) - m2.i:
             for i in range(m1.i - m2.i, len(m1.t)):
                 if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    # print('fail1')
                     return None
             for i in range(len(m1.t) - (m1.i - m2.i), len(m2.t)):
                 m1.t.s.append(m2.t.s[i])
         else:
             for i in range(m1.i - m2.i, len(m2.t) + (m1.i - m2.i)):
                 if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    # print('fail2')
                     return None
                 else:
                     for i in range(len(m2.t) - (m1.i - m2.i), len(m2.t)):
                         if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                            # print('fail3')
                             return None
         return m1.t, SequenceM(m2.t, m1.t, m1.i - m2.i)
 

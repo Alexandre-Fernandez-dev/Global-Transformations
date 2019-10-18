@@ -111,10 +111,10 @@ class GT:
 
     Attributes
     ----------
-    CS : Datatype (TODO use Datatype as category)
+    CS : DataStructure (TODO use Datatype/DataStructure as category)
         the source Datatype
     
-    CD : Datatype
+    CD : DataStructure
         the destination Datatype
     
     G : nx.MultiDiGraph
