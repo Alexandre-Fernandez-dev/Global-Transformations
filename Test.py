@@ -170,14 +170,19 @@ def test_graph():
         'width': 1,
     }
 
-    # nx.draw_kamada_kawai(g.g, **options)
-    # plt.show()
+    nx.draw_kamada_kawai(g.g, **options)
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+    plt.show()
     for i in range(5):
         g_ = T.apply(g)
         print(g_)
         g = tuple(g_)[0].object
-        # nx.draw_kamada_kawai(g.g, **options)
-        # plt.show()
+        plt.subplot(121)
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+        nx.draw_kamada_kawai(g.g, **options)
+        plt.show()
 
     print(len(g.nodes))
     print(len(g.edges))
@@ -266,7 +271,7 @@ def test_seq_graph():
     # print(len(g.edges))
     # print(1 + len(g.edges) - len(g.nodes))
 
-test_seq()
+test_graph()
 
 
 

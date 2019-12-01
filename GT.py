@@ -389,24 +389,28 @@ class GT:
                 matches[match_] = ins_
             return ins
 
-        def close(ins):
+        def close(cins):
             global depth
-            small = True
-            for under_rule, _, inc in self.G.in_edges(ins.rule, keys = True):
-                under_match = inc.lhs.compose(ins.ins)
-                small = False
-                if under_match not in matches:
-                    under_match.clean()
-                    under_ins = add_instance(under_rule, under_match, False, False)
-                else:
-                    under_ins = matches[under_match]
-                subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
-                Result.merge(ins.result, subresult, under_ins.result, under_ins.subresult)
-                if not under_ins.green:
-                    depth -= 1
-                    close(under_ins)
-                    depth += 1
-            ins.green = True
+            cfifo = [cins]
+            while len(cfifo) > 0:
+                ins = cfifo.pop(0)
+                small = True
+                for under_rule, _, inc in self.G.in_edges(ins.rule, keys = True):
+                    under_match = inc.lhs.compose(ins.ins)
+                    small = False
+                    if under_match not in matches:
+                        under_match.clean()
+                        under_ins = add_instance(under_rule, under_match, False, False)
+                    else:
+                        under_ins = matches[under_match]
+                    subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
+                    Result.merge(ins.result, subresult, under_ins.result, under_ins.subresult)
+                    if not under_ins.green:
+                        # depth -= 1
+                        # close(under_ins)
+                        cfifo.insert(0, under_ins)
+                        # depth += 1
+                ins.green = True
 
         def star(ins):
             global depth

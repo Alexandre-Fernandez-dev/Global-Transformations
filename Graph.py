@@ -1,6 +1,131 @@
 import math
 import networkx as nx
 from DataStructure import DataStructure
+import matplotlib.pyplot as plt
+
+def draw_pat(g, pats, text):
+    plt.subplot(121)
+    options = {
+        'node_size': 10,
+        'width': 1,
+    }
+    color_map = []
+    for node in g:
+        color_map.append('gray')
+    for m in pats:
+        for node in m.s.g:
+            color_map[m.l[node]] = 'black'
+
+    reverse_map = {}
+    e_color_map = []
+    i = 0
+    for (u,v,d) in g.edges(keys = True):
+        e_color_map.append('gray')
+        reverse_map[(u,v,d)] = i
+        i += 1
+
+    for m in pats:
+        for (u,v,d) in m.s.g.edges(keys = True):
+            e_color_map[reverse_map[m.l[(u,v,d)]]] = 'black'
+
+    nx.draw_kamada_kawai(g, node_color = color_map, edge_color = e_color_map, **options)
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+    plt.title(text)
+    plt.show()
+
+def draw_quotient(m1, m2, text):
+    plt.subplot(121)
+    options = {
+        'node_size': 10,
+        'width': 1,
+    }
+    color_map = []
+    for node in m1.t.g:
+        color_map.append('black')
+    for node in m1.s.g:
+        color_map[m1.l[node]] = 'blue'
+    for node in m2.s.g:
+        if color_map[m2.l[node]] == 'blue':
+            color_map[m2.l[node]] = 'purple'
+        else:
+            color_map[m2.l[node]] = 'red'
+
+    reverse_map = {}
+    e_color_map = []
+    i = 0
+    for (u,v,d) in m1.t.g.edges(keys = True):
+        e_color_map.append('black')
+        reverse_map[(u,v,d)] = i
+        i += 1
+
+    for (u,v,d) in m1.s.g.edges(keys = True):
+        e_color_map[reverse_map[m1.l[(u,v,d)]]] = 'blue'
+
+    for (u,v,d) in m2.s.g.edges(keys = True):
+        if e_color_map[reverse_map[m2.l[(u,v,d)]]] == 'blue':
+            e_color_map[reverse_map[m2.l[(u,v,d)]]] = 'purple'
+        else:
+            e_color_map[reverse_map[m2.l[(u,v,d)]]] = 'red'
+
+    nx.draw_kamada_kawai(m2.t.g, node_color = color_map, edge_color = e_color_map, **options)
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+    plt.title(text)
+    plt.show()
+
+def draw(m1, m2, text):
+    fig, axes = plt.subplots(nrows=1, ncols=2)
+    ax = axes.flatten()
+    options = {
+        'node_size': 10,
+        'width': 1,
+    }
+    color_map = []
+    for node in m1.t.g:
+        color_map.append('black')
+    for node in m1.s.g:
+        color_map[m1.l[node]] = 'blue'
+
+    reverse_map = {}
+    e_color_map = []
+    i = 0
+    for (u,v,d) in m1.t.g.edges(keys = True):
+        e_color_map.append('black')
+        reverse_map[(u,v,d)] = i
+        i += 1
+
+    for (u,v,d) in m1.s.g.edges(keys = True):
+        e_color_map[reverse_map[m1.l[(u,v,d)]]] = 'blue'
+
+    nx.draw_kamada_kawai(m1.t.g, node_color = color_map, edge_color = e_color_map, ax=ax[0], **options)
+
+    options = {
+        'node_size': 10,
+        'width': 1,
+    }
+    color_map = []
+    for node in m2.t.g:
+        color_map.append('black')
+    for node in m2.s.g:
+        color_map[m2.l[node]] = 'blue'
+
+    reverse_map = {}
+    e_color_map = []
+    i = 0
+    for (u,v,d) in m2.t.g.edges(keys = True):
+        e_color_map.append('black')
+        reverse_map[(u,v,d)] = i
+        i += 1
+
+    for (u,v,d) in m2.s.g.edges(keys = True):
+        e_color_map[reverse_map[m2.l[(u,v,d)]]] = 'blue'
+
+    nx.draw_kamada_kawai(m2.t.g, node_color = color_map, edge_color = e_color_map, ax=ax[1], **options)
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+    plt.title(text)
+    plt.show()
 
 def kth_injection(p,q,k):
     if (p,q) not in kth_injection.mem: kth_injection.mem[(p,q)] = [ None ] * (math.factorial(q) // math.factorial(q-p))
@@ -404,6 +529,8 @@ class GraphM:
     def clean(self):
         self.l = self.l.copy()
 
+draw_pats = []
+
 class Graph(DataStructure):
 
     @staticmethod
@@ -435,7 +562,10 @@ class Graph(DataStructure):
             pat = p.pattern()
             ctx = Graph.Ctx(g)
             for l in pat.match(ctx):
-                yield GraphM(p,g,l)
+                m = GraphM(p,g,l)
+                # draw_pats.append(m)
+                # draw_pat(g, draw_pats, "match")
+                yield m
         else:
             pat = p.pattern()
             ctx = Graph.Ctx(g.cod)
@@ -447,12 +577,17 @@ class Graph(DataStructure):
             # print("=================> " + str(ctx.l))
             # print("=================> " + str(ctx.l))
             for l in pat.match(ctx):
-                yield GraphM(p.cod,g.cod,l)
+                m = GraphM(p.cod,g.cod,l)
+                # draw_pats.append(m)
+                # draw_pat(g, draw_pats, "match")
+                yield m
 
     @staticmethod
     def quotient(m1, m2):
         if m1.s != m2.s or m1.t != m2.t:
             raise ValueError("Graph: Graph: quotient: morphisms should have same signature")
+        draw_quotient(m1, m2, "quotient")
+
         s = m1.s
         t = m1.t
         l = {}
@@ -479,10 +614,22 @@ class Graph(DataStructure):
 
         m_ = GraphM(t, r, l_)
 
+        options = {
+            'node_color': 'green',
+            'node_size': 10,
+            'width': 1,
+        }
+
+        plt.subplot(121)
+        nx.draw_kamada_kawai(r.g, **options)
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+        plt.show()
         return r, lambda m: m.compose(m_)
 
     @staticmethod
     def merge_2_in_1(m1, m2):
+        draw(m1, m2, "merge")
         # print("merge21")
         t1 = m1.t
         t2 = m2.t
@@ -511,6 +658,17 @@ class Graph(DataStructure):
                 l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
 
         # return r, l1, l2
+        options = {
+            'node_color': 'green',
+            'node_size': 10,
+            'width': 1,
+        }
+
+        plt.subplot(121)
+        nx.draw_kamada_kawai(r.g, **options)
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+        plt.show()
         return r, GraphM(t2, r, l2)
 
 
@@ -518,6 +676,7 @@ class Graph(DataStructure):
     def merge(m1, m2):
         if m1.s != m2.s:
             raise Exception("Not same source")
+        draw(m1, m2, "merge")
         t1 = m1.t
         t2 = m2.t
         l1 = {}
@@ -548,6 +707,17 @@ class Graph(DataStructure):
             if (i,j,e) not in l2:
                 l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
 
+        options = {
+            'node_color': 'green',
+            'node_size': 10,
+            'width': 1,
+        }
+
+        plt.subplot(121)
+        nx.draw_kamada_kawai(r.g, **options)
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+        plt.show()
         return r, GraphM(t1, r, l1), GraphM(t2, r, l2)
 
 def test_merge():
