@@ -1,3 +1,4 @@
+import Graph as GraphModule
 from Graph import *
 from GT import *
 import matplotlib.pyplot as plt
@@ -163,26 +164,28 @@ def test_graph():
     # e233 = g.add_edge(n23,n3)
     # e331 = g.add_edge(n3,n31)
     # e311 = g.add_edge(n31,n1)
-    plt.subplot(121)
-    options = {
-        'node_color': 'black',
-        'node_size': 10,
-        'width': 1,
-    }
+    # plt.subplot(121)
+    # options = {
+    #     'node_color': 'black',
+    #     'node_size': 10,
+    #     'width': 1,
+    # }
 
-    nx.draw_kamada_kawai(g.g, **options)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
-    plt.show()
-    for i in range(5):
+    # nx.draw_kamada_kawai(g.g, **options)
+    # figManager = plt.get_current_fig_manager()
+    # figManager.window.showMaximized()
+    # plt.show()
+    GraphModule.show = True
+    for i in range(3):
+        print("------------------------------------------COMPUTE START", i)
         g_ = T.apply(g)
-        print(g_)
+        # print(g_)
         g = tuple(g_)[0].object
-        plt.subplot(121)
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
-        nx.draw_kamada_kawai(g.g, **options)
-        plt.show()
+        # plt.subplot(121)
+        # figManager = plt.get_current_fig_manager()
+        # figManager.window.showMaximized()
+        # nx.draw_kamada_kawai(g.g, **options)
+        # plt.show()
 
     print(len(g.nodes))
     print(len(g.edges))

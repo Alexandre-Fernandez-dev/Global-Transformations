@@ -3,6 +3,8 @@ import networkx as nx
 from DataStructure import DataStructure
 import matplotlib.pyplot as plt
 
+show = False
+
 def draw_pat(g, pats, text):
     plt.subplot(121)
     options = {
@@ -584,9 +586,11 @@ class Graph(DataStructure):
 
     @staticmethod
     def quotient(m1, m2):
+        global show
         if m1.s != m2.s or m1.t != m2.t:
             raise ValueError("Graph: Graph: quotient: morphisms should have same signature")
-        draw_quotient(m1, m2, "quotient")
+        if show:
+            draw_quotient(m1, m2, "quotient")
 
         s = m1.s
         t = m1.t
@@ -614,37 +618,32 @@ class Graph(DataStructure):
 
         m_ = GraphM(t, r, l_)
 
-        options = {
-            'node_color': 'green',
-            'node_size': 10,
-            'width': 1,
-        }
+        if show:
+            options = {
+                'node_color': 'green',
+                'node_size': 10,
+                'width': 1,
+            }
 
-        plt.subplot(121)
-        nx.draw_kamada_kawai(r.g, **options)
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
-        plt.show()
+            plt.subplot(121)
+            nx.draw_kamada_kawai(r.g, **options)
+            figManager = plt.get_current_fig_manager()
+            figManager.window.showMaximized()
+            plt.show()
         return r, lambda m: m.compose(m_)
 
     @staticmethod
     def merge_2_in_1(m1, m2):
-        draw(m1, m2, "merge")
-        # print("merge21")
+        global show
+        if show:
+            draw(m1, m2, "merge")
         t1 = m1.t
         t2 = m2.t
-        # l1 = {}
         l2 = {}
         r = t1
 
-        # for i in t1.nodes:
-        #     l1[i] = i
-
         for i in m1.s.nodes:
             l2[m2.l[i]] = m1.l[i]
-
-        # for e in t1.edges:
-        #     l1[e] = e
 
         for e in m1.s.edges:
             l2[m2.l[e]] = m1.l[e]
@@ -657,26 +656,28 @@ class Graph(DataStructure):
             if (i,j,e) not in l2:
                 l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
 
-        # return r, l1, l2
-        options = {
-            'node_color': 'green',
-            'node_size': 10,
-            'width': 1,
-        }
+        if show:
+            options = {
+                'node_color': 'green',
+                'node_size': 10,
+                'width': 1,
+            }
 
-        plt.subplot(121)
-        nx.draw_kamada_kawai(r.g, **options)
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
-        plt.show()
+            plt.subplot(121)
+            nx.draw_kamada_kawai(r.g, **options)
+            figManager = plt.get_current_fig_manager()
+            figManager.window.showMaximized()
+            plt.show()
         return r, GraphM(t2, r, l2)
 
 
     @staticmethod
     def merge(m1, m2):
+        global show
         if m1.s != m2.s:
             raise Exception("Not same source")
-        draw(m1, m2, "merge")
+        if show:
+            draw(m1, m2, "merge")
         t1 = m1.t
         t2 = m2.t
         l1 = {}
@@ -707,17 +708,18 @@ class Graph(DataStructure):
             if (i,j,e) not in l2:
                 l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
 
-        options = {
-            'node_color': 'green',
-            'node_size': 10,
-            'width': 1,
-        }
+        if show:
+            options = {
+                'node_color': 'green',
+                'node_size': 10,
+                'width': 1,
+            }
 
-        plt.subplot(121)
-        nx.draw_kamada_kawai(r.g, **options)
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
-        plt.show()
+            plt.subplot(121)
+            nx.draw_kamada_kawai(r.g, **options)
+            figManager = plt.get_current_fig_manager()
+            figManager.window.showMaximized()
+            plt.show()
         return r, GraphM(t1, r, l1), GraphM(t2, r, l2)
 
 def test_merge():

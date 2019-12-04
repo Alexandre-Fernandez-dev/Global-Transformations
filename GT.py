@@ -311,6 +311,11 @@ class GT:
 
             @staticmethod
             def merge(res_a, h_a, res_b, h_b):
+                print("\ntry merge")
+                print("h_a", h_a)
+                print("res_a", res_a)
+                print("h_b", h_b)
+                print("res_b", res_b)
                 if h_a == None:
                     raise ValueError("First argument cannot be None")
                 elif h_b == None:
@@ -366,6 +371,7 @@ class GT:
                         res_b.obs_by = None
                         res_b.object = None
                         results.remove(res_b)
+                print()
 
             def __repr__(self):
                 return str(self.object) + ", observed by " + str(-1 if self.obs_by == None else len(self.obs_by)) + " instance(s)"
@@ -391,17 +397,26 @@ class GT:
 
         def close(cins):
             global depth
+            print("CLOSE")
+            print(">>>>>>>>>>>>>>>>>>>>>")
             cfifo = [cins]
             while len(cfifo) > 0:
-                ins = cfifo.pop(0)
-                small = True
+                ins = cfifo.pop()
+                print(ins.rule)
+                print("in edges :")
+                for under_rule, m, inc in self.G.in_edges(ins.rule, keys = True):
+                    print(under_rule, m, inc)
+                print("end.")
+                print(">")
                 for under_rule, _, inc in self.G.in_edges(ins.rule, keys = True):
+                    print("< rule >", under_rule, m, inc)
                     under_match = inc.lhs.compose(ins.ins)
-                    small = False
                     if under_match not in matches:
+                        print("add_instance")
                         under_match.clean()
                         under_ins = add_instance(under_rule, under_match, False, False)
                     else:
+                        print("already_known")
                         under_ins = matches[under_match]
                     subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
                     Result.merge(ins.result, subresult, under_ins.result, under_ins.subresult)
@@ -410,17 +425,23 @@ class GT:
                         # close(under_ins)
                         cfifo.insert(0, under_ins)
                         # depth += 1
+                    print("< endrule >")
                 ins.green = True
+            print(">>>>>>>>>>>>>>>>>>>>>")
 
         def star(ins):
             global depth
+            print("\n", "  "*depth, "STAR", ins.rule)
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.CS.pattern_match(inc.lhs, ins.ins):
+                    print("", "  "*depth, "-match", over_rule)
                     top = False
                     if over_match in matches:
+                        print("", "  "*depth, "X")
                         over_ins = matches[over_match]
                     else:
+                        print("", "  "*depth, "O")
                         over_match.clean()
                         over_ins = add_instance(over_rule, over_match, False, False)
                     if not over_ins.black:
@@ -445,8 +466,7 @@ class GT:
         while len(fifo) > 0:
             depth = 0
             small_ins = fifo.pop()
-            # print("POOOOOOOOOOOOOOOOOOP")
-            # small_ins.black = True
+            print("\nPOOOOOOOOOOOOOOOOOOP", small_ins.rule)
             assert not small_ins.black
             star(small_ins)
             for dep_ins in small_ins.uppercone:
