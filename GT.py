@@ -254,6 +254,14 @@ class GT:
         CD.O
             the result
         """
+        for g in self.G.nodes:
+            print("node : ", g.lhs)
+            for (u, v, e) in self.G.out_edges(g, keys=True):
+                print("-----------edge : ", v.lhs, e.lhs.MC)
+                print()
+            print()
+            print()
+
         if self.smalls == None:
             self.smalls = set()
             self.small_pred = nx.MultiDiGraph()
@@ -262,7 +270,7 @@ class GT:
 
         class Instance():
             def __init__(self_, rule, ins, black):
-                # print("test", ins.dom, rule.lhs)
+                print("Instance.__init__", ins)
                 assert isinstance(rule, Rule)
                 assert ins.dom == rule.lhs
                 assert ins.cod == X
@@ -276,6 +284,17 @@ class GT:
                 for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
                     small_match = inc.lhs.compose(ins)
                     if small_match not in matches:
+                        print("init add instance")
+                        print("matches :")
+                        for m in matches:
+                            print(">>", m)
+                            print(">>", hash(m))
+                            print(">>", hash(m.MC))
+                        print("small_match :")
+                        print(">>", small_match)
+                        print(">>", hash(small_match))
+                        print(">>", hash(small_match.MC))
+                        print("small_match not in matches :", small_match not in matches)
                         small_ins = add_instance(small_rule, small_match, False)
                         fifo.insert(0, small_ins)
                     else:
@@ -444,7 +463,8 @@ class GT:
         depth = 0
 
         def add_instance(rule, match, black):
-            # print("add i rule.l : " + str(rule.lhs) + " | " + str(match))
+            global depth
+            print(" | "*depth, "> add instance (r, m) : " + str(rule.lhs) + " | " + str(match))
             res = Result(rule.rhs, True)
             results.add(res)
             ins = Instance(rule, match, black)
@@ -458,18 +478,24 @@ class GT:
             return ins
 
         def close_rec(ins):
+            global depth
             l = []
             for u_rule, _, u_inc in self.G.in_edges(ins.rule, keys = True):
                 under_match = u_inc.lhs.compose(ins.ins)
                 if under_match not in matches:
                     under_match.clean()
+                    print("close add instance")
                     under_ins = add_instance(u_rule, under_match, False)
                 else:
                     under_ins = matches[under_match]
+                depth -= 1
                 l += close(under_ins, u_inc, ins)
+                depth += 1
             return l
 
         def close(ins, inc, pins):
+            global depth
+            # print("   "*depth, "<- CLOSE, INS :", ins)
             if inc == None: # case top (included in no other)
                 multi_merge(close_rec(ins))
             else:
@@ -482,11 +508,17 @@ class GT:
                         return [(ins.result, ins.subresult, pins.result, new_subresult)]
                     else: # same result, same wave
                         return []
+            # print("   "*depth, "END CLOSE ->")
+            # print()
 
         def star(ins):
             global depth
+            print()
+            print(" | "*depth, "<+ STAR, INS :", ins)
+            print()
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
+                # print("match in ", ins.ins)
                 for over_match in self.CS.pattern_match(inc.lhs, ins.ins):
                     top = False
                     if over_match in matches:
@@ -501,6 +533,8 @@ class GT:
             ins.black = True
             if top:
                 close(ins, None, None)
+            print(" | "*depth, "END STAR +>")
+            print()
 
         def next_small():
             for small_rule in self.smalls:

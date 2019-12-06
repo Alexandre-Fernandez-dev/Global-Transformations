@@ -278,7 +278,7 @@ def test_seq_graph():
     # print(len(g.edges))
     # print(1 + len(g.edges) - len(g.nodes))
 
-test_seq()
+# test_seq()
 test_graph()
 
 
