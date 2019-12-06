@@ -2,126 +2,95 @@ import math
 import networkx as nx
 from DataStructure import DataStructure
 import matplotlib.pyplot as plt
+from itertools import chain
+import time
 
 show = False
 
-def draw_pat(g, pats, text):
-    plt.subplot(121)
+# def draw_pat(g, pats, text):
+#     plt.subplot(121)
+#     options = {
+#         'node_size': 10,
+#         'width': 1,
+#     }
+#     color_map = []
+#     for node in g:
+#         color_map.append('gray')
+#     for m in pats:
+#         for node in m.s.g:
+#             color_map[m.l[node]] = 'black'
+# 
+#     reverse_map = {}
+#     e_color_map = []
+#     i = 0
+#     for (u,v,d) in g.edges(keys = True):
+#         e_color_map.append('gray')
+#         reverse_map[(u,v,d)] = i
+#         i += 1
+# 
+#     for m in pats:
+#         for (u,v,d) in m.s.g.edges(keys = True):
+#             e_color_map[reverse_map[m.l[(u,v,d)]]] = 'black'
+# 
+#     nx.draw_kamada_kawai(g, node_color = color_map, edge_color = e_color_map, **options)
+#     figManager = plt.get_current_fig_manager()
+#     figManager.window.showMaximized()
+#     plt.title(text)
+#     plt.show()
+
+def draw(m1s, m2s, text):
+    fig, axes = plt.subplots(nrows=1, ncols=2)
+
+    m1t = m1s[0].t
+    m2t = m2s[0].t
+    ax = axes.flatten()
     options = {
-        'node_size': 10,
+        'node_size': 20,
         'width': 1,
     }
     color_map = []
-    for node in g:
-        color_map.append('gray')
-    for m in pats:
-        for node in m.s.g:
-            color_map[m.l[node]] = 'black'
+    for node in m1t.g:
+        color_map.append('black')
+    for m1 in m1s:
+        for node in m1.s.g:
+            color_map[m1.l[node]] = 'red'
 
     reverse_map = {}
     e_color_map = []
     i = 0
-    for (u,v,d) in g.edges(keys = True):
-        e_color_map.append('gray')
+    for (u,v,d) in m1t.g.edges(keys = True):
+        e_color_map.append('black')
         reverse_map[(u,v,d)] = i
         i += 1
 
-    for m in pats:
-        for (u,v,d) in m.s.g.edges(keys = True):
-            e_color_map[reverse_map[m.l[(u,v,d)]]] = 'black'
+    for m1 in m1s:
+        for (u,v,d) in m1.s.g.edges(keys = True):
+            e_color_map[reverse_map[m1.l[(u,v,d)]]] = 'red'
 
-    nx.draw_kamada_kawai(g, node_color = color_map, edge_color = e_color_map, **options)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
-    plt.title(text)
-    plt.show()
+    nx.draw_kamada_kawai(m1.t.g, node_color = color_map, edge_color = e_color_map, ax=ax[0], **options)
 
-def draw_quotient(m1, m2, text):
-    plt.subplot(121)
     options = {
-        'node_size': 10,
+        'node_size': 20,
         'width': 1,
     }
     color_map = []
-    for node in m1.t.g:
+    for node in m2t.g:
         color_map.append('black')
-    for node in m1.s.g:
-        color_map[m1.l[node]] = 'blue'
-    for node in m2.s.g:
-        if color_map[m2.l[node]] == 'blue':
-            color_map[m2.l[node]] = 'purple'
-        else:
+    for m2 in m2s:
+        for node in m2.s.g:
             color_map[m2.l[node]] = 'red'
 
     reverse_map = {}
     e_color_map = []
     i = 0
-    for (u,v,d) in m1.t.g.edges(keys = True):
+    for (u,v,d) in m2t.g.edges(keys = True):
         e_color_map.append('black')
         reverse_map[(u,v,d)] = i
         i += 1
 
-    for (u,v,d) in m1.s.g.edges(keys = True):
-        e_color_map[reverse_map[m1.l[(u,v,d)]]] = 'blue'
-
-    for (u,v,d) in m2.s.g.edges(keys = True):
-        if e_color_map[reverse_map[m2.l[(u,v,d)]]] == 'blue':
-            e_color_map[reverse_map[m2.l[(u,v,d)]]] = 'purple'
-        else:
+    for m2 in m2s:
+        for (u,v,d) in m2.s.g.edges(keys = True):
             e_color_map[reverse_map[m2.l[(u,v,d)]]] = 'red'
-
-    nx.draw_kamada_kawai(m2.t.g, node_color = color_map, edge_color = e_color_map, **options)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
-    plt.title(text)
-    plt.show()
-
-def draw(m1, m2, text):
-    fig, axes = plt.subplots(nrows=1, ncols=2)
-    ax = axes.flatten()
-    options = {
-        'node_size': 10,
-        'width': 1,
-    }
-    color_map = []
-    for node in m1.t.g:
-        color_map.append('black')
-    for node in m1.s.g:
-        color_map[m1.l[node]] = 'blue'
-
-    reverse_map = {}
-    e_color_map = []
-    i = 0
-    for (u,v,d) in m1.t.g.edges(keys = True):
-        e_color_map.append('black')
-        reverse_map[(u,v,d)] = i
-        i += 1
-
-    for (u,v,d) in m1.s.g.edges(keys = True):
-        e_color_map[reverse_map[m1.l[(u,v,d)]]] = 'blue'
-
-    nx.draw_kamada_kawai(m1.t.g, node_color = color_map, edge_color = e_color_map, ax=ax[0], **options)
-
-    options = {
-        'node_size': 10,
-        'width': 1,
-    }
-    color_map = []
-    for node in m2.t.g:
-        color_map.append('black')
-    for node in m2.s.g:
-        color_map[m2.l[node]] = 'blue'
-
-    reverse_map = {}
-    e_color_map = []
-    i = 0
-    for (u,v,d) in m2.t.g.edges(keys = True):
-        e_color_map.append('black')
-        reverse_map[(u,v,d)] = i
-        i += 1
-
-    for (u,v,d) in m2.s.g.edges(keys = True):
-        e_color_map[reverse_map[m2.l[(u,v,d)]]] = 'blue'
 
     nx.draw_kamada_kawai(m2.t.g, node_color = color_map, edge_color = e_color_map, ax=ax[1], **options)
     figManager = plt.get_current_fig_manager()
@@ -584,143 +553,295 @@ class Graph(DataStructure):
                 # draw_pat(g, draw_pats, "match")
                 yield m
 
+    # @staticmethod
+    # def quotient(m1, m2):
+    #     print("QUOTIENT")
+    #     global show
+    #     if m1.s != m2.s or m1.t != m2.t:
+    #         raise ValueError("Graph: Graph: quotient: morphisms should have same signature")
+    #     if show:
+    #         draw_quotient(m1, m2, "quotient")
+
+    #     s = m1.s
+    #     t = m1.t
+    #     l = {}
+    #     r = s.copy()
+    #     l_ = {}
+
+    #     for i in s.nodes:
+    #         l[i] = i
+    #         l_[m1.l[i]] = i
+    #         l_[m2.l[i]] = i
+
+    #     for e in s.edges:
+    #         l[e] = e
+    #         l_[m1.l[e]] = e
+    #         l_[m2.l[e]] = e
+
+    #     for i in t.nodes:
+    #         if i not in l_:
+    #             l_[i] = r.add_node()
+
+    #     for e in t.edges:
+    #         if e not in l_:
+    #             l_[e] = r.add_edge(l_[e[0]],l_[e[1]])
+
+    #     m_ = GraphM(t, r, l_)
+
+    #     if show:
+    #         options = {
+    #             'node_color': 'green',
+    #             'node_size': 10,
+    #             'width': 1,
+    #         }
+
+    #         plt.subplot(121)
+    #         nx.draw_kamada_kawai(r.g, **options)
+    #         figManager = plt.get_current_fig_manager()
+    #         figManager.window.showMaximized()
+    #         plt.show()
+    #     return r, lambda m: m.compose(m_)
+
+    # @staticmethod
+    # def merge_2_in_1(m1, m2):
+    #     global show
+    #     if m1.s != m2.s:
+    #         raise Exception("Not same source")
+    #     if show:
+    #         draw(m1, m2, "merge")
+    #     t1 = m1.t
+    #     t2 = m2.t
+    #     l2 = {}
+    #     r = t1
+
+    #     for i in m1.s.nodes:
+    #         l2[m2.l[i]] = m1.l[i]
+
+    #     for e in m1.s.edges:
+    #         l2[m2.l[e]] = m1.l[e]
+
+    #     for i in t2.nodes:
+    #         if i not in l2:
+    #             l2[i] = r.add_node()
+
+    #     for (i,j,e) in t2.edges:
+    #         if (i,j,e) not in l2:
+    #             l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
+
+    #     if show:
+    #         options = {
+    #             'node_color': 'green',
+    #             'node_size': 10,
+    #             'width': 1,
+    #         }
+
+    #         plt.subplot(121)
+    #         nx.draw_kamada_kawai(r.g, **options)
+    #         figManager = plt.get_current_fig_manager()
+    #         figManager.window.showMaximized()
+    #         plt.show()
+    #     return r, GraphM(t2, r, l2)
+
+    # @staticmethod
+    # def merge(m1, m2):
+    #     global show
+    #     if m1.s != m2.s:
+    #         raise Exception("Not same source")
+    #     if show:
+    #         draw(m1, m2, "merge")
+    #     t1 = m1.t
+    #     t2 = m2.t
+    #     l1 = {}
+    #     l2 = {}
+    #     r = m1.s.copy()
+
+    #     for i in r.nodes:
+    #         l1[m1.l[i]] = i
+    #         l2[m2.l[i]] = i
+
+    #     for e in r.edges:
+    #         l1[m1.l[e]] = e
+    #         l2[m2.l[e]] = e
+
+    #     for i in t1.nodes:
+    #         if i not in l1:
+    #             l1[i] = r.add_node()
+
+    #     for i in t2.nodes:
+    #         if i not in l2:
+    #             l2[i] = r.add_node()
+
+    #     for (i,j,e) in t1.edges:
+    #         if (i,j,e) not in l1:
+    #             l1[(i,j,e)] = r.add_edge(l1[i],l1[j])
+
+    #     for (i,j,e) in t2.edges:
+    #         if (i,j,e) not in l2:
+    #             l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
+
+    #     if show:
+    #         options = {
+    #             'node_color': 'green',
+    #             'node_size': 10,
+    #             'width': 1,
+    #         }
+
+    #         plt.subplot(121)
+    #         nx.draw_kamada_kawai(r.g, **options)
+    #         figManager = plt.get_current_fig_manager()
+    #         figManager.window.showMaximized()
+    #         plt.show()
+    #     return r, GraphM(t1, r, l1), GraphM(t2, r, l2)
+
     @staticmethod
-    def quotient(m1, m2):
+    def multi_merge(m1s, m2s):
         global show
-        if m1.s != m2.s or m1.t != m2.t:
-            raise ValueError("Graph: Graph: quotient: morphisms should have same signature")
         if show:
-            draw_quotient(m1, m2, "quotient")
-
-        s = m1.s
-        t = m1.t
-        l = {}
-        r = s.copy()
-        l_ = {}
-
-        for i in s.nodes:
-            l[i] = i
-            l_[m1.l[i]] = i
-            l_[m2.l[i]] = i
-
-        for e in s.edges:
-            l[e] = e
-            l_[m1.l[e]] = e
-            l_[m2.l[e]] = e
-
-        for i in t.nodes:
-            if i not in l_:
-                l_[i] = r.add_node()
-
-        for e in t.edges:
-            if e not in l_:
-                l_[e] = r.add_edge(l_[e[0]],l_[e[1]])
-
-        m_ = GraphM(t, r, l_)
-
-        if show:
-            options = {
-                'node_color': 'green',
-                'node_size': 10,
-                'width': 1,
-            }
-
-            plt.subplot(121)
-            nx.draw_kamada_kawai(r.g, **options)
-            figManager = plt.get_current_fig_manager()
-            figManager.window.showMaximized()
-            plt.show()
-        return r, lambda m: m.compose(m_)
+            draw(m1s, m2s, "multi_merge")
+        t1 = m1s[0].t
+        t2 = m2s[0].t
+        r = t1.copy()
+        lr1 = { k:k for k in chain(iter(t1.nodes), iter(t1.edges)) } #identity
+        lr2 = {}
+        for m1, m2 in zip(m1s, m2s):
+            assert m1.s == m2.s and m1.t == t1 and m2.t == t2
+            s = m1.s
+            for n in s.nodes:
+                if lr2.get(m2.l[n]) != None:
+                    if lr2[m2.l[n]] != m1.l[n]:
+                        # conflict
+                        raise Exception("multi_merge collapse")
+                lr2[m2.l[n]] = m1.l[n] #lr1 is identity
+            for e in s.edges:
+                if lr2.get(m2.l[e]) != None:
+                    if lr2[m2.l[e]] != m1.l[e]:
+                        # conflict
+                        raise Exception("multi_merge collapse")
+                lr2[m2.l[e]] = m1.l[e] #lr1 is identity
+        for n in t2.nodes:
+            if n not in lr2:
+                lr2[n] = r.add_node()
+        for (i, j, e) in t2.edges:
+            if (i, j, e) not in lr2:
+                lr2[(i, j, e)] = r.add_edge(lr2[i], lr2[j])
+        return r, GraphM(t1, r, lr1), GraphM(t2, r, lr2)
 
     @staticmethod
-    def merge_2_in_1(m1, m2):
+    def multi_merge_2_in_1(m1s, m2s):
         global show
         if show:
-            draw(m1, m2, "merge")
-        t1 = m1.t
-        t2 = m2.t
-        l2 = {}
+            draw(m1s, m2s, "multi_merge")
+        t1 = m1s[0].t
+        t2 = m2s[0].t
         r = t1
+        lr2 = {}
+        for m1, m2 in zip(m1s, m2s):
+            assert m1.s == m2.s and m1.t == t1 and m2.t == t2
+            s = m1.s
+            for n in s.nodes:
+                if lr2.get(m2.l[n]) != None:
+                    if lr2[m2.l[n]] != m1.l[n]:
+                        # conflict
+                        raise Exception("multi_merge collapse")
+                lr2[m2.l[n]] = m1.l[n] #lr1 is identity
+            for e in s.edges:
+                if lr2.get(m2.l[e]) != None:
+                    if lr2[m2.l[e]] != m1.l[e]:
+                        # conflict
+                        raise Exception("multi_merge collapse")
+                lr2[m2.l[e]] = m1.l[e] #lr1 is identity
+        for n in t2.nodes:
+            if n not in lr2:
+                lr2[n] = r.add_node()
+        for (i, j, e) in t2.edges:
+            if (i, j, e) not in lr2:
+                lr2[(i, j, e)] = r.add_edge(lr2[i], lr2[j])
+        return r, GraphM(t2, r, lr2)
 
-        for i in m1.s.nodes:
-            l2[m2.l[i]] = m1.l[i]
+def test_multi_merge():
+    g1 = GraphO()
+    n1_1 = g1.add_node()
+    n1_2 = g1.add_node()
+    e1_12 = g1.add_edge(n1_1, n1_2)
 
-        for e in m1.s.edges:
-            l2[m2.l[e]] = m1.l[e]
+    g2 = GraphO()
+    n2_1 = g2.add_node()
+    n2_2 = g2.add_node()
+    n2_3 = g2.add_node()
+    e2_12 = g2.add_edge(n2_1, n2_2)
+    e2_23 = g2.add_edge(n2_2, n2_3)
+    e2_31 = g2.add_edge(n2_3, n2_1)
 
-        for i in t2.nodes:
-            if i not in l2:
-                l2[i] = r.add_node()
+    #span a
+    ma121 = GraphM(g1, g2, {
+        n1_1: n2_2,
+        n1_2: n2_3,
+        e1_12: e2_23
+    })
 
-        for (i,j,e) in t2.edges:
-            if (i,j,e) not in l2:
-                l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
+    ma122 = GraphM(g1, g2, {
+        n1_1: n2_3,
+        n1_2: n2_1,
+        e1_12: e2_31
+    })
 
-        if show:
-            options = {
-                'node_color': 'green',
-                'node_size': 10,
-                'width': 1,
-            }
+    # span b
+    mb121 = GraphM(g1, g2, {
+        n1_1: n2_3,
+        n1_2: n2_1,
+        e1_12: e2_31
+    })
 
-            plt.subplot(121)
-            nx.draw_kamada_kawai(r.g, **options)
-            figManager = plt.get_current_fig_manager()
-            figManager.window.showMaximized()
-            plt.show()
-        return r, GraphM(t2, r, l2)
+    mb122 = GraphM(g1, g2, {
+        n1_1: n2_1,
+        n1_2: n2_2,
+        e1_12: e2_12
+    })
 
+    print(Graph.multi_merge([ma121, mb121], [ma122, mb122]))
+    print()
 
-    @staticmethod
-    def merge(m1, m2):
-        global show
-        if m1.s != m2.s:
-            raise Exception("Not same source")
-        if show:
-            draw(m1, m2, "merge")
-        t1 = m1.t
-        t2 = m2.t
-        l1 = {}
-        l2 = {}
-        r = m1.s.copy()
+    g1 = GraphO()
+    n1_1 = g1.add_node()
+    n1_2 = g1.add_node()
+    e1_12 = g1.add_edge(n1_1, n1_2)
 
-        for i in r.nodes:
-            l1[m1.l[i]] = i
-            l2[m2.l[i]] = i
+    g2 = GraphO()
+    n2_1 = g2.add_node()
+    n2_2 = g2.add_node()
+    n2_3 = g2.add_node()
+    e2_12 = g2.add_edge(n2_1, n2_2)
+    e2_23 = g2.add_edge(n2_2, n2_3)
+    e2_31 = g2.add_edge(n2_3, n2_1)
 
-        for e in r.edges:
-            l1[m1.l[e]] = e
-            l2[m2.l[e]] = e
+    g3 = g2.copy()
 
-        for i in t1.nodes:
-            if i not in l1:
-                l1[i] = r.add_node()
+    ma121 = GraphM(g1, g2, {
+        n1_1: n2_2,
+        n1_2: n2_3,
+        e1_12: e2_23
+    })
 
-        for i in t2.nodes:
-            if i not in l2:
-                l2[i] = r.add_node()
+    ma132 = GraphM(g1, g3, {
+        n1_1: n2_3,
+        n1_2: n2_1,
+        e1_12: e2_31
+    })
 
-        for (i,j,e) in t1.edges:
-            if (i,j,e) not in l1:
-                l1[(i,j,e)] = r.add_edge(l1[i],l1[j])
+    mb121 = GraphM(g1, g2, {
+        n1_1: n2_3,
+        n1_2: n2_1,
+        e1_12: e2_31
+    })
 
-        for (i,j,e) in t2.edges:
-            if (i,j,e) not in l2:
-                l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
+    mb132 = GraphM(g1, g3, {
+        n1_1: n2_1,
+        n1_2: n2_2,
+        e1_12: e2_12
+    })
 
-        if show:
-            options = {
-                'node_color': 'green',
-                'node_size': 10,
-                'width': 1,
-            }
+    print(Graph.multi_merge_2_in_1([ma121, mb121], [ma132, mb132]))
 
-            plt.subplot(121)
-            nx.draw_kamada_kawai(r.g, **options)
-            figManager = plt.get_current_fig_manager()
-            figManager.window.showMaximized()
-            plt.show()
-        return r, GraphM(t1, r, l1), GraphM(t2, r, l2)
 
 def test_merge():
     g1 = GraphO()
@@ -864,4 +985,4 @@ if __name__ == "__main__":
     # test_merge()
     # test_pmatching()
     # test_pmatching2()
-    test_pmatching3()
+    test_multi_merge()

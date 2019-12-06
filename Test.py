@@ -164,28 +164,31 @@ def test_graph():
     # e233 = g.add_edge(n23,n3)
     # e331 = g.add_edge(n3,n31)
     # e311 = g.add_edge(n31,n1)
-    # plt.subplot(121)
-    # options = {
-    #     'node_color': 'black',
-    #     'node_size': 10,
-    #     'width': 1,
-    # }
 
-    # nx.draw_kamada_kawai(g.g, **options)
-    # figManager = plt.get_current_fig_manager()
-    # figManager.window.showMaximized()
-    # plt.show()
-    GraphModule.show = True
-    for i in range(3):
+    plt.subplot(121)
+    options = {
+        'node_color': 'black',
+        'node_size': 20,
+        'width': 1,
+    }
+
+    nx.draw_kamada_kawai(g.g, **options)
+    figManager = plt.get_current_fig_manager()
+    figManager.window.showMaximized()
+    plt.show()
+    GraphModule.show = False
+    for i in range(4):
+        if i == 3:
+            GraphModule.show = True
         print("------------------------------------------COMPUTE START", i)
         g_ = T.apply(g)
         # print(g_)
         g = tuple(g_)[0].object
-        # plt.subplot(121)
-        # figManager = plt.get_current_fig_manager()
-        # figManager.window.showMaximized()
-        # nx.draw_kamada_kawai(g.g, **options)
-        # plt.show()
+        plt.subplot(121)
+        figManager = plt.get_current_fig_manager()
+        figManager.window.showMaximized()
+        nx.draw_kamada_kawai(g.g, **options)
+        plt.show()
 
     print(len(g.nodes))
     print(len(g.edges))
@@ -229,12 +232,13 @@ def test_seq():
     T.add_inclusion(g0, g2, incl02a, incr02a)
     T.add_inclusion(g0, g2, incl02b, incr02b)
 
-    s = SequenceO(['a','b'] * 10000)
+    s = SequenceO(['b'])
+    print(s)
 
-    # for i in range(20):
-    s_ = T.apply(s)
-    print(s_)
-    s = tuple(s_)[0].object
+    for _ in range(8):
+        s_ = T.apply(s)
+        s = tuple(s_)[0].object
+        print(s)
 
 def test_seq_graph():
     Graphify = GT(Sequence, Graph)
@@ -274,6 +278,7 @@ def test_seq_graph():
     # print(len(g.edges))
     # print(1 + len(g.edges) - len(g.nodes))
 
+test_seq()
 test_graph()
 
 

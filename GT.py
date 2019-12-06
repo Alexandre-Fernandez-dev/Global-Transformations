@@ -308,70 +308,133 @@ class GT:
                 self.object = obj     # C.Object
                 self.is_rhs = isrhs
                 self.obs_by = []      # List of ins:Instance with  ins/result = self
-
+            
             @staticmethod
-            def merge(res_a, h_a, res_b, h_b):
-                print("\ntry merge")
-                print("h_a", h_a)
-                print("res_a", res_a)
-                print("h_b", h_b)
-                print("res_b", res_b)
-                if h_a == None:
-                    raise ValueError("First argument cannot be None")
-                elif h_b == None:
-                    assert h_a.dom == res_b.object
-                    on_b = h_a
-                    res = res_a
-                    for ins in res_b.obs_by:
-                        ins.observe(res, on_b if ins.subresult == None else ins.subresult.compose(on_b))
-                    res_b.obs_by = None
-                    res_b.object = None
-                    results.remove(res_b)
-                elif res_a is res_b:
-                    if h_a != h_b:
-                        (obj,lift) = self.CD.quotient(h_a, h_b)
-                        res_a.object = obj
-                        for ins in res_a.obs_by:
-                            assert ins.subresult != None
-                            ins.subresult = lift(ins.subresult)
+            def triv_merge(res, h, u_res, u_h):
+                assert u_h == None
+                assert h.dom == u_res.object
+                on_u = h
+                for ins in u_res.obs_by:
+                    ins.observe(res, on_u if ins.subresult == None else ins.subresult.compose(on_u))
+                u_res.obs_by = None
+                u_res.object = None
+                results.remove(u_res)
+        
+        def multi_merge(l_merges):
+            res_old, res_new = None, None
+            mult_merge_arg1 = []
+            mult_merge_arg2 = []
+            # print("multi merge", len(l_merges))
+            # for res_old_i, h_old, res_new_i, h_new in l_merges:
+                # print("arg :")
+                # print(res_old_i)
+                # print(h_old)
+                # print(res_new_i)
+                # print(h_new)
+            for res_old_i, h_old, res_new_i, h_new in l_merges:
+                if res_new == None:
+                    res_new = res_new_i
                 else:
-                    assert h_a.dom == h_b.dom
-                    if res_a.is_rhs and res_b.is_rhs:
-                        (obj, on_a, on_b) = self.CD.merge(h_a, h_b)
-                        res = Result(obj, False)
-                        results.add(res)
-                        for ins in res_a.obs_by:
-                            ins.observe(res, on_a if ins.subresult == None else ins.subresult.compose(on_a))
-                        res_a.obs_by = None
-                        res_a.object = None
-                        results.remove(res_a)
-                        for ins in res_b.obs_by:
-                            ins.observe(res, on_b if ins.subresult == None else ins.subresult.compose(on_b))
-                        res_b.obs_by = None
-                        res_b.object = None
-                        results.remove(res_b)
-                    else:
-                        # TODO clean
-                        if not res_a.is_rhs and not res_b.is_rhs:
-                            (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
-                        elif not res_a.is_rhs and res_b.is_rhs:
-                            (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
-                        elif res_a.is_rhs and not res_b.is_rhs:
-                            temp = h_a
-                            h_a = h_b
-                            h_b = temp
-                            temp = res_a
-                            res_a = res_b
-                            res_b = temp
-                            (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
-                        res = res_a
-                        for ins in res_b.obs_by:
-                            ins.observe(res, on_bl if ins.subresult == None else
-                                        ins.subresult.compose(on_bl))
-                        res_b.obs_by = None
-                        res_b.object = None
-                        results.remove(res_b)
-                print()
+                    assert(res_new == res_new_i)
+                if res_old == None:
+                    res_old = res_old_i
+                else:
+                    assert(res_old == res_old_i)
+                mult_merge_arg1.append(h_old)
+                mult_merge_arg2.append(h_new)
+            # print("old res", res_old)
+            # print("new res", res_new)
+            if res_old != None and res_new != None:
+                if res_old.is_rhs:
+                    obj, on_old, on_new = self.CD.multi_merge(mult_merge_arg1, mult_merge_arg2)
+                    res = Result(obj, False)
+                    results.add(res)
+                    for ins in res_old.obs_by:
+                        ins.observe(res, on_old if ins.subresult == None else
+                                    ins.subresult.compose(on_old))
+                    res_old.obs_by = None
+                    res_old.object = None
+                    results.remove(res_old)
+                    # print(type(res_old), type(res_new), type(res_new.obs_by))
+                    for ins in res_new.obs_by:
+                        ins.observe(res, on_new if ins.subresult == None else
+                                    ins.subresult.compose(on_new))
+                    res_new.obs_by = None
+                    res_new.object = None
+                    results.remove(res_new)
+                else:
+                    obj, on_new = self.CD.multi_merge_2_in_1(mult_merge_arg1, mult_merge_arg2)
+                    for ins in res_new.obs_by:
+                        ins.observe(res_old, on_new if ins.subresult == None else
+                                    ins.subresult.compose(on_new))
+                    res_new.obs_by = None
+                    res_new.object = None
+                    results.remove(res_new)
+
+        #     @staticmethod
+        #     def merge(res_a, h_a, res_b, h_b):
+        #         # print("\ntry merge")
+        #         # print("h_a", h_a)
+        #         # print("res_a", res_a)
+        #         # print("h_b", h_b)
+        #         # print("res_b", res_b)
+        #         if h_a == None:
+        #             raise ValueError("First argument cannot be None")
+        #         elif h_b == None:
+        #             assert h_a.dom == res_b.object
+        #             on_b = h_a
+        #             res = res_a
+        #             for ins in res_b.obs_by:
+        #                 ins.observe(res, on_b if ins.subresult == None else ins.subresult.compose(on_b))
+        #             res_b.obs_by = None
+        #             res_b.object = None
+        #             results.remove(res_b)
+        #         elif res_a is res_b:
+        #             if h_a != h_b:
+        #                 raise Exception("Try to fold an object (quotient needed)")
+        #             #     (obj,lift) = self.CD.quotient(h_a, h_b)
+        #             #     res_a.object = obj
+        #             #     for ins in res_a.obs_by:
+        #             #         assert ins.subresult != None
+        #             #         ins.subresult = lift(ins.subresult)
+        #         else:
+        #             assert h_a.dom == h_b.dom
+        #             if res_a.is_rhs and res_b.is_rhs:
+        #                 (obj, on_a, on_b) = self.CD.merge(h_a, h_b)
+        #                 res = Result(obj, False)
+        #                 results.add(res)
+        #                 for ins in res_a.obs_by:
+        #                     ins.observe(res, on_a if ins.subresult == None else ins.subresult.compose(on_a))
+        #                 res_a.obs_by = None
+        #                 res_a.object = None
+        #                 results.remove(res_a)
+        #                 for ins in res_b.obs_by:
+        #                     ins.observe(res, on_b if ins.subresult == None else ins.subresult.compose(on_b))
+        #                 res_b.obs_by = None
+        #                 res_b.object = None
+        #                 results.remove(res_b)
+        #             else:
+        #                 # TODO clean
+        #                 if not res_a.is_rhs and not res_b.is_rhs:
+        #                     (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
+        #                 elif not res_a.is_rhs and res_b.is_rhs:
+        #                     (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
+        #                 elif res_a.is_rhs and not res_b.is_rhs:
+        #                     temp = h_a
+        #                     h_a = h_b
+        #                     h_b = temp
+        #                     temp = res_a
+        #                     res_a = res_b
+        #                     res_b = temp
+        #                     (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
+        #                 res = res_a
+        #                 for ins in res_b.obs_by:
+        #                     ins.observe(res, on_bl if ins.subresult == None else
+        #                                 ins.subresult.compose(on_bl))
+        #                 res_b.obs_by = None
+        #                 res_b.object = None
+        #                 results.remove(res_b)
+        #         # print()
 
             def __repr__(self):
                 return str(self.object) + ", observed by " + str(-1 if self.obs_by == None else len(self.obs_by)) + " instance(s)"
@@ -397,51 +460,53 @@ class GT:
 
         def close(cins):
             global depth
-            print("CLOSE")
-            print(">>>>>>>>>>>>>>>>>>>>>")
+            # print(">>>>>>>>>>>")
             cfifo = [cins]
+            l_merges = []
             while len(cfifo) > 0:
                 ins = cfifo.pop()
-                print(ins.rule)
-                print("in edges :")
-                for under_rule, m, inc in self.G.in_edges(ins.rule, keys = True):
-                    print(under_rule, m, inc)
-                print("end.")
-                print(">")
+                # print("wclose", ins)
                 for under_rule, _, inc in self.G.in_edges(ins.rule, keys = True):
-                    print("< rule >", under_rule, m, inc)
+                    # print("inc", inc)
                     under_match = inc.lhs.compose(ins.ins)
                     if under_match not in matches:
-                        print("add_instance")
                         under_match.clean()
                         under_ins = add_instance(under_rule, under_match, False, False)
+                        # print("create")
                     else:
-                        print("already_known")
                         under_ins = matches[under_match]
-                    subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
-                    Result.merge(ins.result, subresult, under_ins.result, under_ins.subresult)
+                        # print("found")
+                    # print("under", under_ins)
+                    new_subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
                     if not under_ins.green:
-                        # depth -= 1
-                        # close(under_ins)
+                        # print("not green")
+                        if ins.result != under_ins.result:
+                            # new result, easy merge (replace by simpler function)
+                            assert(under_ins.subresult == None)
+                            Result.triv_merge(ins.result, new_subresult, under_ins.result, under_ins.subresult)
+                        # else not green so actual wave so subresults are equals no need to merge
                         cfifo.insert(0, under_ins)
-                        # depth += 1
-                    print("< endrule >")
+                    else:
+                        # print("green")
+                        if ins.result != under_ins.result:
+                            l_merges.append((under_ins.result, under_ins.subresult, ins.result, new_subresult)) # more consistent with old before new
                 ins.green = True
-            print(">>>>>>>>>>>>>>>>>>>>>")
+            multi_merge(l_merges)
+            # print("<<<<<<<<<<")
 
         def star(ins):
             global depth
-            print("\n", "  "*depth, "STAR", ins.rule)
+            # print("\n", "  "*depth, "STAR", ins)
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.CS.pattern_match(inc.lhs, ins.ins):
-                    print("", "  "*depth, "-match", over_rule)
+                    # print("", "  "*depth, "-match", over_rule)
                     top = False
                     if over_match in matches:
-                        print("", "  "*depth, "X")
+                        # print("", "  "*depth, "X")
                         over_ins = matches[over_match]
                     else:
-                        print("", "  "*depth, "O")
+                        # print("", "  "*depth, "O")
                         over_match.clean()
                         over_ins = add_instance(over_rule, over_match, False, False)
                     if not over_ins.black:
@@ -466,7 +531,7 @@ class GT:
         while len(fifo) > 0:
             depth = 0
             small_ins = fifo.pop()
-            print("\nPOOOOOOOOOOOOOOOOOOP", small_ins.rule)
+            # print("\nPOOOOOOOOOOOOOOOOOOP", small_ins.rule)
             assert not small_ins.black
             star(small_ins)
             for dep_ins in small_ins.uppercone:

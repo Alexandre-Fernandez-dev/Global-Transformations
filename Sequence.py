@@ -117,8 +117,11 @@ class Sequence(DataStructure):
             yield SequenceM(p.cod, s.cod, start1)
 
     @staticmethod
-    def quotient(m1, m2):
-        print("quotient", m1, m2)
+    def multi_merge_2_in_1(m1s, m2s):
+        assert len(m1s) == len(m2s)
+        for i in range(0, len(m1s) - 1):
+            assert m1s[i+1].i - m1s[i].i == m2s[i+1].i - m2s[i]
+        return Sequence.merge_2_in_1(m1s[0], m2s[0])
 
     @staticmethod
     def merge_2_in_1(m1, m2):
@@ -141,6 +144,12 @@ class Sequence(DataStructure):
                             return None
         return m1.t, SequenceM(m2.t, m1.t, m1.i - m2.i)
 
+    @staticmethod
+    def multi_merge(m1s, m2s):
+        assert len(m1s) == len(m2s)
+        for i in range(0, len(m1s) - 1):
+            assert m1s[i+1].i - m1s[i].i == m2s[i+1].i - m2s[i]
+        return Sequence.merge(m1s[0], m2s[0])
 
     @staticmethod
     def merge(m1, m2):
