@@ -261,13 +261,12 @@ class GT:
                 self.compute_small_rules(g)
 
         class Instance():
-            def __init__(self_, rule, ins, black, green):
+            def __init__(self_, rule, ins, black):
                 # print("test", ins.dom, rule.lhs)
                 assert isinstance(rule, Rule)
                 assert ins.dom == rule.lhs
                 assert ins.cod == X
                 self_.black = black
-                self_.green = green
                 self_.rule = rule
                 self_.nb_dep = len(self.small_pred.in_edges(rule))
                 self_.ins = ins          # C[rule.lhs, X]
@@ -277,7 +276,7 @@ class GT:
                 for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
                     small_match = inc.lhs.compose(ins)
                     if small_match not in matches:
-                        small_ins = add_instance(small_rule, small_match, False, False)
+                        small_ins = add_instance(small_rule, small_match, False)
                         fifo.insert(0, small_ins)
                     else:
                         small_ins = matches[small_match]
@@ -444,85 +443,70 @@ class GT:
         fifo = []
         depth = 0
 
-        def add_instance(rule, match, black, green):
+        def add_instance(rule, match, black):
             # print("add i rule.l : " + str(rule.lhs) + " | " + str(match))
             res = Result(rule.rhs, True)
             results.add(res)
-            ins = Instance(rule, match, black, green)
+            ins = Instance(rule, match, black)
             ins.observe(res, None)
             matches[match] = ins
             for auto in rule.self_inclusions:
                 match_ = auto.lhs.compose(match)
-                ins_ = Instance(rule, match_, black, green)
+                ins_ = Instance(rule, match_, black)
                 ins_.observe(res,auto.rhs)
                 matches[match_] = ins_
             return ins
 
-        def close(cins):
-            global depth
-            # print(">>>>>>>>>>>")
-            cfifo = [cins]
-            l_merges = []
-            while len(cfifo) > 0:
-                ins = cfifo.pop()
-                # print("wclose", ins)
-                for under_rule, _, inc in self.G.in_edges(ins.rule, keys = True):
-                    # print("inc", inc)
-                    under_match = inc.lhs.compose(ins.ins)
-                    if under_match not in matches:
-                        under_match.clean()
-                        under_ins = add_instance(under_rule, under_match, False, False)
-                        # print("create")
-                    else:
-                        under_ins = matches[under_match]
-                        # print("found")
-                    # print("under", under_ins)
-                    new_subresult = inc.rhs if ins.subresult == None else inc.rhs.compose(ins.subresult)
-                    if not under_ins.green:
-                        # print("not green")
-                        if ins.result != under_ins.result:
-                            # new result, easy merge (replace by simpler function)
-                            assert(under_ins.subresult == None)
-                            Result.triv_merge(ins.result, new_subresult, under_ins.result, under_ins.subresult)
-                        # else not green so actual wave so subresults are equals no need to merge
-                        cfifo.insert(0, under_ins)
-                    else:
-                        # print("green")
-                        if ins.result != under_ins.result:
-                            l_merges.append((under_ins.result, under_ins.subresult, ins.result, new_subresult)) # more consistent with old before new
-                ins.green = True
-            multi_merge(l_merges)
-            # print("<<<<<<<<<<")
+        def close_rec(ins):
+            l = []
+            for u_rule, _, u_inc in self.G.in_edges(ins.rule, keys = True):
+                under_match = u_inc.lhs.compose(ins.ins)
+                if under_match not in matches:
+                    under_match.clean()
+                    under_ins = add_instance(u_rule, under_match, False)
+                else:
+                    under_ins = matches[under_match]
+                l += close(under_ins, u_inc, ins)
+            return l
+
+        def close(ins, inc, pins):
+            if inc == None: # case top (included in no other)
+                multi_merge(close_rec(ins))
+            else:
+                new_subresult = inc.rhs if pins.subresult == None else inc.rhs.compose(pins.subresult)
+                if ins.subresult == None: # no subresult new one -> easy merge
+                    Result.triv_merge(pins.result, new_subresult, ins.result, ins.subresult)
+                    return close_rec(ins)
+                else: # there is a subresult
+                    if pins.result != ins.result: # not same result, different wave, accumulate
+                        return [(ins.result, ins.subresult, pins.result, new_subresult)]
+                    else: # same result, same wave
+                        return []
 
         def star(ins):
             global depth
-            # print("\n", "  "*depth, "STAR", ins)
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 for over_match in self.CS.pattern_match(inc.lhs, ins.ins):
-                    # print("", "  "*depth, "-match", over_rule)
                     top = False
                     if over_match in matches:
-                        # print("", "  "*depth, "X")
                         over_ins = matches[over_match]
                     else:
-                        # print("", "  "*depth, "O")
                         over_match.clean()
-                        over_ins = add_instance(over_rule, over_match, False, False)
+                        over_ins = add_instance(over_rule, over_match, False)
                     if not over_ins.black:
                         depth += 1
                         star(over_ins)
                         depth -= 1
             ins.black = True
             if top:
-                assert not ins.green
-                close(ins)
+                close(ins, None, None)
 
         def next_small():
             for small_rule in self.smalls:
                 for small_match in self.CS.pattern_match(small_rule.lhs, X):
                     small_match.clean()
-                    yield add_instance(small_rule, small_match, False, False)
+                    yield add_instance(small_rule, small_match, False)
 
         for i in next_small():
             fifo.insert(0, i)
