@@ -235,7 +235,6 @@ class GT:
                 l = l + [ incp.compose(inc) for incp in r ]
         if l == []:
             self.smalls.add(g)
-            # self.small_pred.add_edge(g, g, None)
         for inc in l:
             self.small_pred.add_edge(inc.g_a, g, inc)
         return l
@@ -254,13 +253,6 @@ class GT:
         CD.O
             the result
         """
-        # for g in self.G.nodes:
-        #     print("node : ", g.lhs)
-        #     for (u, v, e) in self.G.out_edges(g, keys=True):
-        #         # print("-----------edge : ", v.lhs, e.lhs.MC)
-        #     #     print()
-        #     # print()
-        #     # print()
 
         if self.smalls == None:
             self.smalls = set()
@@ -270,7 +262,6 @@ class GT:
 
         class Instance():
             def __init__(self_, rule, ins, black):
-                # print("Instance.__init__", ins)
                 assert isinstance(rule, Rule)
                 assert ins.dom == rule.lhs
                 assert ins.cod == X
@@ -284,23 +275,6 @@ class GT:
                 for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
                     small_match = inc.lhs.compose(ins)
                     if small_match not in matches:
-                        # print("----------")
-                        # print("init add instance")
-                        # print("matches :")
-                        # for m in matches:
-                        #   print(">>", m)
-                        #   print(">>", hash(m))
-                        #   print(">>", hash(small_match))
-                        #   print(">>", hash(m.MC))
-                        #   print(">>", hash(small_match.MC))
-                        #   print(">>", m == small_match)
-                        # print("end matches")
-                        # print("new small_match :")
-                        # print(">>", small_match)
-                        # print(">>", hash(small_match))
-                        # print(">>", hash(small_match.MC))
-                        # print("small_match not in matches :", small_match not in matches)
-                        # print("----------")
                         small_ins = add_instance(small_rule, small_match, False)
                         fifo.insert(0, small_ins)
                     else:
@@ -348,13 +322,6 @@ class GT:
             res_old, res_new = None, None
             mult_merge_arg1 = []
             mult_merge_arg2 = []
-            # print("multi merge", len(l_merges))
-            # for res_old_i, h_old, res_new_i, h_new in l_merges:
-                # print("arg :")
-                # print(res_old_i)
-                # print(h_old)
-                # print(res_new_i)
-                # print(h_new)
             for res_old_i, h_old, res_new_i, h_new in l_merges:
                 if res_new == None:
                     res_new = res_new_i
@@ -366,8 +333,6 @@ class GT:
                     assert(res_old == res_old_i)
                 mult_merge_arg1.append(h_old)
                 mult_merge_arg2.append(h_new)
-            # print("old res", res_old)
-            # print("new res", res_new)
             if res_old != None and res_new != None:
                 if res_old.is_rhs:
                     obj, on_old, on_new = self.CD.multi_merge(mult_merge_arg1, mult_merge_arg2)
@@ -379,7 +344,6 @@ class GT:
                     res_old.obs_by = None
                     res_old.object = None
                     results.remove(res_old)
-                    # print(type(res_old), type(res_new), type(res_new.obs_by))
                     for ins in res_new.obs_by:
                         ins.observe(res, on_new if ins.subresult == None else
                                     ins.subresult.compose(on_new))
@@ -395,71 +359,6 @@ class GT:
                     res_new.object = None
                     results.remove(res_new)
 
-        #     @staticmethod
-        #     def merge(res_a, h_a, res_b, h_b):
-        #         # print("\ntry merge")
-        #         # print("h_a", h_a)
-        #         # print("res_a", res_a)
-        #         # print("h_b", h_b)
-        #         # print("res_b", res_b)
-        #         if h_a == None:
-        #             raise ValueError("First argument cannot be None")
-        #         elif h_b == None:
-        #             assert h_a.dom == res_b.object
-        #             on_b = h_a
-        #             res = res_a
-        #             for ins in res_b.obs_by:
-        #                 ins.observe(res, on_b if ins.subresult == None else ins.subresult.compose(on_b))
-        #             res_b.obs_by = None
-        #             res_b.object = None
-        #             results.remove(res_b)
-        #         elif res_a is res_b:
-        #             if h_a != h_b:
-        #                 raise Exception("Try to fold an object (quotient needed)")
-        #             #     (obj,lift) = self.CD.quotient(h_a, h_b)
-        #             #     res_a.object = obj
-        #             #     for ins in res_a.obs_by:
-        #             #         assert ins.subresult != None
-        #             #         ins.subresult = lift(ins.subresult)
-        #         else:
-        #             assert h_a.dom == h_b.dom
-        #             if res_a.is_rhs and res_b.is_rhs:
-        #                 (obj, on_a, on_b) = self.CD.merge(h_a, h_b)
-        #                 res = Result(obj, False)
-        #                 results.add(res)
-        #                 for ins in res_a.obs_by:
-        #                     ins.observe(res, on_a if ins.subresult == None else ins.subresult.compose(on_a))
-        #                 res_a.obs_by = None
-        #                 res_a.object = None
-        #                 results.remove(res_a)
-        #                 for ins in res_b.obs_by:
-        #                     ins.observe(res, on_b if ins.subresult == None else ins.subresult.compose(on_b))
-        #                 res_b.obs_by = None
-        #                 res_b.object = None
-        #                 results.remove(res_b)
-        #             else:
-        #                 # TODO clean
-        #                 if not res_a.is_rhs and not res_b.is_rhs:
-        #                     (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
-        #                 elif not res_a.is_rhs and res_b.is_rhs:
-        #                     (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
-        #                 elif res_a.is_rhs and not res_b.is_rhs:
-        #                     temp = h_a
-        #                     h_a = h_b
-        #                     h_b = temp
-        #                     temp = res_a
-        #                     res_a = res_b
-        #                     res_b = temp
-        #                     (obj, on_bl) = self.CD.merge_2_in_1(h_a, h_b)
-        #                 res = res_a
-        #                 for ins in res_b.obs_by:
-        #                     ins.observe(res, on_bl if ins.subresult == None else
-        #                                 ins.subresult.compose(on_bl))
-        #                 res_b.obs_by = None
-        #                 res_b.object = None
-        #                 results.remove(res_b)
-        #         # print()
-
             def __repr__(self):
                 return str(self.object) + ", observed by " + str(-1 if self.obs_by == None else len(self.obs_by)) + " instance(s)"
 
@@ -470,7 +369,6 @@ class GT:
 
         def add_instance(rule, match, black):
             global depth
-            # print(" | "*depth, "> add instance (r, m) : " + str(rule.lhs) + " | " + str(match))
             res = Result(rule.rhs, True)
             results.add(res)
             ins = Instance(rule, match, black)
@@ -490,7 +388,6 @@ class GT:
                 under_match = u_inc.lhs.compose(ins.ins)
                 if under_match not in matches:
                     under_match.clean()
-                    # print("close add instance")
                     under_ins = add_instance(u_rule, under_match, False)
                 else:
                     under_ins = matches[under_match]
@@ -501,7 +398,6 @@ class GT:
 
         def close(ins, inc, pins):
             global depth
-            # print("   "*depth, "<- CLOSE, INS :", ins)
             if inc == None: # case top (included in no other)
                 multi_merge(close_rec(ins))
             else:
@@ -514,17 +410,11 @@ class GT:
                         return [(ins.result, ins.subresult, pins.result, new_subresult)]
                     else: # same result, same wave
                         return []
-            # print("   "*depth, "END CLOSE ->")
-            # print()
 
         def star(ins):
             global depth
-            # print()
-            # print(" | "*depth, "<+ STAR, INS :", ins)
-            # print()
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
-                # print("match in ", ins.ins)
                 for over_match in self.CS.pattern_match(inc.lhs, ins.ins):
                     top = False
                     if over_match in matches:
@@ -539,8 +429,6 @@ class GT:
             ins.black = True
             if top:
                 close(ins, None, None)
-            # print(" | "*depth, "END STAR +>")
-            # print()
 
         def next_small():
             for small_rule in self.smalls:
@@ -555,7 +443,6 @@ class GT:
         while len(fifo) > 0:
             depth = 0
             small_ins = fifo.pop()
-            # print("\nPOOOOOOOOOOOOOOOOOOP", small_ins.rule)
             assert not small_ins.black
             star(small_ins)
             for dep_ins in small_ins.uppercone:

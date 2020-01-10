@@ -7,11 +7,8 @@ class Parametrisation:
     @staticmethod
     def get(C, T):
         def object_init(self, OC, ET):
-            # print(OC)
-            # print(self.C.TO())
             assert isinstance(OC, C.TO()) 
             # TODO need check ET.dom == OC.elements ?
-            # assert isinstance(ET, self.T.TE())
             self.OC = OC
             self.ET = ET
 
@@ -25,7 +22,6 @@ class Parametrisation:
 
         def morphism_init(self, s, t, MC):
             assert isinstance(MC, C.TM())
-            # print("init : ", type(s), s, "\n", type(t), t)
             assert isinstance(s, ObjectClass)
             assert isinstance(t, ObjectClass)
             self.s = s
@@ -37,31 +33,14 @@ class Parametrisation:
             return MorphismClass(self.s, h.t, self.MC.compose(h.MC))
         
         def morphism_eq(self, other):
-            # print("# eq")
-            # print("#", self)
-            # print("#", other)
             if not isinstance(other, MorphismClass):
-                # print("# return false because not instance morphism")
                 return False
-            # print("#", self)
-            # print("#", other)
-            # print("# return ", self.s.ET == other.s.ET and self.t.ET == other.t.ET and self.MC == other.MC)
-            # print("#", self.s.ET == other.s.ET)
-            # print("#", self.t.ET == other.t.ET)
-            # print("#", self.MC, other.MC)
-            # print("#", self.MC == other.MC)
             return self.s.ET == other.s.ET and self.t.ET == other.t.ET and self.MC == other.MC
         
         def morphism_hash(self):
             r = hash(self.MC)
             r ^= 31 * hash(self.s)
             r ^= 31 * hash(self.t)
-            # # print("hash before", r)
-            # for k, v in self.s.ET.items():
-            #     r ^= 31 * hash(k) + hash(v)
-            # for k, v in self.t.ET.items():
-            #     r ^= 31 * hash(k) + hash(v)
-            # print("hash after", r)
             return r
 
         def morphism_dom(self):
@@ -88,18 +67,14 @@ class Parametrisation:
         })
 
         def Category_pattern_match(p, s):
-            # print(type(p), type(s))
             if isinstance(p, MorphismClass):
-                # print("first", p.MC, s.MC)
                 matches = C.pattern_match(p.MC, s.MC)
                 p = p.cod
                 s = s.cod
             else:
-                # print("second")
                 matches = C.pattern_match(p.OC, s.OC)
             for m in matches:
                 restr = T['restriction'](m, s.ET)
-                # print(restr)
                 if restr.keys() != p.ET.keys():
                     continue
                 ok = True
@@ -121,14 +96,6 @@ class Parametrisation:
             m1p = MorphismClass(m10, res, m1r)
             m2p = MorphismClass(m20, res, m2r)
             return res, m1p, m2p
-        
-        # def Category_merge(m1, m2):
-        #     r, m1r, m2r = C.merge(m1.MC, m2.MC)
-        #     amal = T['amalgamation'](m1r, m1.cod.ET, m2r, m2.cod.ET)
-        #     res = ObjectClass(r, amal)
-        #     m1p = MorphismClass(m1.cod, res, m1r)
-        #     m2p = MorphismClass(m2.cod, res, m1r)
-        #     return res, m1p, m2p
 
         def Category_multi_merge_2_in_1(m1s, m2s):
             m1sMC = [ m1.MC for m1 in m1s]
@@ -140,26 +107,10 @@ class Parametrisation:
             m2p = MorphismClass(m20, m10, m2r)
             return m10, m2p
 
-        # def Category_merge_2_in_1(m1, m2):
-        #     _, m2r = C.merge_2_in_1(m1.MC, m2.MC)
-        #     T['amagamation_2_in_1'](m1.cod.ET, m2r, m2.cod.ET)
-        #     m2p = MorphismClass(m2.cod, m1.cod, m2r)
-        #     return m1.cod, m2p
-
-        # def Category_quotient(m1, m2):
-        #     r, mr = C.quotient(m1.MC, m2.MC)
-        #     amal = T['amalgamation_quotient'](mr, m1.cod.ET)
-        #     res = ObjectClass(r, amal)
-        #     mrp = MorphismClass(m1.cod, res, mr)
-        #     return res, mrp
-        
         CategoryClass = type(C.__name__ + "__" + T['name'], (DataStructure,), {
             'pattern_match' : Category_pattern_match,
             'multi_merge'         : Category_multi_merge,
             'multi_merge_2_in_1'  : Category_multi_merge_2_in_1,
-            #'merge'         : Category_merge,
-            #'merge_2_in_1'  : Category_merge_2_in_1,
-            #'quotient'      : Category_quotient
         })
 
         return ObjectClass, MorphismClass, CategoryClass

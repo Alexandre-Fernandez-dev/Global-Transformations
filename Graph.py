@@ -303,13 +303,8 @@ class GraphO():
         self.__pattern = None
     
     def __eq__(self, other):
-        # print("~~EQ graph", self, other)
         if not isinstance(other, GraphO):
             return False
-        # print("~~OK")
-        # print("~~", self.__pattern == other.__pattern)
-        # print("~~", type(self.g), type(other.g))
-        # print("~~", self.g == other.g)
         return self.g == other.g
     
     def __hash__(self):
@@ -408,13 +403,9 @@ class GraphO():
                             dep.add_edge((j,i),(i,j), weight = 0.)
                     pass
 
-        #print(str(dep.nodes))
-        #print(str(dep.edges(data=True)))
         ed = nx.algorithms.tree.branchings.Edmonds(dep)
         B = ed.find_optimum('weight', 1, kind='min', style='arborescence')
         C = nx.algorithms.dag.topological_sort(B)
-        #print(B.nodes)
-        #print(B.edges)
 
         startpat = ContPattern()
         endpat = EndPattern()
@@ -436,19 +427,15 @@ class GraphO():
                 nij = self.g.number_of_edges(i,j)
                 if i in l:
                     if j in l:
-                        #print("Check Pair")
                         pat = CheckHalfPairPattern(i,j,nij)
                     else:
-                        #print("Outgoing Pair")
                         pat = OutgoingHalfPairPattern(i,j,nij)
                         l.add(j)
                 else:
                     if j in l:
-                        #print("Incoming Pair")
                         pat = IncomingHalfPairPattern(i,j,nij)
                         l.add(i)
                     else:
-                        #print("Head Pair")
                         pat = HeadHalfPairPattern(i,j,nij)
                         l.add(i)
                         l.add(j)
@@ -474,12 +461,9 @@ class GraphM:
         return GraphM(self.s,h.t,l)
 
     def __eq__(self, other):
-        # print("~ eq graphM")
         if not isinstance(other,GraphM):
             print("~ instance not ok")
             return False
-        # print("~ instance ok")
-        # print("~ return", self.s == other.s, self.t == other.t, self.l == other.l)
         return self.s == other.s and self.t == other.t and self.l == other.l
 
     def __hash__(self):
@@ -487,8 +471,6 @@ class GraphM:
         for k, v in self.l.items():
             r ^= 31 * hash(k)
             r ^= 31 * hash(v)
-        #     # r ^= 31 * r + hash(k)
-        #     # r ^= 31 * r + hash(v)
         return r
 
     def apply(self, e):
@@ -552,8 +534,6 @@ class Graph(DataStructure):
             ctx = Graph.Ctx(g)
             for l in pat.match(ctx):
                 m = GraphM(p,g,l)
-                # draw_pats.append(m)
-                # draw_pat(g, draw_pats, "match")
                 yield m
         else:
             pat = p.pattern()
@@ -562,154 +542,9 @@ class Graph(DataStructure):
                 if type(i_eij) == int:
                     ctx.curse(ii_eeij)
                 ctx.l[p.l[i_eij]] = ii_eeij
-            # print("=================> " + str(pat))
-            # print("=================> " + str(ctx.l))
-            # print("=================> " + str(ctx.l))
             for l in pat.match(ctx):
                 m = GraphM(p.cod,g.cod,l)
-                # draw_pats.append(m)
-                # draw_pat(g, draw_pats, "match")
                 yield m
-
-    # @staticmethod
-    # def quotient(m1, m2):
-    #     print("QUOTIENT")
-    #     global show
-    #     if m1.s != m2.s or m1.t != m2.t:
-    #         raise ValueError("Graph: Graph: quotient: morphisms should have same signature")
-    #     if show:
-    #         draw_quotient(m1, m2, "quotient")
-
-    #     s = m1.s
-    #     t = m1.t
-    #     l = {}
-    #     r = s.copy()
-    #     l_ = {}
-
-    #     for i in s.nodes:
-    #         l[i] = i
-    #         l_[m1.l[i]] = i
-    #         l_[m2.l[i]] = i
-
-    #     for e in s.edges:
-    #         l[e] = e
-    #         l_[m1.l[e]] = e
-    #         l_[m2.l[e]] = e
-
-    #     for i in t.nodes:
-    #         if i not in l_:
-    #             l_[i] = r.add_node()
-
-    #     for e in t.edges:
-    #         if e not in l_:
-    #             l_[e] = r.add_edge(l_[e[0]],l_[e[1]])
-
-    #     m_ = GraphM(t, r, l_)
-
-    #     if show:
-    #         options = {
-    #             'node_color': 'green',
-    #             'node_size': 10,
-    #             'width': 1,
-    #         }
-
-    #         plt.subplot(121)
-    #         nx.draw_kamada_kawai(r.g, **options)
-    #         figManager = plt.get_current_fig_manager()
-    #         figManager.window.showMaximized()
-    #         plt.show()
-    #     return r, lambda m: m.compose(m_)
-
-    # @staticmethod
-    # def merge_2_in_1(m1, m2):
-    #     global show
-    #     if m1.s != m2.s:
-    #         raise Exception("Not same source")
-    #     if show:
-    #         draw(m1, m2, "merge")
-    #     t1 = m1.t
-    #     t2 = m2.t
-    #     l2 = {}
-    #     r = t1
-
-    #     for i in m1.s.nodes:
-    #         l2[m2.l[i]] = m1.l[i]
-
-    #     for e in m1.s.edges:
-    #         l2[m2.l[e]] = m1.l[e]
-
-    #     for i in t2.nodes:
-    #         if i not in l2:
-    #             l2[i] = r.add_node()
-
-    #     for (i,j,e) in t2.edges:
-    #         if (i,j,e) not in l2:
-    #             l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
-
-    #     if show:
-    #         options = {
-    #             'node_color': 'green',
-    #             'node_size': 10,
-    #             'width': 1,
-    #         }
-
-    #         plt.subplot(121)
-    #         nx.draw_kamada_kawai(r.g, **options)
-    #         figManager = plt.get_current_fig_manager()
-    #         figManager.window.showMaximized()
-    #         plt.show()
-    #     return r, GraphM(t2, r, l2)
-
-    # @staticmethod
-    # def merge(m1, m2):
-    #     global show
-    #     if m1.s != m2.s:
-    #         raise Exception("Not same source")
-    #     if show:
-    #         draw(m1, m2, "merge")
-    #     t1 = m1.t
-    #     t2 = m2.t
-    #     l1 = {}
-    #     l2 = {}
-    #     r = m1.s.copy()
-
-    #     for i in r.nodes:
-    #         l1[m1.l[i]] = i
-    #         l2[m2.l[i]] = i
-
-    #     for e in r.edges:
-    #         l1[m1.l[e]] = e
-    #         l2[m2.l[e]] = e
-
-    #     for i in t1.nodes:
-    #         if i not in l1:
-    #             l1[i] = r.add_node()
-
-    #     for i in t2.nodes:
-    #         if i not in l2:
-    #             l2[i] = r.add_node()
-
-    #     for (i,j,e) in t1.edges:
-    #         if (i,j,e) not in l1:
-    #             l1[(i,j,e)] = r.add_edge(l1[i],l1[j])
-
-    #     for (i,j,e) in t2.edges:
-    #         if (i,j,e) not in l2:
-    #             l2[(i,j,e)] = r.add_edge(l2[i],l2[j])
-
-    #     if show:
-    #         options = {
-    #             'node_color': 'green',
-    #             'node_size': 10,
-    #             'width': 1,
-    #         }
-
-    #         plt.subplot(121)
-    #         nx.draw_kamada_kawai(r.g, **options)
-    #         figManager = plt.get_current_fig_manager()
-    #         figManager.window.showMaximized()
-    #         plt.show()
-    #     return r, GraphM(t1, r, l1), GraphM(t2, r, l2)
 
     @staticmethod
     def multi_merge(m1s, m2s):
