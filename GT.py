@@ -254,13 +254,13 @@ class GT:
         CD.O
             the result
         """
-        for g in self.G.nodes:
-            print("node : ", g.lhs)
-            for (u, v, e) in self.G.out_edges(g, keys=True):
-                print("-----------edge : ", v.lhs, e.lhs.MC)
-                print()
-            print()
-            print()
+        # for g in self.G.nodes:
+        #     print("node : ", g.lhs)
+        #     for (u, v, e) in self.G.out_edges(g, keys=True):
+        #         # print("-----------edge : ", v.lhs, e.lhs.MC)
+        #     #     print()
+        #     # print()
+        #     # print()
 
         if self.smalls == None:
             self.smalls = set()
@@ -270,7 +270,7 @@ class GT:
 
         class Instance():
             def __init__(self_, rule, ins, black):
-                print("Instance.__init__", ins)
+                # print("Instance.__init__", ins)
                 assert isinstance(rule, Rule)
                 assert ins.dom == rule.lhs
                 assert ins.cod == X
@@ -284,17 +284,23 @@ class GT:
                 for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
                     small_match = inc.lhs.compose(ins)
                     if small_match not in matches:
-                        print("init add instance")
-                        print("matches :")
-                        for m in matches:
-                            print(">>", m)
-                            print(">>", hash(m))
-                            print(">>", hash(m.MC))
-                        print("small_match :")
-                        print(">>", small_match)
-                        print(">>", hash(small_match))
-                        print(">>", hash(small_match.MC))
-                        print("small_match not in matches :", small_match not in matches)
+                        # print("----------")
+                        # print("init add instance")
+                        # print("matches :")
+                        # for m in matches:
+                        #   print(">>", m)
+                        #   print(">>", hash(m))
+                        #   print(">>", hash(small_match))
+                        #   print(">>", hash(m.MC))
+                        #   print(">>", hash(small_match.MC))
+                        #   print(">>", m == small_match)
+                        # print("end matches")
+                        # print("new small_match :")
+                        # print(">>", small_match)
+                        # print(">>", hash(small_match))
+                        # print(">>", hash(small_match.MC))
+                        # print("small_match not in matches :", small_match not in matches)
+                        # print("----------")
                         small_ins = add_instance(small_rule, small_match, False)
                         fifo.insert(0, small_ins)
                     else:
@@ -464,7 +470,7 @@ class GT:
 
         def add_instance(rule, match, black):
             global depth
-            print(" | "*depth, "> add instance (r, m) : " + str(rule.lhs) + " | " + str(match))
+            # print(" | "*depth, "> add instance (r, m) : " + str(rule.lhs) + " | " + str(match))
             res = Result(rule.rhs, True)
             results.add(res)
             ins = Instance(rule, match, black)
@@ -484,7 +490,7 @@ class GT:
                 under_match = u_inc.lhs.compose(ins.ins)
                 if under_match not in matches:
                     under_match.clean()
-                    print("close add instance")
+                    # print("close add instance")
                     under_ins = add_instance(u_rule, under_match, False)
                 else:
                     under_ins = matches[under_match]
@@ -513,9 +519,9 @@ class GT:
 
         def star(ins):
             global depth
-            print()
-            print(" | "*depth, "<+ STAR, INS :", ins)
-            print()
+            # print()
+            # print(" | "*depth, "<+ STAR, INS :", ins)
+            # print()
             top = True
             for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
                 # print("match in ", ins.ins)
@@ -533,8 +539,8 @@ class GT:
             ins.black = True
             if top:
                 close(ins, None, None)
-            print(" | "*depth, "END STAR +>")
-            print()
+            # print(" | "*depth, "END STAR +>")
+            # print()
 
         def next_small():
             for small_rule in self.smalls:
@@ -558,4 +564,6 @@ class GT:
             del matches[small_ins.ins]
 
         print(len(results), len(matches))
+        for result in results:
+            print(result.object)
         return results

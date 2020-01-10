@@ -301,6 +301,19 @@ class GraphO():
         else:
             self.g = g
         self.__pattern = None
+    
+    def __eq__(self, other):
+        # print("~~EQ graph", self, other)
+        if not isinstance(other, GraphO):
+            return False
+        # print("~~OK")
+        # print("~~", self.__pattern == other.__pattern)
+        # print("~~", type(self.g), type(other.g))
+        # print("~~", self.g == other.g)
+        return self.g == other.g
+    
+    def __hash__(self):
+        return hash(self.g)
 
     def add_node(self):
         n = self.g.number_of_nodes()
@@ -461,16 +474,21 @@ class GraphM:
         return GraphM(self.s,h.t,l)
 
     def __eq__(self, other):
+        # print("~ eq graphM")
         if not isinstance(other,GraphM):
+            print("~ instance not ok")
             return False
+        # print("~ instance ok")
+        # print("~ return", self.s == other.s, self.t == other.t, self.l == other.l)
         return self.s == other.s and self.t == other.t and self.l == other.l
 
     def __hash__(self):
         r = hash(self.s) ^ hash(self.t)
         for k, v in self.l.items():
-            r ^= 31 * hash(k) + hash(v)
-            # r = 31 * r + hash(k)
-            # r = 31 * r + hash(v)
+            r ^= 31 * hash(k)
+            r ^= 31 * hash(v)
+        #     # r ^= 31 * r + hash(k)
+        #     # r ^= 31 * r + hash(v)
         return r
 
     def apply(self, e):

@@ -41,18 +41,21 @@ class Parametrisation:
             # print("#", self)
             # print("#", other)
             if not isinstance(other, MorphismClass):
-                # print("# return false")
+                # print("# return false because not instance morphism")
                 return False
             # print("#", self)
             # print("#", other)
             # print("# return ", self.s.ET == other.s.ET and self.t.ET == other.t.ET and self.MC == other.MC)
             # print("#", self.s.ET == other.s.ET)
             # print("#", self.t.ET == other.t.ET)
+            # print("#", self.MC, other.MC)
             # print("#", self.MC == other.MC)
-            return self.s.ET == other.s.ET and self.t.ET == other.s.ET and self.MC == other.MC
+            return self.s.ET == other.s.ET and self.t.ET == other.t.ET and self.MC == other.MC
         
         def morphism_hash(self):
             r = hash(self.MC)
+            r ^= 31 * hash(self.s)
+            r ^= 31 * hash(self.t)
             # # print("hash before", r)
             # for k, v in self.s.ET.items():
             #     r ^= 31 * hash(k) + hash(v)
@@ -295,21 +298,21 @@ def test():
 
     print('lp0 : ', lp0)
 
-    r0 = l0.copy()
+    r0 = l0
     nr0 = nl0
     pr0 = {nr0 : 1}
     rp0 = CO(r0, pr0)
 
     print('rp0 : ', rp0)
 
-    l1 = l0.copy()
+    l1 = l0
     nl1 = nl0
     pl1 = {nl1 : 0}
     lp1 = CO(l1, pl1)
 
     print('lp1 : ', lp1)
 
-    r1 = l1.copy()
+    r1 = l1
     nr1 = nr0
     pr1 = {nr1 : 0}
     rp1 = CO(r1, pr1)
@@ -336,7 +339,7 @@ def test():
 
     print('rp2 : ', rp2)
 
-    l3 = l2.copy()
+    l3 = l2
     nl30 = nl20
     nl31 = nl21
     el3 = el2
@@ -345,7 +348,7 @@ def test():
 
     print('lp3 : ', lp3)
 
-    r3 = l2.copy()
+    r3 = l2
     nr30 = nl20
     nr31 = nl21
     er3 = el2
@@ -354,7 +357,7 @@ def test():
 
     print('rp3 : ', rp3)
 
-    l4 = l2.copy()
+    l4 = l2
     nl40 = nl20
     nl41 = nl21
     el4 = el2
@@ -363,7 +366,7 @@ def test():
 
     print('lp4 : ', lp4)
 
-    r4 = l2.copy()
+    r4 = l2
     nr40 = nl20
     nr41 = nl21
     er4 = el2
@@ -372,7 +375,7 @@ def test():
 
     print('rp4 : ', rp4)
 
-    l5 = l2.copy()
+    l5 = l2
     nl50 = nl20
     nl51 = nl21
     el5 = el2
@@ -381,7 +384,7 @@ def test():
 
     print('lp5 : ', lp5)
 
-    r5 = l2.copy()
+    r5 = l2
     nr50 = nl20
     nr51 = nl21
     er5 = el2
@@ -462,7 +465,7 @@ def test():
     }
     nx.draw_kamada_kawai(g.g, **options)
     plt.show()
-    for i in range(1):
+    for i in range(3):
         gp_ = T.apply(gp)
         print(gp_)
         g = tuple(gp_)[0].object
