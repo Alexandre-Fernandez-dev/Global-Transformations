@@ -1,245 +1,24 @@
 import networkx as nx
+import PFunctor
 
 depth = 0
 
-class Rule:
-    """
-    A rule of a global transformation.
-
-    Attributes
-    ----------
-    lhs : ??.Object
-        the left hand side of the rule
-    rhs : ??.Object
-        the right hand side of the rule
-    self_inclusions : Inclusion
-        inclusions of the rule in itself (automorphisms)
-    """
-
-    def __init__(self, lhs, rhs):
-        """
-        Parameters
-        ----------
-        lhs : ??.Object
-            the left hand side of the rule
-        rhs : ??.Object
-            the right hand side of the rule
-        """
-
-        self.lhs = lhs
-        self.rhs = rhs
-        self.self_inclusions = set()
-
-    def __eq__(self, other):
-        """
-        Parameters
-        ----------
-        other : Rule
-            an other rule
-        """
-
-        if not isinstance(other,Rule):
-            return False
-        return self.lhs == other.lhs
-
-    def __hash__(self):
-        return hash(self.lhs)
-
-    def __repr__(self):
-        return str(self.lhs) + " => " + str(self.rhs)
-
-
-class Inclusion():
-    """
-    A rule inclusion
-
-    Attributes
-    ----------
-    g_a : Rule
-        source rule
-    g_b : Rule
-        destination rule
-    lhs : ??.Morphism
-        a morphism that includes g_a.lhs in g_b.lhs
-    rhs : ??.Morphism
-        a morphism that includes g_a.rhs in g_b.rhs
-    
-    Methods
-    -------
-    compose(other)
-        composes the inclusion with the other inclusions if domain and codomains matches (TODO self . other or other . self)
-    """
-
-    def __init__(self, g_a, g_b, lhs, rhs):
-        self.g_a = g_a
-        self.g_b = g_b
-        self.lhs = lhs
-        self.rhs = rhs
-
-    def __eq__(self, other):
-        if not isinstance(other,Inclusion):
-            return False
-        return self.lhs == other.lhs
-
-    def __hash__(self):
-        return hash(self.lhs)
-
-    def __repr__(self):
-        return str(self.lhs) + ' => ...' #+ str(self.rhs)
-
-    def compose(self, other):
-        """
-        composes the inclusion with the other inclusions if domain and codomains matches (TODO self . other or other . self)
-
-        Parameters
-        ----------
-        other : Inclusion
-            an other inclusion with matching domain (TODO ?)
-
-        Returns
-        -------
-        Inclusion
-            the composition
-        
-        """
-        return Inclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), self.rhs.compose(other.rhs))
-
-
 class GT:
     """
-    A global transformation T from the category CS to the category CD
+    A global transformation T extends a partial functor
 
-    Attributes
-    ----------
-    CS : DataStructure (TODO use Datatype/DataStructure as category)
-        the source Datatype
-    
-    CD : DataStructure
-        the destination Datatype
-    
-    G : nx.MultiDiGraph
-        the MultiDiGraph of the rules and rules inclusions of the GT
-    
-    smalls : Set
-        the set of bottom rules
-    
-    small_pred : nx.MultiDiGraph (TODO hide ?)
-        the graph associating to each rule the bottom rules under it
-    
     Methods
     -------
-    add_rule(l, r)
-        add a new rule with lhs l and rhs r in G and returns it
-
-    add_inclusion(g_a, g_b, l, r)
-        add a new rule inclusion from g_a to g_b with l the inclusion of lhs and r the inclusion of rhs
-    
-    compute_small_rules(g) (TODO hide ?)
-        initialize small_pred for the given rule g
-    
     apply(X)
         compute T(X)
 
     """
 
-    def __init__(self, CS, CD):
-        self.CS = CS
-        self.CD = CD
-        self.G = nx.MultiDiGraph()
-        self.smalls = None
-        self.small_pred = None
-
-    def add_rule(self, l, r):
-        """
-        creates and add a new rule with lhs l and rhs r in G and returns it
-
-        Parameters
-        ----------
-        l : CS.O
-            the left hand side of the rule
-
-        r : CD.O
-            the right hand side of the rule
+    def __init__(self, pfunctor):
+        self.pfunctor = pfunctor
         
-        Returns
-        -------
-        Rule
-            the new rule
-        """
-        self.smalls = None
-        self.small_pred = None
-        rule = Rule(l, r)
-        self.G.add_node(rule)
-        return rule
 
-    def add_inclusion(self, g_a, g_b, l, r):
-        """
-        creates and add a new inclusion of rules from g_a to g_b and returns it
-
-        Parameters
-        ----------
-        g_a : Rule
-            the source rule
-
-        g_b : Rule
-            the destination rule
-
-        l : CS.M
-            the inclusions of the left hand sides g_a.lhs -> g_b.lhs
-
-        r : CD.M
-            the inclusions of the right hand sides g_a.rhs -> g_b.rhs
-        
-        Returns
-        -------
-        Inclusion
-            the new inclusion
-        """
-        assert g_a.lhs == l.dom
-        assert g_b.lhs == l.cod
-        assert g_a.rhs == r.dom
-        assert g_b.rhs == r.cod
-        self.smalls = None
-        self.small_pred = None
-        inc = Inclusion(g_a, g_b, l, r)
-        if g_a == g_b:
-            g_a.self_inclusions.add(inc)
-        else:
-            self.G.add_edge(g_a, g_b, key = inc)
-        return (g_a, g_b, inc)
-
-    # TODO no need to compute morphisms
-    def compute_small_rules(self, g):
-        """ (TODO remove doc ?)
-        initialize small_pred for the given rule g
-
-        Parameters
-        ----------
-        g : Rule
-            a rule of G
-        
-        Returns
-        -------
-        List
-            the list of small rules under g
-        """
-        if g in self.small_pred.nodes():
-            return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
-        self.small_pred.add_node(g)
-        l = []
-        for s, _, inc in self.G.in_edges(g, keys = True):
-            r = self.compute_small_rules(s)
-            if r == []:
-                l.append(inc)
-            else:
-                l = l + [ incp.compose(inc) for incp in r ]
-        if l == []:
-            self.smalls.add(g)
-        for inc in l:
-            self.small_pred.add_edge(inc.g_a, g, inc)
-        return l
-
-    def apply(self, X):
+    def extend(self, X):
         """
         compute T(X)
 
@@ -254,25 +33,19 @@ class GT:
             the result
         """
 
-        if self.smalls == None:
-            self.smalls = set()
-            self.small_pred = nx.MultiDiGraph()
-            for g in self.G.nodes:
-                self.compute_small_rules(g)
-
         class Instance():
             def __init__(self_, rule, ins, black):
-                assert isinstance(rule, Rule)
+                assert isinstance(rule, PFunctor.Rule)
                 assert ins.dom == rule.lhs
                 assert ins.cod == X
                 self_.black = black
                 self_.rule = rule
-                self_.nb_dep = len(self.small_pred.in_edges(rule))
+                self_.nb_dep = self.pfunctor.nb_small(rule)
                 self_.ins = ins          # C[rule.lhs, X]
                 self_.result = None      # Result or None
                 self_.subresult = None   # C[rule.rhs, self.result.object] or None
                 self_.uppercone = []
-                for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
+                for small_rule, inc in self.pfunctor.iter_small(rule):
                     small_match = inc.lhs.compose(ins)
                     if small_match not in matches:
                         small_ins = add_instance(small_rule, small_match, False)
@@ -335,7 +108,7 @@ class GT:
                 mult_merge_arg2.append(h_new)
             if res_old != None and res_new != None:
                 if res_old.is_rhs:
-                    obj, on_old, on_new = self.CD.multi_merge(mult_merge_arg1, mult_merge_arg2)
+                    obj, on_old, on_new = self.pfunctor.CD.multi_merge(mult_merge_arg1, mult_merge_arg2)
                     res = Result(obj, False)
                     results.add(res)
                     for ins in res_old.obs_by:
@@ -351,7 +124,7 @@ class GT:
                     res_new.object = None
                     results.remove(res_new)
                 else:
-                    obj, on_new = self.CD.multi_merge_2_in_1(mult_merge_arg1, mult_merge_arg2)
+                    obj, on_new = self.pfunctor.CD.multi_merge_2_in_1(mult_merge_arg1, mult_merge_arg2)
                     for ins in res_new.obs_by:
                         ins.observe(res_old, on_new if ins.subresult == None else
                                     ins.subresult.compose(on_new))
@@ -384,7 +157,7 @@ class GT:
         def close_rec(ins):
             global depth
             l = []
-            for u_rule, _, u_inc in self.G.in_edges(ins.rule, keys = True):
+            for u_rule, u_inc in self.pfunctor.iter_under(ins.rule):
                 under_match = u_inc.lhs.compose(ins.ins)
                 if under_match not in matches:
                     under_match.clean()
@@ -414,30 +187,23 @@ class GT:
         def star(ins):
             global depth
             top = True
-            for _, over_rule, inc in self.G.out_edges(ins.rule, keys = True):
-                for over_match in self.CS.pattern_match(inc.lhs, ins.ins):
-                    top = False
-                    if over_match in matches:
-                        over_ins = matches[over_match]
-                    else:
-                        over_match.clean()
-                        over_ins = add_instance(over_rule, over_match, False)
-                    if not over_ins.black:
-                        depth += 1
-                        star(over_ins)
-                        depth -= 1
+            for over_rule, over_match in self.pfunctor.pmatch_up(ins.rule, ins.ins):
+                top = False
+                if over_match in matches:
+                    over_ins = matches[over_match]
+                else:
+                    over_match.clean()
+                    over_ins = add_instance(over_rule, over_match, False)
+                if not over_ins.black:
+                    depth += 1
+                    star(over_ins)
+                    depth -= 1
             ins.black = True
             if top:
                 close(ins, None, None)
 
-        def next_small():
-            for small_rule in self.smalls:
-                for small_match in self.CS.pattern_match(small_rule.lhs, X):
-                    small_match.clean()
-                    yield add_instance(small_rule, small_match, False)
-
-        for i in next_small():
-            fifo.insert(0, i)
+        for small_rule, small_match in self.pfunctor.next_small(X):
+            fifo.insert(0, add_instance(small_rule, small_match, False))
             break
 
         while len(fifo) > 0:

@@ -1,18 +1,19 @@
 import Graph as GraphModule
 from Graph import *
 from GT import *
+from PFunctor import *
 import matplotlib.pyplot as plt
 from Sequence import *
 
 def test_graph():
-    T = GT(Graph, Graph)
+    pfTm = PartialFunctor.Maker(Graph, Graph)
 
     l0 = GraphO()
     nl0 = l0.add_node()
     r0 = l0
     nr0 = nl0
 
-    g0 = T.add_rule(l0,r0)
+    g0 = pfTm.add_rule(l0,r0)
 
     l1 = GraphO()
     nl1a = l1.add_node()
@@ -25,7 +26,7 @@ def test_graph():
     er1aab = r1.add_edge(nr1a,nr1ab)
     er1abb = r1.add_edge(nr1ab,nr1b)
 
-    g1 = T.add_rule(l1,r1)
+    g1 = pfTm.add_rule(l1,r1)
 
     l2 = GraphO()
     nl2a = l2.add_node()
@@ -51,7 +52,7 @@ def test_graph():
     er2cabc = r2.add_edge(nr2ca,nr2bc)
     er2bcab = r2.add_edge(nr2bc,nr2ab)
 
-    g2 = T.add_rule(l2,r2)
+    g2 = pfTm.add_rule(l2,r2)
 
 
     incl01a = GraphM(l0,l1,{
@@ -61,7 +62,7 @@ def test_graph():
         nr0: nr1a
     })
 
-    inc01a = T.add_inclusion(g0,g1,incl01a,incr01a)
+    inc01a = pfTm.add_inclusion(g0,g1,incl01a,incr01a)
 
 
     incl01b = GraphM(l0,l1,{
@@ -71,7 +72,7 @@ def test_graph():
         nr0: nr1b
     })
 
-    inc01b = T.add_inclusion(g0,g1,incl01b,incr01b)
+    inc01b = pfTm.add_inclusion(g0,g1,incl01b,incr01b)
 
     incl22a = GraphM(l2,l2,{
         nl2a: nl2b,
@@ -99,11 +100,11 @@ def test_graph():
         er2bcab:er2cabc
     })
 
-    inc22a = T.add_inclusion(g2,g2,incl22a,incr22a)
+    inc22a = pfTm.add_inclusion(g2,g2,incl22a,incr22a)
 
     incl22b = incl22a.compose(incl22a)
     incr22b = incr22a.compose(incr22a)
-    inc22b = T.add_inclusion(g2,g2,incl22b,incr22b)
+    inc22b = pfTm.add_inclusion(g2,g2,incl22b,incr22b)
 
     incl12a = GraphM(l1,l2,{
         nl1a: nl2a,
@@ -118,9 +119,9 @@ def test_graph():
         er1abb: er2abb
     })
 
-    inc12a = T.add_inclusion(g1,g2,incl12a,incr12a)
-    inc12b = T.add_inclusion(g1,g2,incl12a.compose(incl22a),incr12a.compose(incr22a))
-    inc12c = T.add_inclusion(g1,g2,incl12a.compose(incl22b),incr12a.compose(incr22b))
+    inc12a = pfTm.add_inclusion(g1,g2,incl12a,incr12a)
+    inc12b = pfTm.add_inclusion(g1,g2,incl12a.compose(incl22a),incr12a.compose(incr22a))
+    inc12c = pfTm.add_inclusion(g1,g2,incl12a.compose(incl22b),incr12a.compose(incr22b))
 
     # for n in T.G.nodes(): print(n)
     # print()
@@ -165,6 +166,9 @@ def test_graph():
     # e331 = g.add_edge(n3,n31)
     # e311 = g.add_edge(n31,n1)
 
+    pfT = pfTm.get()
+    T = GT(pfT)
+
     plt.subplot(121)
     options = {
         'node_color': 'black',
@@ -181,7 +185,7 @@ def test_graph():
         if i == 3:
             GraphModule.show = True
         print("------------------------------------------COMPUTE START", i)
-        g_ = T.apply(g)
+        g_ = T.extend(g)
         # print(g_)
         g = tuple(g_)[0].object
         plt.subplot(121)
@@ -221,27 +225,30 @@ def test_seq():
     incr02a = SequenceM(r0, r2, 0)
     incr02b = SequenceM(r0, r2, 1)
 
-    T = GT(Sequence, Sequence)
-    g0 = T.add_rule(l0, r0)
-    g1 = T.add_rule(l1, r1)
-    g2 = T.add_rule(l2, r2)
+    pfTm = PartialFunctor.Maker(Sequence, Sequence)
+    g0 = pfTm.add_rule(l0, r0)
+    g1 = pfTm.add_rule(l1, r1)
+    g2 = pfTm.add_rule(l2, r2)
 
-    T.add_inclusion(g0, g1, incl01a, incr01a)
-    T.add_inclusion(g0, g1, incl01b, incr01b)
+    pfTm.add_inclusion(g0, g1, incl01a, incr01a)
+    pfTm.add_inclusion(g0, g1, incl01b, incr01b)
 
-    T.add_inclusion(g0, g2, incl02a, incr02a)
-    T.add_inclusion(g0, g2, incl02b, incr02b)
+    pfTm.add_inclusion(g0, g2, incl02a, incr02a)
+    pfTm.add_inclusion(g0, g2, incl02b, incr02b)
+
+    pfT = pfTm.get()
+    T = GT(pfT)
 
     s = SequenceO(['b'])
     print(s)
 
     for _ in range(8):
-        s_ = T.apply(s)
+        s_ = T.extend(s)
         s = tuple(s_)[0].object
         print(s)
 
 def test_seq_graph():
-    Graphify = GT(Sequence, Graph)
+    pfTm = PartialFunctor.Maker(Sequence, Graph)
     l0 = SequenceO([])
     r0 = GraphO()
     nr0 = r0.add_node()
@@ -261,14 +268,17 @@ def test_seq_graph():
     incr01b = GraphM(r0,r1,{
         nr0: nr1b
     })
-    g0 = Graphify.add_rule(l0, r0)
-    g1 = Graphify.add_rule(l1, r1)
+    g0 = pfTm.add_rule(l0, r0)
+    g1 = pfTm.add_rule(l1, r1)
 
-    Graphify.add_inclusion(g0, g1, incl01a, incr01a)
-    Graphify.add_inclusion(g0, g1, incl01b, incr01b)
+    pfTm.add_inclusion(g0, g1, incl01a, incr01a)
+    pfTm.add_inclusion(g0, g1, incl01b, incr01b)
+
+    pfT = pfTm.get()
+    T = GT(pfT)
 
     s = SequenceO([None] * 1000)
-    g_ = Graphify.apply(s)
+    g_ = T.apply(s)
     print(g_)
     g = tuple(g_)[0].object
     # nx.draw_kamada_kawai(g.g, **options)
