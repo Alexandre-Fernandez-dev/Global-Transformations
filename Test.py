@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from Sequence import *
 
 def test_graph():
-    pfTm = PartialFunctor.Maker(Graph, Graph)
+    pfTm = FlatPFunctor.Maker(Graph, Graph)
 
     l0 = GraphO()
     nl0 = l0.add_node()
@@ -169,34 +169,34 @@ def test_graph():
     pfT = pfTm.get()
     T = GT(pfT)
 
-    plt.subplot(121)
-    options = {
-        'node_color': 'black',
-        'node_size': 20,
-        'width': 1,
-    }
+    # plt.subplot(121)
+    # options = {
+    #     'node_color': 'black',
+    #     'node_size': 20,
+    #     'width': 1,
+    # }
 
-    nx.draw_kamada_kawai(g.g, **options)
-    figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    # nx.draw_kamada_kawai(g.g, **options)
+    # figManager = plt.get_current_fig_manager()
+    # # figManager.window.showMaximized()
     plt.show()
     GraphModule.show = False
     for i in range(4):
-        if i == 3:
-            GraphModule.show = True
-        print("------------------------------------------COMPUTE START", i)
+        # if i == 3:
+        #     GraphModule.show = True
+        # print("------------------------------------------COMPUTE START", i)
         g_ = T.extend(g)
         # print(g_)
         g = tuple(g_)[0].object
         plt.subplot(121)
-        figManager = plt.get_current_fig_manager()
-        figManager.window.showMaximized()
-        nx.draw_kamada_kawai(g.g, **options)
-        plt.show()
+        # figManager = plt.get_current_fig_manager()
+        # # figManager.window.showMaximized()
+        # nx.draw_kamada_kawai(g.g, **options)
+        # plt.show()
 
     print(len(g.nodes))
     print(len(g.edges))
-    print(1 + len(g.edges) - len(g.nodes))
+    # print(1 + len(g.edges) - len(g.nodes))
     # print()
     # for n in T.G.nodes(): print(n)
     # print()
@@ -225,7 +225,7 @@ def test_seq():
     incr02a = SequenceM(r0, r2, 0)
     incr02b = SequenceM(r0, r2, 1)
 
-    pfTm = PartialFunctor.Maker(Sequence, Sequence)
+    pfTm = FlatPFunctor.Maker(Sequence, Sequence)
     g0 = pfTm.add_rule(l0, r0)
     g1 = pfTm.add_rule(l1, r1)
     g2 = pfTm.add_rule(l2, r2)
@@ -248,7 +248,7 @@ def test_seq():
         print(s)
 
 def test_seq_graph():
-    pfTm = PartialFunctor.Maker(Sequence, Graph)
+    pfTm = FlatPFunctor.Maker(Sequence, Graph)
     l0 = SequenceO([])
     r0 = GraphO()
     nr0 = r0.add_node()
@@ -278,7 +278,7 @@ def test_seq_graph():
     T = GT(pfT)
 
     s = SequenceO([None] * 1000)
-    g_ = T.apply(s)
+    g_ = T.extend(s)
     print(g_)
     g = tuple(g_)[0].object
     # nx.draw_kamada_kawai(g.g, **options)

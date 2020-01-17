@@ -19,7 +19,7 @@ show = False
 #     for m in pats:
 #         for node in m.s.g:
 #             color_map[m.l[node]] = 'black'
-# 
+#
 #     reverse_map = {}
 #     e_color_map = []
 #     i = 0
@@ -27,11 +27,11 @@ show = False
 #         e_color_map.append('gray')
 #         reverse_map[(u,v,d)] = i
 #         i += 1
-# 
+#
 #     for m in pats:
 #         for (u,v,d) in m.s.g.edges(keys = True):
 #             e_color_map[reverse_map[m.l[(u,v,d)]]] = 'black'
-# 
+#
 #     nx.draw_kamada_kawai(g, node_color = color_map, edge_color = e_color_map, **options)
 #     figManager = plt.get_current_fig_manager()
 #     figManager.window.showMaximized()
@@ -94,7 +94,7 @@ def draw(m1s, m2s, text):
 
     nx.draw_kamada_kawai(m2.t.g, node_color = color_map, edge_color = e_color_map, ax=ax[1], **options)
     figManager = plt.get_current_fig_manager()
-    figManager.window.showMaximized()
+    # figManager.window.showMaximized()
     plt.title(text)
     plt.show()
 
@@ -301,12 +301,12 @@ class GraphO():
         else:
             self.g = g
         self.__pattern = None
-    
+
     def __eq__(self, other):
         if not isinstance(other, GraphO):
             return False
         return self.g == other.g
-    
+
     def __hash__(self):
         return hash(self.g)
 
@@ -457,12 +457,13 @@ class GraphM:
 
     def compose(self,h):
         assert self.t == h.s
+        # print(self.l, "\n|", h.l)
         l = { k: h.l[v] for k, v in self.l.items() }
         return GraphM(self.s,h.t,l)
 
     def __eq__(self, other):
         if not isinstance(other,GraphM):
-            print("~ instance not ok")
+            #print("~ instance not ok")
             return False
         return self.s == other.s and self.t == other.t and self.l == other.l
 
