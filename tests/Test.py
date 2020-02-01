@@ -1,3 +1,8 @@
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir) 
+
 import Graph as GraphModule
 from Graph import *
 from GT import *
@@ -169,30 +174,30 @@ def test_graph():
     pfT = pfTm.get()
     T = GT(pfT)
 
-    # plt.subplot(121)
-    # options = {
-    #     'node_color': 'black',
-    #     'node_size': 20,
-    #     'width': 1,
-    # }
+    plt.subplot(121)
+    options = {
+        'node_color': 'black',
+        'node_size': 20,
+        'width': 1,
+    }
 
     # nx.draw_kamada_kawai(g.g, **options)
     # figManager = plt.get_current_fig_manager()
     # # figManager.window.showMaximized()
-    plt.show()
+    #plt.show()
     GraphModule.show = False
     for i in range(4):
-        # if i == 3:
-        #     GraphModule.show = True
+        if i == 3:
+            GraphModule.show = True
         # print("------------------------------------------COMPUTE START", i)
         g_ = T.extend(g)
         # print(g_)
         g = tuple(g_)[0].object
         plt.subplot(121)
         # figManager = plt.get_current_fig_manager()
-        # # figManager.window.showMaximized()
-        # nx.draw_kamada_kawai(g.g, **options)
-        # plt.show()
+        # figManager.window.showMaximized()
+        nx.draw_kamada_kawai(g.g, **options)
+        plt.show()
 
     print(len(g.nodes))
     print(len(g.edges))

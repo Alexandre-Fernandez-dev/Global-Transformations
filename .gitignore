@@ -2,5 +2,6 @@ venv/
 .idea/
 .vscode/
 __pycache__/
-graph.pyc
-
+.locals/
+**/.ipynb_checkpoints/
+*.pyc

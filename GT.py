@@ -237,7 +237,7 @@ class GT:
             small_ins.ins.rule = None
             del matches[small_ins.ins]
 
-        print(len(results), len(matches))
+        # print(len(results), len(matches))
         # for result in results:
         #     print(result.object)
         return results
