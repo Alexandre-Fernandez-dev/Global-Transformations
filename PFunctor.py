@@ -258,6 +258,9 @@ class FlatPFunctor(PFunctor):
 
     def pmatch_up(self, match):
         for _, over_rule, inc in self.G.out_edges(match.rule, keys = True):
+            print("over_rule", over_rule)
+            print("inc", inc)
+            print()
             for over_match in self.CS.pattern_match(inc.lhs, match.ins):
                 yield over_rule, over_match
 

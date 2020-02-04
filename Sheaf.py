@@ -30,7 +30,7 @@ class Parametrisation:
             assert h.cod == self.OC
             ET = T['restriction'](h, self.ET)
             if h.dom == h.cod and ET == self.ET:
-                assert False
+                # assert False # used in gmap
                 return MorphismClass(self, self, h)
             else:
                 return MorphismClass(ObjectClass(h.dom, ET), self, h)

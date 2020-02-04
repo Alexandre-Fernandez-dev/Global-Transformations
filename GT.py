@@ -117,7 +117,7 @@ class GT:
                 mult_merge_arg2.append(h_new)
             assert res_old != None and res_new != None
             if res_old.is_rhs:
-                assert res_new.is_rhs
+                assert res_new.is_rhs #FIXME fail in some gmap
                 obj, on_old, on_new = self.pfunctor.CD.multi_merge(mult_merge_arg1, mult_merge_arg2)
                 res = Result(obj, False)
                 results.add(res)
@@ -208,6 +208,7 @@ class GT:
             global depth
             top = True
             for over_rule, over_match in self.pfunctor.pmatch_up(ins):
+                # print("match_up", over_rule, over_match)
                 top = False
                 if over_match in matches:
                     over_ins = matches[over_match]
