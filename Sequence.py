@@ -279,6 +279,81 @@ class Sequence(DataStructure):
         res = SequenceO(l)
         return res, SequenceM(m1.t, res, max(m1.i, m2.i) - m1.i), SequenceM(m2.t, res, max(m1.i, m2.i) - m2.i)
 
+
+
+
+
+from inspect import signature
+
+class LazySequenceO:
+    def __init__(self, objCst):
+        self.obj = None
+        self.objCst = objCst
+        self.finalCountDown = len(signature(objCst).parameters)
+        self.param = self.finalCountDown * [ None ]
+
+    def setInclusion(self, i, v):
+        assert self.param[i] == None
+        self.param[i] = v
+        self.finalCountDown -= 1
+
+    def evaluate(self):
+        if self.obj != None:
+            return
+        if self.finalCountDown == 0:
+            self.obj, loulou = self.objCst(*[h.morph.dom for h in self.finalCountDown])
+            for p, i in ... self.param[i] ...:
+                p.set(loulou[i])
+
+    def __repr__(self):
+        if self.obj == None:
+            return '<NotYetConstructed>'
+        else
+            return str(self.obj)
+
+class LazySequenceM:
+    def __init__(self, s, t, i):
+        self.s = s
+        self.t = t
+        self.i = i
+        self.__pattern = None
+        hash(self)
+
+
+
+
+    def __init__(self, objCst):
+        self.obj = None
+        self.objCst = objCst
+        self.finalCountDown = len(signature(objCst).parameters)
+        self.param = self.finalCountDown * [ None ]
+
+    def setParam(self, i, v):
+        assert self.param[i] == None
+        self.param[i] = v
+        self.finalCountDown -= 1
+        if self.finalCountDown == 0:
+            self.obj = self.objCst(*self.finalCountDown)
+
+    def __repr__(self):
+        if self.obj == None:
+            return '<NotYetConstructed>'
+        else
+            return str(self.obj)
+
+
+
+
+# class LazySequenceM:
+#
+#
+# class LazySequence(DataStructure):
+#
+
+
+
+
+
 def test():
     test = ['b', 'o', 'n', 'j', 'o', 'n', 'r']
     pat =  ['o', 'n']
