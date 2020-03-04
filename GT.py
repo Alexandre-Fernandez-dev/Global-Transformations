@@ -173,7 +173,7 @@ class GT:
                 matches[match_] = ins_
             return ins
 
-        def close_rec(ins):
+        def close(ins):
             global depth
             l = []
             for u_rule, u_inc, under_match in self.pfunctor.iter_under(ins):
@@ -183,24 +183,21 @@ class GT:
                 else:
                     under_ins = matches[under_match]
                 depth -= 1
-                l += close(under_ins, u_inc, ins)
+                l += close_aux(under_ins, u_inc, ins)
                 depth += 1
             return l
 
-        def close(ins, inc, pins):
+        def close_aux(ins, inc, pins):
             global depth
-            if inc == None: # case top (included in no other)
-                multi_merge(close_rec(ins))
-            else:
-                new_subresult = inc.rhs if pins.subresult == None else inc.rhs.compose(pins.subresult)
-                if ins.subresult == None: # no subresult new one -> easy merge
-                    Result.triv_merge(pins.result, new_subresult, ins.result, ins.subresult)
-                    return close_rec(ins)
-                else: # there is a subresult
-                    if pins.result != ins.result: # not same result, different wave, accumulate
-                        return [(ins.result, ins.subresult, pins.result, new_subresult)]
-                    else: # same result, same wave
-                        return []
+            new_subresult = inc.rhs if pins.subresult == None else inc.rhs.compose(pins.subresult)
+            if ins.subresult == None: # no subresult new one -> easy merge
+                Result.triv_merge(pins.result, new_subresult, ins.result, ins.subresult)
+                return close(ins)
+            else: # there is a subresult
+                if pins.result != ins.result: # not same result, different wave, accumulate
+                    return [(ins.result, ins.subresult, pins.result, new_subresult)]
+                else: # same result, same wave
+                    return []
 
         def star(ins):
             # print("len result", len(results), len(matches))
@@ -221,7 +218,7 @@ class GT:
                     depth -= 1
             ins.black = True
             if top:
-                close(ins, None, None)
+                multi_merge(close(ins))
 
         for small_rule, small_match in self.pfunctor.next_small(X):
             fifo.insert(0, add_instance(small_rule, small_match, False))

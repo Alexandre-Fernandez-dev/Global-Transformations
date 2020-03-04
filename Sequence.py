@@ -286,70 +286,202 @@ class Sequence(DataStructure):
 from inspect import signature
 
 class LazySequenceO:
-    def __init__(self, objCst):
+
+    """
+
+    A lazy object is the data of an expression to be evaluated in order to get an concrete object.
+    The expression is given as a Python function waiting for a list of subobjects (lazy as well).
+    The subobjects are not necessarily known at the construction; they are passed with the method setSubobject.
+    The evaluation can be forced at any time if all the subobjects have been passed and if they are all evaluable; otherwise an exception is raised.
+    The function evaluates into the expected concrete object and the list of concrete inclusions relating each subobject to that object.
+    The objects are called lazy in the sense that they can be built and handle as any object of the underlying category, even if they are not yet evaluable.
+
+    """
+
+    def __init__(self, expr):
         self.obj = None
-        self.objCst = objCst
-        self.finalCountDown = len(signature(objCst).parameters)
-        self.param = self.finalCountDown * [ None ]
+        self.expr = expr
+        self.finalCountDown = len(signature(expr).parameters)
+        self.subobjects = self.finalCountDown * [ None ]
 
-    def setInclusion(self, i, v):
-        assert self.param[i] == None
-        self.param[i] = v
+    def setSubobject(self, i, sub):
+        assert self.subobjects[i] == None
+        self.subobjects[i] = LazySequenceMBase(sub,self)
         self.finalCountDown -= 1
+        return self.subobjects[i]
 
-    def evaluate(self):
+    def force(self):
         if self.obj != None:
-            return
+            return self.obj
         if self.finalCountDown == 0:
-            self.obj, loulou = self.objCst(*[h.morph.dom for h in self.finalCountDown])
-            for p, i in ... self.param[i] ...:
-                p.set(loulou[i])
+            self.obj, loulou = self.expr(*[h.s.force() for h in self.subobjects])
+            for i, h in enumerate(self.subobjects):
+                h.set(loulou[i])
+            return self.obj
+        raise Exception("LazySequenceO: Force: some subobjects are missing")
+
 
     def __repr__(self):
         if self.obj == None:
             return '<NotYetConstructed>'
-        else
+        else:
             return str(self.obj)
+
 
 class LazySequenceM:
-    def __init__(self, s, t, i):
-        self.s = s
-        self.t = t
-        self.i = i
-        self.__pattern = None
-        hash(self)
+    def __eq__(self, other):
+        if not isinstance(other, LazySequenceM):
+            return False
+        return self.force() == other.force()
 
+    def __hash__(self):
+        return hash(self.force())
 
+    @property
+    def dom(self):
+        return self.s.force()
 
+    @property
+    def cod(self):
+        return self.t.force()
 
-    def __init__(self, objCst):
-        self.obj = None
-        self.objCst = objCst
-        self.finalCountDown = len(signature(objCst).parameters)
-        self.param = self.finalCountDown * [ None ]
-
-    def setParam(self, i, v):
-        assert self.param[i] == None
-        self.param[i] = v
-        self.finalCountDown -= 1
-        if self.finalCountDown == 0:
-            self.obj = self.objCst(*self.finalCountDown)
+    def compose(self, h):
+        assert self.t == h.s
+        return LazySequenceMCompose(self, h)
 
     def __repr__(self):
-        if self.obj == None:
+        if self.h == None:
             return '<NotYetConstructed>'
-        else
-            return str(self.obj)
+        else:
+            return str(self.h)
+
+
+class LazySequenceMBase(LazySequenceM):
+    def __init__(self, s, t):
+        self.s = s
+        self.t = t
+        self.h = None
+
+    def set(self,h):
+        assert self.s.force() == h.dom
+        assert self.t.force() == h.cod
+        self.h = h
+
+    def force(self):
+        self.t.force()
+        if self.h == None:
+            raise Exception("LazySequenceMBase: Force: not yet set")
+        return self.h
+
+
+class LazySequenceMCompose(LazySequenceM):
+    def __init__(self, h1, h2):
+        assert h1.t == h2.s
+        self.s = h1.s
+        self.t = h2.t
+        self.h1 = h1
+        self.h2 = h2
+        self.h = None
+
+    def force(self):
+        self.t.force()
+        if self.h == None:
+            self.h = self.h1.force().compose(self.h2.force())
+        return self.h
 
 
 
+class LazySequence(DataStructure):
 
-# class LazySequenceM:
-#
-#
-# class LazySequence(DataStructure):
-#
+    @staticmethod
+    def TO():
+        return LazySequenceO
 
+    @staticmethod
+    def TM():
+        return LazySequenceM
+
+    @staticmethod
+    def pattern_match(p, s):
+        pp = p.force()
+        ss = s.force()
+        yield from Sequence.pattern_match(pp,ss)
+
+    @staticmethod
+    def multi_merge_2_in_1(m1s, m2s):
+
+        assert len(m1s) == len(m2s)
+        for i in range(0, len(m1s) - 1):
+            assert m1s[i+1].i - m1s[i].i == m2s[i+1].i - m2s[i]
+        return Sequence.merge_2_in_1(m1s[0], m2s[0])
+
+    @staticmethod
+    def merge_2_in_1(m1, m2):
+        if m1.s != m2.s:
+                raise Exception("Not same source")
+        assert m2.i <= m1.i
+        if len(m1.t) - m1.i < len(m2.t) - m2.i:
+            for i in range(m1.i - m2.i, len(m1.t)):
+                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
+                    return None
+            for i in range(len(m1.t) - (m1.i - m2.i), len(m2.t)):
+                m1.t.s.append(m2.t.s[i])
+        else:
+            for i in range(m1.i - m2.i, len(m2.t) + (m1.i - m2.i)):
+                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
+                    return None
+                else:
+                    for i in range(len(m2.t) - (m1.i - m2.i), len(m2.t)):
+                        if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
+                            return None
+        return m1.t, SequenceM(m2.t, m1.t, m1.i - m2.i)
+
+    @staticmethod
+    def multi_merge(m1s, m2s):
+        assert len(m1s) == len(m2s)
+        print(m1s)
+        print(m2s)
+        # very weird multi merge need check gt :
+        # ms1 : [1 [5.0] -> 3 [0, 2.5, 5.0] : 2, 0 [] -> 3 [0, 2.5, 5.0] : 3]
+        # ms2 : [1 [5.0] -> 3 [5.0, 7.5, 10] : 0, 0 [] -> 3 [5.0, 7.5, 10] : 2]
+        for i in range(0, len(m1s) - 1):
+            assert m1s[i+1].i - m1s[i].i == m2s[i+1].i - m2s[i].i
+        return Sequence.merge(m1s[0], m2s[0])
+
+    @staticmethod
+    def merge(m1, m2):
+        if m1.s != m2.s:
+            raise Exception("Not same source")
+        s = m1.s
+        if m1.i < m2.i:
+            mo1 = m2
+            mo2 = m1
+        else:
+            mo1 = m1
+            mo2 = m2
+        l = []
+        for i in range(0, mo1.i - mo2.i):
+            l.append(mo1.t.s[i])
+        for i in range(mo1.i - mo2.i, mo1.i):
+            if mo1.t.s[i] != mo2.t.s[i - (mo1.i - mo2.i)]:
+                # print('fail1')
+                return None
+            l.append(mo1.t.s[i])
+        for i in range(mo1.i, mo1.i + len(s)):
+            l.append(mo1.t.s[i])
+        if len(mo1.t) - mo1.i < len(mo2.t) - mo2.i:
+            temp = mo1
+            mo1 = mo2
+            mo2 = temp
+        for i in range(mo1.i + len(s), mo1.i + len(mo2.t) - mo2.i):
+            if mo1.t.s[i] != mo2.t.s[i - (mo1.i - mo2.i)]:
+                # print('fail2')
+                return None
+            l.append(mo1.t.s[i])
+        for i in range(mo1.i + len(mo2.t) - mo2.i, len(mo1.t)):
+            l.append(mo1.t.s[i])
+        res = SequenceO(l)
+        return res, SequenceM(m1.t, res, max(m1.i, m2.i) - m1.i), SequenceM(m2.t, res, max(m1.i, m2.i) - m2.i)
 
 
 
@@ -463,4 +595,34 @@ def test():
         g = list(gr)[0].object
         print(g)
 
-# test()
+
+
+from random import random
+
+def test2():
+    def s1exp():
+        return (SequenceO(['a','a']), []) if random() <= 0.5  else (SequenceO(['a']), [])
+    s1 = LazySequenceO(s1exp)
+
+    def s2exp():
+        return (SequenceO(['b','b']), []) if random() <= 0.5  else (SequenceO(['b']), [])
+    s2 = LazySequenceO(s2exp)
+
+    def s3exp(s1,s2):
+        ret = SequenceO(s1.s + s2.s)
+        return (ret, [ SequenceM(s1,ret,0) , SequenceM(s2,ret,len(s1.s)) ])
+    s3 = LazySequenceO(s3exp)
+    h13 = s3.setSubobject(0,s1)
+    h23 = s3.setSubobject(1,s2)
+
+    def s4exp(s3):
+        ret = SequenceO(['c'] + s3.s + ['c'])
+        return (ret, [ SequenceM(s3,ret,1) ])
+    s4 = LazySequenceO(s4exp)
+    h34 = s4.setSubobject(0,s3)
+
+    h = h13.compose(h34)
+
+    print(h.force())
+
+test2()
