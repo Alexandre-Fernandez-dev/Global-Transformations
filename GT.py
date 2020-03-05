@@ -176,12 +176,13 @@ class GT:
         def close(ins):
             global depth
             l = []
-            for u_rule, u_inc, under_match in self.pfunctor.iter_under(ins):
+            for get_u_rule, get_u_inc, under_match in self.pfunctor.iter_under(ins):
                 if under_match not in matches:
                     under_match.clean()
-                    under_ins = add_instance(u_rule, under_match, False)
+                    under_ins = add_instance(get_u_rule(), under_match, False)
                 else:
                     under_ins = matches[under_match]
+                u_inc = get_u_inc(under_ins.rule)
                 depth -= 1
                 l += close_aux(under_ins, u_inc, ins)
                 depth += 1

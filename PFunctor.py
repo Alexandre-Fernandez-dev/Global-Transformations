@@ -254,7 +254,7 @@ class FlatPFunctor(PFunctor):
 
     def iter_under(self, match):
         for u_rule, _, u_inc in self.G.in_edges(match.rule, keys=True):
-            yield u_rule, u_inc, u_inc.lhs.compose(match.ins)
+            yield (lambda: u_rule), (lambda _: u_inc), u_inc.lhs.compose(match.ins)
 
     def pmatch_up(self, match):
         for _, over_rule, inc in self.G.out_edges(match.rule, keys = True):
@@ -482,9 +482,9 @@ class FamPFunctor(PFunctor):
     def iter_under(self, match):
         for u_rule_fam, _, u_inc_fam in self.G.in_edges(match.rule.fam, keys=True):
             u_inc_lhs = match.rule.lhs.restrict(u_inc_fam.lhs)
-            u_rule = self.Rule(u_rule_fam, u_inc_lhs.dom)
-            u_inc = self.Inclusion(u_inc_fam, u_rule, match.rule, u_inc_lhs)
-            yield u_rule, u_inc, u_inc.lhs.compose(match.ins)
+            u_rule = lambda: self.Rule(u_rule_fam, u_inc_lhs.dom)
+            u_inc = lambda u_rule: self.Inclusion(u_inc_fam, u_rule, match.rule, u_inc_lhs)
+            yield u_rule, u_inc, u_inc_lhs.compose(match.ins)
 
     def pmatch_up(self, match):
         for _, over_rule_fam, inc_fam in self.G.out_edges(match.rule.fam, keys = True):
@@ -646,9 +646,9 @@ class ExpPFunctor(PFunctor):
 
     def iter_under(self, match):
         for u_exp_rule, _, u_exp_inc in self.G.in_edges(match.rule.exp, keys=True):
-            u_rule = self.Rule(u_exp_rule, self.CD.TO()(u_exp_rule.rhs_exp))
-            u_inc = self.Inclusion(u_exp_inc, u_rule, match.rule)
-            yield u_rule, u_inc, u_inc.lhs.compose(match.ins)
+            u_rule = lambda: self.Rule(u_exp_rule, self.CD.TO()(u_exp_rule.rhs_exp))
+            u_inc = lambda u_rule: self.Inclusion(u_exp_inc, u_rule, match.rule)
+            yield u_rule, u_inc, u_exp_inc.lhs.compose(match.ins)
 
     def pmatch_up(self, match):
         for _, over_exp_rule, inc_exp in self.G.out_edges(match.rule.exp, keys = True):
