@@ -194,7 +194,7 @@ class GT:
                 Result.triv_merge(pins.result, new_subresult, ins.result, ins.subresult)
                 return close(ins)
             else: # there is a subresult
-                if pins.result != ins.result: # not same result, different wave, accumulate
+                if not pins.result is ins.result: # not same result, different wave, accumulate
                     return [(ins.result, ins.subresult, pins.result, new_subresult)]
                 else: # same result, same wave
                     return []

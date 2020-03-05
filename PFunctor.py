@@ -498,3 +498,129 @@ class FamPFunctor(PFunctor):
                 small_match.clean()
                 small_rule = self.Rule(small_rule_fam, small_match.dom)
                 yield small_rule, small_match
+
+
+
+
+
+class NDPFunctor(PFunctor):
+    class Rule:
+        def __init__(self, lhs, rhs):
+            self.lhs = lhs
+            self.rhs = rhs
+            self.self_inclusions = set()
+
+        def __eq__(self, other):
+            if not isinstance(other,NDPFunctor.Rule):
+                return False
+            return self.lhs == other.lhs
+
+        def __hash__(self):
+            return hash(self.lhs)
+
+        def __repr__(self):
+            return str(self.lhs) + " => " + str(self.rhs)
+
+        def iter_self_inclusions(self):
+            for i in self.self_inclusions:
+                yield i
+
+    class Inclusion():
+        def __init__(self, g_a, g_b, lhs, rhs):
+            self.g_a = g_a
+            self.g_b = g_b
+            self.lhs = lhs
+            self.rhs = rhs
+
+        def __eq__(self, other):
+            if not isinstance(other, NDPFunctor.Inclusion):
+                return False
+            return self.lhs == other.lhs
+
+        def __hash__(self):
+            return hash(self.lhs)
+
+        def __repr__(self):
+            return str(self.lhs) + ' => ...' #+ str(self.rhs)
+
+        def compose(self, other):
+            return NDPFunctor.Inclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), self.rhs.compose(other.rhs))
+
+    class Maker():
+        def __init__(self, CS, CD):
+            self.CS = CS
+            self.CD = CD
+            self.G = nx.MultiDiGraph()
+
+        def add_rule(self, l, r):
+            rule = NDPFunctor.Rule(l, r)
+            self.G.add_node(rule)
+            return rule
+
+        def add_inclusion(self, g_a, g_b, l, r):
+            assert g_a.lhs == l.dom
+            assert g_b.lhs == l.cod
+            assert g_a.rhs == r.dom
+            assert g_b.rhs == r.cod
+            inc = NDPFunctor.Inclusion(g_a, g_b, l, r)
+            if g_a == g_b:
+                g_a.self_inclusions.add(inc)
+            else:
+                self.G.add_edge(g_a, g_b, key = inc)
+            return (g_a, g_b, inc)
+
+        def get(self):
+            return NDPFunctor(self.CS, self.CD, self.G)
+
+    def __init__(self, CS, CD, G):
+        self.CS = CS
+        self.CD = CD
+        self.G = G
+        self.smalls = set()
+        self.small_pred = nx.MultiDiGraph()
+        def f(g):
+            if g in self.small_pred.nodes():
+                return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
+            self.small_pred.add_node(g)
+            l = []
+            for s, _, inc in self.G.in_edges(g, keys = True):
+                r = f(s)
+                if r == []:
+                    l.append(inc)
+                else:
+                    l = l + [ incp.compose(inc) for incp in r ]
+            if l == []:
+                self.smalls.add(g)
+            for inc in l:
+                self.small_pred.add_edge(inc.g_a, g, inc)
+            return l
+        for g in self.G.nodes:
+            f(g)
+
+    def nb_small(self, rule):
+        return len(self.small_pred.in_edges(rule))
+
+    def iter_small(self, rule):
+        for small_rule, _, inc in self.small_pred.in_edges(rule, keys = True):
+            yield small_rule, inc.lhs
+
+    def iter_under(self, match):
+        for u_rule, _, u_inc in self.G.in_edges(match.rule, keys=True):
+            yield u_rule, u_inc, u_inc.lhs.compose(match.ins)
+
+    def pmatch_up(self, match):
+        for _, over_rule, inc in self.G.out_edges(match.rule, keys = True):
+            print("over_rule", over_rule)
+            print("inc", inc)
+            print()
+            for over_match in self.CS.pattern_match(inc.lhs, match.ins):
+                yield over_rule, over_match
+
+    def iter_self_inclusions(self, rule):
+        return rule.iter_self_inclusions()
+
+    def next_small(self, X):
+        for small_rule in self.smalls:
+            for small_match in self.CS.pattern_match(small_rule.lhs, X):
+                small_match.clean()
+                yield small_rule, small_match

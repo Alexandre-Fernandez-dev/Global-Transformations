@@ -10,7 +10,7 @@ import Gmap
 
 T, gp = Gmap.Test.sheaf_nodes()
 
-for i in range(0, 6):
+for i in range(0, 4):
     gp = tuple(T.extend(gp))[0].object
 
 nodescorres = {}

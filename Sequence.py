@@ -288,14 +288,12 @@ from inspect import signature
 class LazySequenceO:
 
     """
-
     A lazy object is the data of an expression to be evaluated in order to get an concrete object.
     The expression is given as a Python function waiting for a list of subobjects (lazy as well).
     The subobjects are not necessarily known at the construction; they are passed with the method setSubobject.
     The evaluation can be forced at any time if all the subobjects have been passed and if they are all evaluable; otherwise an exception is raised.
     The function evaluates into the expected concrete object and the list of concrete inclusions relating each subobject to that object.
     The objects are called lazy in the sense that they can be built and handle as any object of the underlying category, even if they are not yet evaluable.
-
     """
 
     def __init__(self, expr):
@@ -303,6 +301,21 @@ class LazySequenceO:
         self.expr = expr
         self.finalCountDown = len(signature(expr).parameters)
         self.subobjects = self.finalCountDown * [ None ]
+
+    def __eq__(self, other):
+        raise Exception("LazySequenceO: illegal operation on lazy object")
+        # if self.obj == None:
+        # if isinstance(other, SequenceO):
+        #     return self.obj == other
+        # if isinstance(other, LazySequenceO):
+        #     if other.obj == None:
+        #         raise Exception("LazySequenceO: Force: illegal call on not forced object")
+        #     return self is other
+        # return False
+
+    def __hash__(self):
+        raise Exception("LazySequenceO: illegal operation on lazy object")
+        # return hash(self.force())
 
     def setSubobject(self, i, sub):
         assert self.subobjects[i] == None
@@ -314,12 +327,11 @@ class LazySequenceO:
         if self.obj != None:
             return self.obj
         if self.finalCountDown == 0:
-            self.obj, loulou = self.expr(*[h.s.force() for h in self.subobjects])
+            self.obj, loulou = self.expr(*[h.s.force() if isinstance(h.s,LazySequenceO) else h.s for h in self.subobjects])
             for i, h in enumerate(self.subobjects):
                 h.set(loulou[i])
             return self.obj
         raise Exception("LazySequenceO: Force: some subobjects are missing")
-
 
     def __repr__(self):
         if self.obj == None:
@@ -329,24 +341,37 @@ class LazySequenceO:
 
 
 class LazySequenceM:
+    def __init__(self, s, t):
+        self.s = s
+        self.t = t
+        self.h = None
+
     def __eq__(self, other):
-        if not isinstance(other, LazySequenceM):
-            return False
-        return self.force() == other.force()
+        raise Exception("LazySequenceM: illegal operation on lazy object")
+        # if not isinstance(other, LazySequenceM):
+        #     return False
+        # return self.force() == other.force()
 
     def __hash__(self):
-        return hash(self.force())
+        raise Exception("LazySequenceM: illegal operation on lazy object")
+        # return hash(self.force())
 
     @property
     def dom(self):
-        return self.s.force()
+        raise Exception("LazySequenceM: illegal operation on lazy object")
+        return self.s
 
     @property
     def cod(self):
-        return self.t.force()
+        raise Exception("LazySequenceM: illegal operation on lazy object")
+        return self.t
 
     def compose(self, h):
-        assert self.t == h.s
+        if isinstance(h,SequenceM):
+            assert self.h != None
+            return self.h.compose(h)
+        if self.h != None and h.h != None:
+            return self.h.compose(h.h)
         return LazySequenceMCompose(self, h)
 
     def __repr__(self):
@@ -358,35 +383,32 @@ class LazySequenceM:
 
 class LazySequenceMBase(LazySequenceM):
     def __init__(self, s, t):
-        self.s = s
-        self.t = t
-        self.h = None
+        assert isinstance(t, LazySequenceO)
+        LazySequenceM.__init__(self, s, t)
 
     def set(self,h):
-        assert self.s.force() == h.dom
-        assert self.t.force() == h.cod
         self.h = h
+        self.s = h.dom
+        self.t = h.cod
 
     def force(self):
-        self.t.force()
         if self.h == None:
-            raise Exception("LazySequenceMBase: Force: not yet set")
+            self.t.force()
+            if self.h == None:
+                raise Exception("LazySequenceMBase: Force: not yet set")
         return self.h
-
 
 class LazySequenceMCompose(LazySequenceM):
     def __init__(self, h1, h2):
-        assert h1.t == h2.s
-        self.s = h1.s
-        self.t = h2.t
+        LazySequenceM.__init__(self, h1.s, h2.t)
         self.h1 = h1
         self.h2 = h2
-        self.h = None
 
     def force(self):
-        self.t.force()
         if self.h == None:
             self.h = self.h1.force().compose(self.h2.force())
+            self.s = self.h.dom
+            self.t = self.h.cod
         return self.h
 
 
@@ -403,85 +425,19 @@ class LazySequence(DataStructure):
 
     @staticmethod
     def pattern_match(p, s):
-        pp = p.force()
-        ss = s.force()
-        yield from Sequence.pattern_match(pp,ss)
+        raise Exception("LazySequenceM: illegal operation on lazy object")
 
     @staticmethod
     def multi_merge_2_in_1(m1s, m2s):
-
-        assert len(m1s) == len(m2s)
-        for i in range(0, len(m1s) - 1):
-            assert m1s[i+1].i - m1s[i].i == m2s[i+1].i - m2s[i]
-        return Sequence.merge_2_in_1(m1s[0], m2s[0])
-
-    @staticmethod
-    def merge_2_in_1(m1, m2):
-        if m1.s != m2.s:
-                raise Exception("Not same source")
-        assert m2.i <= m1.i
-        if len(m1.t) - m1.i < len(m2.t) - m2.i:
-            for i in range(m1.i - m2.i, len(m1.t)):
-                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    return None
-            for i in range(len(m1.t) - (m1.i - m2.i), len(m2.t)):
-                m1.t.s.append(m2.t.s[i])
-        else:
-            for i in range(m1.i - m2.i, len(m2.t) + (m1.i - m2.i)):
-                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    return None
-                else:
-                    for i in range(len(m2.t) - (m1.i - m2.i), len(m2.t)):
-                        if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                            return None
-        return m1.t, SequenceM(m2.t, m1.t, m1.i - m2.i)
+        m1s = [ h.force() if isinstance(h,SequenceM) else h for h in m1s ]
+        m2s = [ h.force() if isinstance(h,SequenceM) else h for h in m2s ]
+        return Sequence.multi_merge_2_in_1(m1s, m2s)
 
     @staticmethod
     def multi_merge(m1s, m2s):
-        assert len(m1s) == len(m2s)
-        print(m1s)
-        print(m2s)
-        # very weird multi merge need check gt :
-        # ms1 : [1 [5.0] -> 3 [0, 2.5, 5.0] : 2, 0 [] -> 3 [0, 2.5, 5.0] : 3]
-        # ms2 : [1 [5.0] -> 3 [5.0, 7.5, 10] : 0, 0 [] -> 3 [5.0, 7.5, 10] : 2]
-        for i in range(0, len(m1s) - 1):
-            assert m1s[i+1].i - m1s[i].i == m2s[i+1].i - m2s[i].i
-        return Sequence.merge(m1s[0], m2s[0])
-
-    @staticmethod
-    def merge(m1, m2):
-        if m1.s != m2.s:
-            raise Exception("Not same source")
-        s = m1.s
-        if m1.i < m2.i:
-            mo1 = m2
-            mo2 = m1
-        else:
-            mo1 = m1
-            mo2 = m2
-        l = []
-        for i in range(0, mo1.i - mo2.i):
-            l.append(mo1.t.s[i])
-        for i in range(mo1.i - mo2.i, mo1.i):
-            if mo1.t.s[i] != mo2.t.s[i - (mo1.i - mo2.i)]:
-                # print('fail1')
-                return None
-            l.append(mo1.t.s[i])
-        for i in range(mo1.i, mo1.i + len(s)):
-            l.append(mo1.t.s[i])
-        if len(mo1.t) - mo1.i < len(mo2.t) - mo2.i:
-            temp = mo1
-            mo1 = mo2
-            mo2 = temp
-        for i in range(mo1.i + len(s), mo1.i + len(mo2.t) - mo2.i):
-            if mo1.t.s[i] != mo2.t.s[i - (mo1.i - mo2.i)]:
-                # print('fail2')
-                return None
-            l.append(mo1.t.s[i])
-        for i in range(mo1.i + len(mo2.t) - mo2.i, len(mo1.t)):
-            l.append(mo1.t.s[i])
-        res = SequenceO(l)
-        return res, SequenceM(m1.t, res, max(m1.i, m2.i) - m1.i), SequenceM(m2.t, res, max(m1.i, m2.i) - m2.i)
+        m1s = [ h.force() if isinstance(h,SequenceM) else h for h in m1s ]
+        m2s = [ h.force() if isinstance(h,SequenceM) else h for h in m2s ]
+        return Sequence.multi_merge(m1s, m2s)
 
 
 
