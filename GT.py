@@ -58,7 +58,7 @@ class GT:
                     small_ins.uppercone.append(self_)
 
             def observe(self, res, m):
-                assert m == None or (m.dom == self.rule.rhs and m.cod == res.object)
+                # assert m == None or (m.dom == self.rule.rhs and m.cod == res.object)
                 assert self not in res.obs_by
                 self.result = res
                 self.subresult = m
@@ -90,7 +90,7 @@ class GT:
             @staticmethod
             def triv_merge(res, h, u_res, u_h):
                 assert u_h == None
-                assert h.dom == u_res.object
+                # assert h.dom == u_res.object
                 on_u = h
                 for ins in u_res.obs_by:
                     ins.observe(res, on_u if ins.subresult == None else ins.subresult.compose(on_u))
@@ -124,13 +124,13 @@ class GT:
                 for ins in res_old.obs_by:
                     # print("SUB", ins.subresult)
                     # print("on_old", on_old)
-                    ins.observe(res, on_old if ins.subresult == None else
+                    ins.observe(res, on_old if ins.subresult is None else
                                 ins.subresult.compose(on_old))
                 res_old.obs_by = None
                 res_old.object = None
                 results.remove(res_old)
                 for ins in res_new.obs_by:
-                    ins.observe(res, on_new if ins.subresult == None else
+                    ins.observe(res, on_new if ins.subresult is None else
                                 ins.subresult.compose(on_new))
                 res_new.obs_by = None
                 res_new.object = None
@@ -138,14 +138,14 @@ class GT:
             else:
                 obj, on_new = self.pfunctor.CD.multi_merge_2_in_1(mult_merge_arg1, mult_merge_arg2)
                 for ins in res_new.obs_by:
-                    ins.observe(res_old, on_new if ins.subresult == None else
+                    ins.observe(res_old, on_new if ins.subresult is None else
                                 ins.subresult.compose(on_new))
                 res_new.obs_by = None
                 res_new.object = None
                 results.remove(res_new)
 
             def __repr__(self):
-                return str(self.object) + ", observed by " + str(-1 if self.obs_by == None else len(self.obs_by)) + " instance(s)"
+                return str(self.object) + ", observed by " + str(-1 if self.obs_by is None else len(self.obs_by)) + " instance(s)"
 
         matches = {}
         results = set()
@@ -190,7 +190,7 @@ class GT:
         def close_aux(ins, inc, pins):
             global depth
             new_subresult = inc.rhs if pins.subresult == None else inc.rhs.compose(pins.subresult)
-            if ins.subresult == None: # no subresult new one -> easy merge
+            if ins.subresult is None: # no subresult new one -> easy merge
                 Result.triv_merge(pins.result, new_subresult, ins.result, ins.subresult)
                 return close(ins)
             else: # there is a subresult

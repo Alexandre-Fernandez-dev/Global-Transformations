@@ -429,14 +429,14 @@ class LazySequence(DataStructure):
 
     @staticmethod
     def multi_merge_2_in_1(m1s, m2s):
-        m1s = [ h.force() if isinstance(h,SequenceM) else h for h in m1s ]
-        m2s = [ h.force() if isinstance(h,SequenceM) else h for h in m2s ]
+        m1s = [ h.force() if isinstance(h,LazySequenceM) else h for h in m1s ]
+        m2s = [ h.force() if isinstance(h,LazySequenceM) else h for h in m2s ]
         return Sequence.multi_merge_2_in_1(m1s, m2s)
 
     @staticmethod
     def multi_merge(m1s, m2s):
-        m1s = [ h.force() if isinstance(h,SequenceM) else h for h in m1s ]
-        m2s = [ h.force() if isinstance(h,SequenceM) else h for h in m2s ]
+        m1s = [ h.force() if isinstance(h,LazySequenceM) else h for h in m1s ]
+        m2s = [ h.force() if isinstance(h,LazySequenceM) else h for h in m2s ]
         return Sequence.multi_merge(m1s, m2s)
 
 
@@ -581,4 +581,37 @@ def test2():
 
     print(h.force())
 
-test2()
+
+def test3():
+    from PFunctor import ExpPFunctor
+    from GT import GT
+
+    epf = ExpPFunctor.Maker(Sequence, LazySequence)
+
+    l_a = SequenceO(['a'])
+    def er_a():
+        return (SequenceO(['a','a']), []) if random() <= 0.5  else (SequenceO(['a']), [])
+    g_a = epf.add_exp_rule(l_a, er_a)
+
+    l_aa = SequenceO(['a','a'])
+    def er_aa(s1,s2):
+        ret = SequenceO(s1.s + s2.s)
+        return (ret, [ SequenceM(s1,ret,0) , SequenceM(s2,ret,len(s1.s)) ])
+    g_aa = epf.add_exp_rule(l_aa, er_aa)
+
+    l_a_aa_0 = SequenceM(l_a,l_aa,0)
+    ir_a_aa_0 = 0
+    g_a_aa_0 = epf.add_exp_inclusion(g_a, g_aa, l_a_aa_0, ir_a_aa_0)
+
+    l_a_aa_1 = SequenceM(l_a,l_aa,1)
+    ir_a_aa_1 = 1
+    g_a_aa_1 = epf.add_exp_inclusion(g_a, g_aa, l_a_aa_1, ir_a_aa_1)
+
+    epf = epf.get()
+
+    T = GT(epf)
+
+    print(tuple(T.extend(SequenceO(['a','a','a'])))[0].object)
+
+if __name__ == "__main__":
+    test3()
