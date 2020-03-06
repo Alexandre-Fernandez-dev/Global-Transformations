@@ -599,7 +599,7 @@ class ExpPFunctor(PFunctor):
         def __init__(self, exp_rule, rhs):
             self.exp = exp_rule
             self.lhs = exp_rule.lhs
-            self.rhs = rhs
+            self.rhs = rhs # rhs.force() if rhs.forceable() else rhs
 
         def __eq__(self, other):
             if not isinstance(other,ExpPFunctor.Rule):
@@ -619,6 +619,9 @@ class ExpPFunctor(PFunctor):
             self.g_b = g_b
             self.lhs = exp_inc.lhs
             self.rhs = g_b.rhs.setSubobject(exp_inc.rhs_i, g_a.rhs)
+            if g_b.rhs.forceable():
+                g_b.rhs = g_b.rhs.force()
+                self.rhs = self.rhs.force()
 
         def __eq__(self, other):
             if not isinstance(other, ExpPFunctor.Inclusion):
@@ -641,7 +644,7 @@ class ExpPFunctor(PFunctor):
 
     def iter_small(self, rule):
         for small_exp_rule, _, inc_exp in self.small_pred.in_edges(rule.exp, keys = True):
-            small_rule = self.Rule(small_exp_rule, self.CD.TO()(small_exp_rule.rhs_exp))
+            small_rule = self.Rule(small_exp_rule, self.CD.TO()(small_exp_rule.rhs_exp).force())
             yield small_rule, inc_exp.lhs
 
     def iter_under(self, match):
@@ -665,8 +668,5 @@ class ExpPFunctor(PFunctor):
         for small_exp_rule in self.smalls:
             for small_match in self.CS.pattern_match(small_exp_rule.lhs, X):
                 small_match.clean()
-                print(small_match)
-                small_rule = self.Rule(small_exp_rule, self.CD.TO()(small_exp_rule.rhs_exp))
+                small_rule = self.Rule(small_exp_rule, self.CD.TO()(small_exp_rule.rhs_exp).force())
                 yield small_rule, small_match
-            #     yield small_rule, small_match
-        raise Exception("IIP")

@@ -235,8 +235,8 @@ class Sequence(DataStructure):
     @staticmethod
     def multi_merge(m1s, m2s):
         assert len(m1s) == len(m2s)
-        print(m1s)
-        print(m2s)
+        # print(m1s)
+        # print(m2s)
         # very weird multi merge need check gt :
         # ms1 : [1 [5.0] -> 3 [0, 2.5, 5.0] : 2, 0 [] -> 3 [0, 2.5, 5.0] : 3]
         # ms2 : [1 [5.0] -> 3 [5.0, 7.5, 10] : 0, 0 [] -> 3 [5.0, 7.5, 10] : 2]
@@ -323,10 +323,13 @@ class LazySequenceO:
         self.finalCountDown -= 1
         return self.subobjects[i]
 
+    def forceable(self):
+        return self.finalCountDown == 0
+
     def force(self):
         if self.obj != None:
             return self.obj
-        if self.finalCountDown == 0:
+        if self.forceable():
             self.obj, loulou = self.expr(*[h.s.force() if isinstance(h.s,LazySequenceO) else h.s for h in self.subobjects])
             for i, h in enumerate(self.subobjects):
                 h.set(loulou[i])
@@ -611,7 +614,12 @@ def test3():
 
     T = GT(epf)
 
-    print(tuple(T.extend(SequenceO(['a','a'])))[0].object)
+    sz = {}
+    for i in range(0,100):
+        s = len(tuple(T.extend(SequenceO(['a','a','a'])))[0].object)
+        sz[s] = sz.setdefault(s,0) + 1
+    print({s: 8*n/100 for (s,n) in sz.items() })
+    print((tuple(T.extend(SequenceO(['a','a','a'])))[0].object))
 
 if __name__ == "__main__":
     test3()
