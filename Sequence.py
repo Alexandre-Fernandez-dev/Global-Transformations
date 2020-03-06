@@ -623,3 +623,8 @@ def test3():
 
 if __name__ == "__main__":
     test3()
+
+#
+# g1: a => a + aa
+#
+# g2: aa [ g1(0: g1.lhs -> aa), g1(1: g1.lhs -> aa) ] => g1(0).rhs * g1(1).rhs [ 0, len(g1(0).rhs) ]
