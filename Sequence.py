@@ -337,7 +337,7 @@ class LazySequenceO:
         if self.obj == None:
             return '<NotYetConstructed>'
         else:
-            return str(self.obj)
+            return "Lazy: " + str(self.obj)
 
 
 class LazySequenceM:
@@ -611,7 +611,7 @@ def test3():
 
     T = GT(epf)
 
-    print(tuple(T.extend(SequenceO(['a','a','a'])))[0].object)
+    print(tuple(T.extend(SequenceO(['a','a'])))[0].object)
 
 if __name__ == "__main__":
     test3()

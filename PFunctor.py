@@ -545,7 +545,7 @@ class ExpPFunctor(PFunctor):
 
         def compose(self, other):
             # TODO
-            return ExpPFunctor.Inclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), None)
+            return ExpPFunctor.ExpInclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), None)
 
 
     class Maker():
@@ -660,7 +660,6 @@ class ExpPFunctor(PFunctor):
         # TODO
         return
         yield
-        raise Exception("NYI")
 
     def next_small(self, X):
         for small_exp_rule in self.smalls:
