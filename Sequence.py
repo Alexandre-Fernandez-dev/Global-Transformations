@@ -625,6 +625,25 @@ if __name__ == "__main__":
     test3()
 
 #
-# g1: a => a + aa
+# let g1 =
+#   a => a if random() else aa
 #
-# g2: aa [ g1(0: g1.lhs -> aa), g1(1: g1.lhs -> aa) ] => g1(0).rhs * g1(1).rhs [ 0, len(g1(0).rhs) ]
+# let g2 = 
+#   aa => i * j
+#
+# and i: g1 -> g2 = 
+#   (0: g1 -> g2) => (0: g1 -> g2)
+#
+# and j: g1 -> g2 = 
+#   (1: a -> aa) => (len(i.dom): g1 -> g2)
+# 
+# 
+# let g1 = a => b
+# 
+# and g2 = b => ab
+# 
+# and g3 = . => .
+#
+# and _: g3 -> g1 = 0 => 0
+# 
+# 
