@@ -35,7 +35,7 @@ class Parametrisation:
             else:
                 return MorphismClass(ObjectClass(h.dom, ET), self, h)
 
-        ObjectClass = type(C.__name__ + "__" + T['name'] + "O", (DataStructure,), {
+        ObjectClass = type(C.__name__ + "__" + T['name'] + "O", (), {
             '__init__'     : object_init,
             '__repr__'     : object_repr,
             '__hash__'     : object_hash,
@@ -82,7 +82,7 @@ class Parametrisation:
         def morphism_naked(self):
             return self.MC
 
-        MorphismClass = type(C.__name__ + "__" + T['name'] + "M", (DataStructure,), {
+        MorphismClass = type(C.__name__ + "__" + T['name'] + "M", (), {
             '__init__'  : morphism_init,
             'compose'   : morphism_compose,
             '__eq__'    : morphism_eq,
