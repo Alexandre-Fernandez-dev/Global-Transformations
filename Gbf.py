@@ -15,10 +15,10 @@ class Array2D():
 
     def __repr__(self):
         r = "["
-        for j in range(0,self.row):
+        for i in range(0,self.row):
             r += " ["
-            for i in range(0,self.col):
-                r += ' ' + repr(i)
+            for j in range(0,self.col):
+                r += ' ' + repr(self[i,j])
             r += ' ]'
         r += ' ]'
         return r
@@ -105,7 +105,7 @@ class Array2D():
 class Presentation():
 
     def __init__(self, d, relators):
-        assert all( all(g < d for g in r) for r in relators)
+        assert all(len(r) == d for r in relators)
 
         nb_rel = len(relators)
 
@@ -117,7 +117,7 @@ class Presentation():
             linv = Array2D(b.row, b.row, lambda i, j: 1 if i == j else 0)
             rinv = Array2D(b.col, b.col, lambda i, j: 1 if i == j else 0)
             a    = copy(b)
-            m    = min(b.row, b.col)
+            mmm  = min(b.row, b.col)
 
             def add_alpha_row(m, alpha, i, j):
                 for k in range(0, m.col):
@@ -158,7 +158,7 @@ class Presentation():
                     a.swap_col(y,t)
                     r.swap_col(y,t)
                     rinv.swap_row(t,y)
-            
+
             def step2(t,i):
                 # Step 2: Annulation of the tth column
                 if i < a.row:
@@ -214,11 +214,11 @@ class Presentation():
                     add_alpha_col(r,1,c,t)
                     add_alpha_row(rinv,-1,t,c)
                     return False
-            
+
             big_cpt = 0
 
             def big_step(t):
-                if t < m:
+                if t < mmm:
                     step1(t)
                     step2(t,t+1)
                     step3(t,t+1)
@@ -263,25 +263,155 @@ class Presentation():
 
         of_graph = Array2D(2,2,lambda i, j:
             l.sub(d_trivial,0,rank-1,d) if i==0 and j==0 else
-            Array2D(rank-1,0,lambda a, b: 0) if i==0 and j==1 else
+            Array2D(rank-1,1,lambda a, b: 0) if i==0 and j==1 else
             Array2D(1,d,lambda a, b: 0) if i==1 and j==0 else
             Array2D(1,1,lambda a, b: 1)
         ).concat()
 
+        to_graph = Array2D(2,2,lambda i, j:
+            linv.sub(0,d_trivial,d,rank-1) if i==0 and j==0 else
+            Array2D(d,1,lambda a, b: 0) if i==0 and j==1 else
+            Array2D(1,rank-1,lambda a, b: 0) if i==1 and j==0 else
+            Array2D(1,1,lambda a, b: 1)
+        ).concat()
 
-        print(linv.data)
-        print(l.data)
-        print(a.data)
-        print(rinv.data)
-        print(r.data)
-        print(signature)
-        print(d_trivial)
-        print(l_cyclic)
-        print(d_free)
-        print(d_cyclic)
-        print(torsions)
-        print(order)
-        print(of_graph.data)
+        def bezout(a,b):
+            r = a
+            r1 = b
+            u = 1
+            u1 = 0
+            v = 0
+            v1 = 1
+            while(r1 != 0):
+                q = r // r1
+                rs = r
+                us = u
+                vs = v
+                r = r1
+                u = u1
+                v = v1
+                r1 = rs - q * r1
+                u1 = us - q * u1
+                v1 = vs - q * v1
+            return (r,u,v)
+
+        def gcd(a,b):
+            (d,_,_) = bezout(a,b)
+            return d
+
+        def lcm(a,b):
+            if b != 0:
+                return (a * b) // gcd(a,b)
+            else:
+                return 0
+
+        def gcd_array(a):
+            l = len(a)
+            res = a[0]
+            for i in range(1,l):
+                res = gcd(res,a[i])
+            return res
+
+        def lcm_array(a):
+            l = len(a)
+            res = a[0]
+            for i in range(1,l):
+                res = lcm(res,a[i])
+            return res
+
+        def internal_order(tor,c):
+            l = len(tor)
+            return lcm_array([ 1 if p == 0 else abs(tor[i] // gcd(p,tor[i])) if i < l else 0 for (i,p) in enumerate(c) ])
+
+        def internal_normalize(tor,c):
+          for (i,m) in enumerate(tor):
+              c[i] = c[i] % m
+          return c
+
+        basis = [ internal_normalize(torsions,of_graph.get_col(gen_index)) for gen_index in range(0,d+1) ]
+
+        orders = [ internal_order(torsions,b) for b in basis ][0:d]
+
+        # print(m)
+        # print(linv)
+        # print(l)
+        # print(a)
+        # print(rinv)
+        # print(r)
+        # print(signature)
+        # print(d_trivial)
+        # print(rank)
+        # print(d)
+        # print(l_cyclic)
+        # print(d_free)
+        # print(d_cyclic)
+        # print(torsions)
+        # print(order)
+        # print(of_graph)
+        # print(to_graph)
+        # print(basis)
+        # print(orders)
+
+        self.rank = rank
+        self.torsions = torsions
+        self.degree = d
+        self.order = order
+        self.orders = orders
+        self.of_graph = of_graph
+        self.to_graph = to_graph
+        self.basis = basis
+
+    class Position():
+        def __init__(self, pres, smith):
+            self.pres = self.pres
+            self.smith = smith  # TODO: smith(c)
+            self.__hash = self.__computeHash()
+
+        def __computeHash():
+            h = hash(self.pres)
+            for c in self.smith:
+                h = 31 * h + c
+            return h
+
+        def __hash__(self):
+            return self.__hash
+
+        def __eq__(self,other):
+            if not isinstance(other,Position):
+                return False
+            return self.pres is other.pres and self.smith == other.smith
+
+        def __repr__(self):
+            res = '|'
+            for d in c:
+                res += ' ' + repr(d)
+            res += ' >'
+            return res
+
+        def __add__(self,other):
+            if not (isinstance(other,Position) and self.pres is other.pres):
+                return None
+            # TODO: DO IT
+            return __init__(self, self.pres, self.smith)
+
+
+
+class GbfO():
+    def __init__(self, pres, map):
+        self.pres = pres
+        self.map = map
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -296,7 +426,10 @@ class Presentation():
 # [1]
 
 
-
+# [ [ [ [ -1 1 0 ]
+#       [  1 0 0 ]
+#       [  0 0 1 ] ] [ [ ] [ ] [ ] ] ] [ [ [ 0 0 0 ] ] [ [ 1 ] ] ] ]
+#
 from copy import copy
 
 
@@ -315,7 +448,7 @@ print(MM.data)
 print(MM.subminor(1,1).data)
 
 
-G = Presentation(3,[[1,1,-1]])
+G = Presentation(3,[[1,1,-1],[10,0,0]])
 
 
 ##
