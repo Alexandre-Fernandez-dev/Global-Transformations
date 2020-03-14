@@ -1,5 +1,52 @@
 from DataStructure import DataStructure
 
+
+def bezout(a,b):
+    r = a
+    r1 = b
+    u = 1
+    u1 = 0
+    v = 0
+    v1 = 1
+    while(r1 != 0):
+        q = r // r1
+        rs = r
+        us = u
+        vs = v
+        r = r1
+        u = u1
+        v = v1
+        r1 = rs - q * r1
+        u1 = us - q * u1
+        v1 = vs - q * v1
+    return (r,u,v)
+
+def gcd(a,b):
+    (d,_,_) = bezout(a,b)
+    return d
+
+def lcm(a,b):
+    if b != 0:
+        return (a * b) // gcd(a,b)
+    else:
+        return 0
+
+def gcd_array(a):
+    l = len(a)
+    res = a[0]
+    for i in range(1,l):
+        res = gcd(res,a[i])
+    return res
+
+def lcm_array(a):
+    l = len(a)
+    res = a[0]
+    for i in range(1,l):
+        res = lcm(res,a[i])
+    return res
+
+
+
 class Array2D():
 
     def __init__(self, row, col, f):
@@ -9,7 +56,6 @@ class Array2D():
         if callable(f):
             self.data = [ f(n // col, n % col) for n in range(0, row * col) ]
         else:
-            print(len(f), f, row, col)
             assert len(f) == row * col
             self.data = f
 
@@ -86,21 +132,58 @@ class Array2D():
         return Array2D(row,col,data)
 
     def concat(self):
-        # sz = Array2D(self.row, self.col, [ (m_ij.row, m_ij.col) for m_ij in self.data ])
         return Array2D.append([ Array2D.append(
             [ self[i,j] for i in range(0,self.row) ]
         ).transpose() for j in range(0,self.col) ]).transpose()
 
-# let append a =
-#   { row = Array.fold_right (fun m acc -> acc + (row m)) a 0;
-#     col = (col a.(0));
-#     data = Array.concat (Array.to_list (Array.map data a));
-#   }
 
 
+class Position:
+    def __init__(self, pres, snf):
+        self.pres = pres
+        self.snf = snf
+        self.__hash = hash(self.pres)
+        for c in self.snf:
+            self.__hash = 31 * self.__hash + c
 
+    def __hash__(self):
+        return self.__hash
 
+    def __eq__(self,other):
+        if not isinstance(other,Position):
+            return False
+        return self.pres is other.pres and self.snf == other.snf
 
+    def __repr__(self):
+        res = '|'
+        for d in self.snf:
+            res += ' ' + repr(d)
+        res += ' >'
+        return res
+
+    def __add__(self,other):
+        if not (isinstance(other,Position) and self.pres is other.pres):
+            return None
+        snf = [ c1 + c2 for c1, c2 in zip(self.snf, other.snf) ]
+        self.pres.normalize(snf)
+        return Position(self.pres, snf)
+
+    def __sub__(self,other):
+        if not (isinstance(other,Position) and self.pres is other.pres):
+            return None
+        snf = [ c1 - c2 for c1, c2 in zip(self.snf, other.snf) ]
+        self.pres.normalize(snf)
+        return Position(self.pres, snf)
+
+    def __mul__(self,i):
+        if not isinstance(i,int):
+            return None
+        snf = [ i * c for c in self.snf ]
+        self.pres.normalize(snf)
+        return Position(self.pres, snf)
+
+    def __rmul__(self,i):
+        return self.__mul__(i)
 
 class Presentation():
 
@@ -116,7 +199,7 @@ class Presentation():
             r    = Array2D(b.col, b.col, lambda i, j: 1 if i == j else 0)
             linv = Array2D(b.row, b.row, lambda i, j: 1 if i == j else 0)
             rinv = Array2D(b.col, b.col, lambda i, j: 1 if i == j else 0)
-            a    = copy(b)
+            a    = Array2D(b.row,b.col,lambda i, j: b[i,j])
             mmm  = min(b.row, b.col)
 
             def add_alpha_row(m, alpha, i, j):
@@ -154,7 +237,7 @@ class Presentation():
                     a.swap_row(x,t)
                     l.swap_row(x,t)
                     linv.swap_col(t,x)
-                else:
+                if y != t:
                     a.swap_col(y,t)
                     r.swap_col(y,t)
                     rinv.swap_row(t,y)
@@ -169,7 +252,7 @@ class Presentation():
                     add_alpha_row(a, -quo, t, i)
                     add_alpha_row(l, -quo, t, i)
                     add_alpha_col(linv, quo, i, t)
-                    if rem != 0:
+                    if rem == 0:
                         step2(t,i+1)
                     else:
                         a.swap_row(t, i)
@@ -189,7 +272,7 @@ class Presentation():
                     add_alpha_col(a, -quo, t, j)
                     add_alpha_col(r, -quo, t, j)
                     add_alpha_row(rinv, quo, j, t)
-                    if rem != 0:
+                    if rem == 0:
                         step3(t,j+1)
                     else:
                         a.swap_col(t, j)
@@ -205,7 +288,7 @@ class Presentation():
                     for i in range(t+1,a.row):
                         for j in range(t+1,a.col):
                             aij = a[i,j]
-                            if (aij % att) == 0:
+                            if (aij % att) != 0:
                                 c = j
                                 raise Exception()
                     return True
@@ -215,7 +298,7 @@ class Presentation():
                     add_alpha_row(rinv,-1,t,c)
                     return False
 
-            big_cpt = 0
+            # big_cpt = 0
 
             def big_step(t):
                 if t < mmm:
@@ -223,7 +306,7 @@ class Presentation():
                     step2(t,t+1)
                     step3(t,t+1)
                     s4 = step4(t)
-                    big_cpt += 1
+                    # big_cpt += 1
                     if s4:
                         big_step(t+1)
                     else:
@@ -236,8 +319,8 @@ class Presentation():
             return (linv, l, a, r, rinv)
 
         (linv, l, a, rinv, r) = smith(m)
-        signature = [ a[i,i] if (i < nb_rel) else 0 for i in range(0,d) ]
 
+        signature = [ a[i,i] if (i < nb_rel) else 0 for i in range(0,d) ]
         d_trivial = 0
         l_cyclic = []
         d_free = 0
@@ -248,7 +331,6 @@ class Presentation():
                 d_free += 1
             else:
                 l_cyclic.append(p)
-
         d_cyclic = len(l_cyclic)
         torsions = l_cyclic
 
@@ -275,132 +357,99 @@ class Presentation():
             Array2D(1,1,lambda a, b: 1)
         ).concat()
 
-        def bezout(a,b):
-            r = a
-            r1 = b
-            u = 1
-            u1 = 0
-            v = 0
-            v1 = 1
-            while(r1 != 0):
-                q = r // r1
-                rs = r
-                us = u
-                vs = v
-                r = r1
-                u = u1
-                v = v1
-                r1 = rs - q * r1
-                u1 = us - q * u1
-                v1 = vs - q * v1
-            return (r,u,v)
-
-        def gcd(a,b):
-            (d,_,_) = bezout(a,b)
-            return d
-
-        def lcm(a,b):
-            if b != 0:
-                return (a * b) // gcd(a,b)
-            else:
-                return 0
-
-        def gcd_array(a):
-            l = len(a)
-            res = a[0]
-            for i in range(1,l):
-                res = gcd(res,a[i])
-            return res
-
-        def lcm_array(a):
-            l = len(a)
-            res = a[0]
-            for i in range(1,l):
-                res = lcm(res,a[i])
-            return res
-
-        def internal_order(tor,c):
-            l = len(tor)
-            return lcm_array([ 1 if p == 0 else abs(tor[i] // gcd(p,tor[i])) if i < l else 0 for (i,p) in enumerate(c) ])
-
-        def internal_normalize(tor,c):
-          for (i,m) in enumerate(tor):
-              c[i] = c[i] % m
-          return c
-
-        basis = [ internal_normalize(torsions,of_graph.get_col(gen_index)) for gen_index in range(0,d+1) ]
-
-        orders = [ internal_order(torsions,b) for b in basis ][0:d]
-
-        # print(m)
-        # print(linv)
-        # print(l)
-        # print(a)
-        # print(rinv)
-        # print(r)
-        # print(signature)
-        # print(d_trivial)
-        # print(rank)
-        # print(d)
-        # print(l_cyclic)
-        # print(d_free)
-        # print(d_cyclic)
-        # print(torsions)
-        # print(order)
-        # print(of_graph)
-        # print(to_graph)
-        # print(basis)
-        # print(orders)
-
         self.rank = rank
         self.torsions = torsions
-        self.degree = d
         self.order = order
-        self.orders = orders
         self.of_graph = of_graph
         self.to_graph = to_graph
+        self.degree = d
+
+        basis = [ Position(self, self.normalize(of_graph.get_col(gen_index))) for gen_index in range(0,d+1) ]
+
+        # orders = [ internal_order(torsions,b) for b in basis ][0:d]
+        orders = [ lcm_array([ 1 if p == 0 else abs(torsions[i] // gcd(p,torsions[i])) if i < d_cyclic else 0 for (i,p) in enumerate(b.snf) ]) for b in basis ][0:d]
+
         self.basis = basis
+        self.orders = orders
 
-    class Position():
-        def __init__(self, pres, smith):
-            self.pres = self.pres
-            self.smith = smith  # TODO: smith(c)
-            self.__hash = self.__computeHash()
+        # print('m',m)
+        # print('linv',linv)
+        # print('l',l)
+        # print('a',a)
+        # print('rinv',rinv)
+        # print('r',r)
+        # print('signature',signature)
+        # print('d_trivial',d_trivial)
+        # print('rank',rank)
+        # print('d',d)
+        # print('l_cyclic',l_cyclic)
+        # print('d_free',d_free)
+        # print('d_trivial',d_trivial)
+        # print('torsions',torsions)
+        # print('order',order)
+        # print('of_graph',of_graph)
+        # print('to_graph',to_graph)
+        # print('basis',basis)
+        # print('orders',orders)
 
-        def __computeHash():
-            h = hash(self.pres)
-            for c in self.smith:
-                h = 31 * h + c
-            return h
+    def normalize(self,c):
+        for (i,m) in enumerate(self.torsions):
+            c[i] = c[i] % m
+        return c
 
-        def __hash__(self):
-            return self.__hash
-
-        def __eq__(self,other):
-            if not isinstance(other,Position):
-                return False
-            return self.pres is other.pres and self.smith == other.smith
-
-        def __repr__(self):
-            res = '|'
-            for d in c:
-                res += ' ' + repr(d)
-            res += ' >'
-            return res
-
-        def __add__(self,other):
-            if not (isinstance(other,Position) and self.pres is other.pres):
-                return None
-            # TODO: DO IT
-            return __init__(self, self.pres, self.smith)
+    def __getitem__(self, i):
+        return self.basis[i]
 
 
 
 class GbfO():
-    def __init__(self, pres, map):
+    def __init__(self, pres, map = {}):
         self.pres = pres
         self.map = map
 
+    def __getitem__(self, pos):
+        return self.map[pos]
+
+    def __setitem__(self, pos, v):
+        self.map[pos] = v
+
+    def pop(self, pos):
+        return self.map.pop(pos)
+
+class GbfM():
+    def __init__(self, s, t, shift):
+        # for any p in support(s), s(p) = t(p + shift)
+        self.s = s
+        self.t = t
+        self.shift = shift
+    
+    def compose(self, h):
+        assert self.t == h.s
+        return GbfM(self.s,h.t, self.shift + h.shift)
+
+    def __eq__(self, other):
+        if not isinstance(other, GbfM):
+            return False
+        return self.s == other.s and self.t == other.t and self.shift == other.shift
+
+    def __hash__(self):
+        r = hash(self.s) ^ hash(self.t)
+        r ^= 31 * hast(self.shift)
+        return r
+
+    @property
+    def dom(self):
+        return self.s
+
+    @property
+    def cod(self):
+        return self.t
+
+    def clean(self):
+        pass
+
+    def __repr__(self):
+        return repr(self.shift) + ": " + repr(self.s) + " -> " + repr(self.t)
 
 
 
@@ -442,13 +491,25 @@ M[2,3] = 666
 print(M[2,3])
 print(M.data)
 print(MM.data)
-MM.swap_col(0,2);
+MM.swap_col(0,2)
 print(MM.data)
 
 print(MM.subminor(1,1).data)
 
 
 G = Presentation(3,[[1,1,-1],[10,0,0]])
+# G = Presentation(3,[[1,1,-1]])
+# G = Presentation(2,[[0,6],[6,0]])
 
+print(G[0])
+print(G[1])
+print(G[2])
+print(G[3])
+print(G[1] + G[2])
+print(G[0] + G[1])
+
+print(G[0] * 9)
+print(G[0] * 10)
+print(9 * G[0])
 
 ##
