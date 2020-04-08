@@ -27,13 +27,16 @@ class Parametrisation:
             return hash(self.OC) ^ 31 * T['parhash'](self.ET)
 
         def object_restrict(self, h):
-            assert h.cod == self.OC
-            ET = T['restriction'](h, self.ET)
-            if h.dom == h.cod and ET == self.ET:
-                # assert False # used in gmap
-                return MorphismClass(self, self, h)
-            else:
-                return MorphismClass(ObjectClass(h.dom, ET), self, h)
+            if isinstance(h, C.TM()):
+                assert h.cod == self.OC
+                ET = T['restriction'](h, self.ET)
+                if h.dom == h.cod and ET == self.ET:
+                    # assert False # used in gmap
+                    return MorphismClass(self, self, h)
+                else:
+                    return MorphismClass(ObjectClass(h.dom, ET), self, h)
+            elif isinstance(h, MorphismClass):
+                return h
 
         ObjectClass = type(C.__name__ + "__" + T['name'] + "O", (), {
             '__init__'     : object_init,
@@ -94,7 +97,7 @@ class Parametrisation:
             'naked'     : morphism_naked
         })
 
-        def Category_pattern_match_fam(p, s):
+        def Category_pattern_match_fam(p, s): #TODO remove when everything fixed
             if isinstance(p, C.TM()):
                 matches = C.pattern_match(p, s.naked())
                 p = p.cod
@@ -106,23 +109,34 @@ class Parametrisation:
                 yield MorphismClass(ObjectClass(p, restr), s, m)
 
         def Category_pattern_match(p, s):
-            if isinstance(p, MorphismClass):
-                matches = C.pattern_match(p.MC, s.MC)
-                p = p.cod
-                s = s.cod
-            else:
-                matches = C.pattern_match(p.OC, s.OC)
-            for m in matches:
-                restr = T['restriction'](m, s.ET)
-                if restr.keys() != p.ET.keys():
-                    continue
-                ok = True
-                for k, v in restr.items():
-                    if p.ET[k] != v:
-                        ok = False
-                        break
-                if ok:
-                    yield MorphismClass(p, s, m)
+            if isinstance(p, MorphismClass) or isinstance(p, ObjectClass): #TODO clean conditions
+                if isinstance(p, MorphismClass):
+                    matches = C.pattern_match(p.MC, s.MC)
+                    p = p.cod
+                    s = s.cod
+                else:
+                    matches = C.pattern_match(p.OC, s.OC)
+                for m in matches:
+                    restr = T['restriction'](m, s.ET)
+                    if restr.keys() != p.ET.keys():
+                        continue
+                    ok = True
+                    for k, v in restr.items():
+                        if p.ET[k] != v:
+                            ok = False
+                            break
+                    if ok:
+                        yield MorphismClass(p, s, m)
+            elif isinstance(p, C.TM()) or isinstance(p, C.TO()): #TODO clean conditions
+                if isinstance(p, C.TM()):
+                    matches = C.pattern_match(p, s.naked())
+                    p = p.cod
+                    s = s.cod
+                else:
+                    matches = C.pattern_match(p, s.naked())
+                for m in matches:
+                    restr = T['restriction'](m, s.ET)
+                    yield MorphismClass(ObjectClass(p, restr), s, m)
 
         def Category_multi_merge(m1s, m2s):
             m1sMC = [ m1.MC for m1 in m1s]

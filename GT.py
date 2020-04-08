@@ -66,17 +66,26 @@ class GT:
 
             def decrNbDep(self):
                 self.nb_dep -= 1
-                # print("nb_dep", self.nb_dep)
+                print("nb_dep", self.nb_dep)
                 if self.nb_dep == 0:
                     self.result.obs_by.remove(self)
-                    # print("  len_obs_by", len(self.result.obs_by))
+                    print("  len_obs_by", len(self.result.obs_by))
                     if len(self.result.obs_by) == 0:
                         assert False
                         results.remove(self.result)
                         self.result = None
                         self.subresult = None
                     self.rule = None
+                    # for i in matches:
+                    #     print(i, matches[i])
+                    #     print(id(i))
+                    #     print()
+                    # print(id(self.ins))
+                    # if self.ins in matches:
+                    print(">>>>>>>>>>>>>>>>>>>>>>>>> del ", self.ins)
+                    print(id(self.ins))
                     del matches[self.ins]
+                    print("WORKED !")
 
             def __repr__(self):
                 return "Instance : [" + " rule : " + str(self.rule) + " | match : " + str(self.ins) + " | result : " + str(self.result) + " | subresult : " + str(self.subresult) + "]"
@@ -137,12 +146,12 @@ class GT:
                 results.remove(res_new)
             else:
                 obj, on_new = self.pfunctor.CD.multi_merge_2_in_1(mult_merge_arg1, mult_merge_arg2)
-                for ins in res_new.obs_by:
+                for ins in res_new.ores_newbs_by:
                     ins.observe(res_old, on_new if ins.subresult is None else
                                 ins.subresult.compose(on_new))
                 res_new.obs_by = None
                 res_new.object = None
-                results.remove(res_new)
+                results.remove()
 
             def __repr__(self):
                 return str(self.object) + ", observed by " + str(-1 if self.obs_by is None else len(self.obs_by)) + " instance(s)"
@@ -160,6 +169,7 @@ class GT:
             ins.observe(res, None)
             matches[match] = ins
             for auto in self.pfunctor.iter_self_inclusions(rule):
+                print("FOUND SELF INCLUSION")
                 # print("ITER AUTO")
                 # print("autolhs", auto.lhs)
                 # print("compose")
@@ -175,6 +185,7 @@ class GT:
 
         def close(ins):
             global depth
+            print("  " * depth, "CLOSE", ins)
             l = []
             for get_u_rule, get_u_inc, under_match in self.pfunctor.iter_under(ins):
                 if under_match not in matches:
@@ -190,6 +201,8 @@ class GT:
 
         def close_aux(ins, inc, pins):
             global depth
+            print("  " * depth, "COMPOSE")
+            print(ins, pins)
             new_subresult = inc.rhs if pins.subresult == None else inc.rhs.compose(pins.subresult)
             if ins.subresult is None: # no subresult new one -> easy merge
                 Result.triv_merge(pins.result, new_subresult, ins.result, ins.subresult)
@@ -201,11 +214,12 @@ class GT:
                     return []
 
         def star(ins):
-            # print("len result", len(results), len(matches))
-            # print("STAR ", ins)
             global depth
+            # print("len result", len(results), len(matches))
+            print("  " * depth, "STAR ", ins)
             top = True
             for over_rule, over_match in self.pfunctor.pmatch_up(ins):
+                # print("MATCH !!!")
                 # print("match_up", over_rule, over_match)
                 top = False
                 if over_match in matches:
@@ -231,10 +245,19 @@ class GT:
             assert not small_ins.black
             star(small_ins)
             for dep_ins in small_ins.uppercone:
+                print(dep_ins)
                 dep_ins.decrNbDep()
             small_ins.result.obs_by.remove(small_ins)
             small_ins.ins.rule = None
+            print(">>>>>>>>>>>>>>>>>>>>>>>>> del ", small_ins.ins, id(small_ins.ins))
+            for ins in matches:
+                print(ins)
+                print(id(ins))
             del matches[small_ins.ins]
+            print("DELETED")
+            for ins in matches:
+                print(ins)
+                print(id(ins))
 
         # print(len(results), len(matches))
         # for result in results:

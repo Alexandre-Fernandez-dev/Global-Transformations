@@ -208,20 +208,29 @@ def Lazy(C):
     The objects are called lazy in the sense that they can be built and handle as any object of the underlying category, even if they are not yet evaluable.
     """
     
-    def init_o(self, expr):
+    def init_o(self, expr, auto):
         self.obj = None
         self.expr = expr
         self.finalCountDown = len(signature(expr).parameters)
+        self.autos = auto * [ MBaseClass(self, self) ]
         self.subobjects = self.finalCountDown * [ None ]
 
-    def eq_o(self, other):
-        raise Exception("LazyO : illegal operation")
+    # def eq_o(self, other):
+    #     raise Exception("LazyO : illegal operation")
     
     def hash_o(self):
         raise Exception("LazyO : illegal operation")
 
     def setSubobject_o(self, i, sub):
-        assert self.subobjects[i] == None
+        # print(self.subobjects)
+        # print(self.subobjects)
+        # if self.subobjects[i] != None:
+        #     print(self.subobjects[i].dom)
+        #     print(self.subobjects[i].dom.created_from, sub.expr)
+        # if not type(sub).__name__ == "SequenceO":
+        #     print(type(sub))
+        #     print(sub.force())
+        assert self.subobjects[i] == None# or self.subobjects[i].dom == sub
         self.subobjects[i] = MBaseClass(sub,self)
         self.finalCountDown -= 1
         return self.subobjects[i]
@@ -230,12 +239,19 @@ def Lazy(C):
         return self.finalCountDown == 0
 
     def force_o(self):
+        # print("FORCE")
         if self.obj != None:
             return self.obj
         if self.forceable():
-            self.obj, loulou = self.expr(*[h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects])
+            # print("lol", [h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects])
+            # print("lol2", self.expr(*[h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects]))
+            self.obj, incs, autos = self.expr(*[h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects])
             for i, h in enumerate(self.subobjects):
-                h.set(loulou[i])
+                h.set(incs[i])
+            for i, h in enumerate(self.autos):
+                h.set(autos[i])
+            self.obj.created_from = self.expr # HARD FIX TO SEE FROM WHICH RHS A OBJECT IS CREATED
+            # self.obj.subobjects = self.subobjects # ALSO hard fix
             return self.obj
         raise Exception("LazyO: Force: some subobjects are missing")
 
@@ -247,7 +263,7 @@ def Lazy(C):
     
     OClass = type('Lazy' + C.__name__ + 'O', (), {
         '__init__'     : init_o,
-        '__eq__'       : eq_o,
+        # '__eq__'       : eq_o,
         '__hash__'     : hash_o,
         'setSubobject' : setSubobject_o,
         'forceable'    : forceable_o,
@@ -272,7 +288,8 @@ def Lazy(C):
 
     @property
     def dom_m(self):
-        raise Exception("LazyM: illegal operation on lazy object")
+        return self.s
+        # raise Exception("LazyM: illegal operation on lazy object")
 
     @property
     def cod_m(self):
@@ -280,6 +297,13 @@ def Lazy(C):
 
     def compose_m(self, h):
         if isinstance(h,C.TM()):
+            # print(self.s == self.t)
+            # print(h)
+            # if isinstance(self.t, OClass):
+            #     print(self.t.subobjects)
+            #     print(self.t.force())
+            # else:
+            #     print(self.t)
             assert self.h != None
             return self.h.compose(h)
         if self.h != None and h.h != None:
@@ -294,7 +318,7 @@ def Lazy(C):
     
     MClass = type('Lazy' + C.__name__ + 'M', (), {
         '__init__'     : init_m,
-        '__eq__'       : eq_m,
+        # '__eq__'       : eq_m,
         '__hash__'     : hash_m,
         'dom'          : dom_m,
         'cod'          : cod_m,

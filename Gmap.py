@@ -107,6 +107,9 @@ class PremapO():
 
     def __repr__(self):
         return "{ premap:" + repr(self.__alpha) +  " }"
+    
+    def restrict(self, h):
+        return h.dom()
 
     def pattern(self):
         if self.__pattern == None:
@@ -1302,11 +1305,145 @@ class Test:
 
         # print(len(r), r)
 
+    @staticmethod
+    def rivers():
+        import Sheaf
 
-    if __name__ == "__main__":
-        # test_merge()
-        # test_pmatching()
-        # test_pmatching2()
-        test_pmatching()
-        # gt()
-        sheaf_nodes()
+        def restriction(f, q):
+            ret = {}
+            for n in f.dom.iter_icells(0):
+                ret[(0, n)] = q[(0, f.cod.get_icell(0, f.apply(n)))]
+            for e in f.dom.iter_icells(1):
+                ret[(1, e)] = q[(1, f.cod.get_icell(1, f.apply(e)))]
+            return ret
+
+        def amalgamation(f, p, g, q):
+            assert f.cod == g.cod
+            ret = {}
+            for n in f.dom.iter_icells(0):
+                ret[(0, f.cod.get_icell(0, f.apply(n)))] = p[(0, n)]
+
+            for e in f.dom.iter_icells(1):
+                ret[(1, f.cod.get_icell(1, f.apply(e)))] = p[(1, e)]
+
+            for n in g.dom.iter_icells(0):
+                gn = g.cod.get_icell(0, g.apply(n))
+                if (0, gn) not in ret:
+                    ret[(0, gn)] = q[(0, n)]
+                elif ret[(0, gn)] != q[(0, n)]:
+                    raise Exception("fail amalgamation")
+
+            for e in g.dom.iter_icells(1):
+                ge = g.cod.get_icell(1, g.apply(e))
+                if (1, ge) not in ret:
+                    ret[(1, ge)] = q[(1, e)]
+                elif ret[(1, ge)] != q[(1, e)]:
+                    raise Exception("fail amalgamation")
+
+            # print('amalgamation', len(list(g.cod.iter_icells(0))), len(ret))
+            return ret
+
+        def amalgamation_2_in_1(ret, g, q):
+            for n in g.dom.iter_icells(0):
+                gn = g.cod.get_icell(0, g.apply(n))
+                if (0, gn) not in ret:
+                    ret[(0, gn)] = q[(0, n)]
+                elif ret[(0, gn)] != q[(0, n)]:
+                    raise Exception("fail amalgamation 2 in 1")
+
+            for e in g.dom.iter_icells(e):
+                ge = g.cod.get_icell(1, g.apply(e))
+                if (1, ge) not in ret:
+                    ret[(1, ge)] = q[(1, e)]
+                elif ret[(1, ge)] != q[(1, e)]:
+                    raise Exception("fail amalgamation 2 in 1")
+
+        def phash(p):
+            r = 1
+            return r
+
+        ParNodesEdgesGmap = {
+            'name'                  : "ParNodeEdgeGmap",
+            'parhash'               : phash,
+            'restriction'           : restriction,
+            'amalgamation'          : amalgamation,
+            'amalgamation_2_in_1'   : amalgamation_2_in_1
+        }
+
+        CO, CM, C = Sheaf.Parametrisation.get(Premap, ParNodesEdgesGmap)
+        from PFunctor import ExpPFunctor
+        from GT import GT
+        from DataStructure import Lazy
+        LC = Lazy(Premap)
+
+        epf = ExpPFunctor.Maker(Premap, LC) # PRemap -> LC ???
+
+        l0 = PremapO(2)
+        l0d0 = l0.add_dart()
+        l0d1 = l0.add_dart()
+        l0.sew(0, l0d0, l0d1)
+
+        # l_a = SequenceO(['a'])
+        # def er_a():
+        #     return (SequenceO(['a','a']), []) if random() <= 0.5  else (SequenceO(['a']), [])
+        # g_a = epf.add_exp_rule(l_a, er_a)
+
+        r0 = PremapO(2)
+        r0d0 = r0.add_dart()
+        r0d1 = r0.add_dart()
+        r0d2 = r0.add_dart()
+        r0d3 = r0.add_dart()
+        r0.sew(0, r0d0, r0d1)
+        # r0.sew(1, r0d1, r0d2)
+        r0.sew(0, r0d2, r0d3)
+        def r0_(x):
+            assert x.OC == l0
+            p = {r0d0: x.ET[l0d0],
+                r0d1: ((x.ET[l0d0][0] + x.ET[l0d1][0])/2, (x.ET[l0d0][1] + x.ET[l0d1][1])/2, (x.ET[l0d0][2] + x.ET[l0d1][2])/2),
+                r0d2: ((x.ET[l0d0][0] + x.ET[l0d1][0])/2, (x.ET[l0d0][1] + x.ET[l0d1][1])/2, (x.ET[l0d0][2] + x.ET[l0d1][2])/2),
+                r0d3: x.ET[l0d1]}
+            r0p = CO(r0, p)
+            return r0p
+
+        g0 = fpf.add_fam_rule(l0, r0_)
+
+        # l_a = SequenceO(['a'])
+        # def er_a():
+        #     return (SequenceO(['a','a']), []) if random() <= 0.5  else (SequenceO(['a']), [])
+        # g_a = epf.add_exp_rule(l_a, er_a)
+
+        # l_aa = SequenceO(['a','a'])
+        # def er_aa(s1,s2):
+        #     ret = SequenceO(s1.s + s2.s)
+        #     return (ret, [ SequenceM(s1,ret,0) , SequenceM(s2,ret,len(s1.s)) ])
+        # g_aa = epf.add_exp_rule(l_aa, er_aa)
+
+        # l_a_aa_0 = SequenceM(l_a,l_aa,0)
+        # ir_a_aa_0 = 0
+        # g_a_aa_0 = epf.add_exp_inclusion(g_a, g_aa, l_a_aa_0, ir_a_aa_0)
+
+        # l_a_aa_1 = SequenceM(l_a,l_aa,1)
+        # ir_a_aa_1 = 1
+        # g_a_aa_1 = epf.add_exp_inclusion(g_a, g_aa, l_a_aa_1, ir_a_aa_1)
+
+        # epf = epf.get()
+
+        # T = GT(epf)
+
+        # sz = {}
+        # for i in range(0,100):
+        #     s = len(tuple(T.extend(SequenceO(['a','a','a'])))[0].object)
+        #     sz[s] = sz.setdefault(s,0) + 1
+        # print({s: 8*n/100 for (s,n) in sz.items() })
+        # print((tuple(T.extend(SequenceO(['a','a','a'])))[0].object))
+
+
+
+if __name__ == "__main__":
+    # test_merge()
+    # test_pmatching()
+    # test_pmatching2()
+    # test_pmatching()
+    # gt()
+    Test.sheaf_nodes()
+    # Test.rivers()
