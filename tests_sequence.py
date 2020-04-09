@@ -1,25 +1,25 @@
 from Sequence import Sequence, SequenceO, SequenceM, NkSeqO, NkSeqM
 
 def test():
-    test = ['b', 'o', 'n', 'j', 'o', 'n', 'r']
-    pat =  ['o', 'n']
-    for i in Sequence.pattern_match(SequenceO(pat), SequenceO(test)):
-        print(i.i)
-        r1 = i
+    # test = ['b', 'o', 'n', 'j', 'o', 'n', 'r']
+    # pat =  ['o', 'n']
+    # for i in Sequence.pattern_match(SequenceO(pat), SequenceO(test)):
+    #     print(i.i)
+    #     r1 = i
 
-    patdest = ['n', 'j', 'o', 'n', 'r']
-    for i in Sequence.pattern_match(SequenceO(pat), SequenceO(patdest)):
-        print(i.i)
-        r2 = i
+    # patdest = ['n', 'j', 'o', 'n', 'r']
+    # for i in Sequence.pattern_match(SequenceO(pat), SequenceO(patdest)):
+    #     print(i.i)
+    #     r2 = i
 
-    for i in Sequence.pattern_match(r2, r1):
-        print(i.i)
+    # for i in Sequence.pattern_match(r2, r1):
+    #     print(i.i)
 
-    merge1 = ['e', 'y', 'l', 'e'] #, 'a', 'l', 'e', 'x']
-    merge2 = ['h', 'e', 'y', 'l', 'e', 'a']
-    mergeon = ['l', 'e']
-    m1 = SequenceM(SequenceO(mergeon), SequenceO(merge1), 2)
-    m2 = SequenceM(SequenceO(mergeon), SequenceO(merge2), 3)
+    # merge1 = ['e', 'y', 'l', 'e'] #, 'a', 'l', 'e', 'x']
+    # merge2 = ['h', 'e', 'y', 'l', 'e', 'a']
+    # mergeon = ['l', 'e']
+    # m1 = SequenceM(SequenceO(mergeon), SequenceO(merge1), 2)
+    # m2 = SequenceM(SequenceO(mergeon), SequenceO(merge2), 3)
 
     # t = Sequence.merge(m2, m1)
     # print(t)
@@ -70,7 +70,7 @@ def test():
 
     g = SequenceO(['a'])
     # print(g)
-    for i in range(0, 10):
+    for i in range(0, 2):
         gr = T.extend(g)
         assert len(gr) == 1
         g = list(gr)[0].object

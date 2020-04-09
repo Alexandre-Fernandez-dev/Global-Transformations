@@ -29,9 +29,13 @@ class SequenceO:
             if h.dom == h.cod:
                 return SequenceM(self, self, h.i)
             else:
+                print("restrict ", self, h)
+                print("return new ", SequenceM(SequenceO(self.s[h.i:h.i+h.dom.i]), self, h.i))
                 return SequenceM(SequenceO(self.s[h.i:h.i+h.dom.i]), self, h.i)
         elif isinstance(h, SequenceM):
             return h
+        else:
+            raise Exception("PROUT")
 
     # # new
     # def __eq__(self, other):
@@ -102,6 +106,8 @@ class SequenceM:
     def __eq__(self, other):
         if not isinstance(other, SequenceM):
             return False
+        print("s == s", self.s == other.s)
+        print("t == t", self.t == other.t)
         return self.s == other.s and self.t == other.t and self.i == other.i
 
     def __hash__(self):

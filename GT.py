@@ -50,10 +50,19 @@ class GT:
                 self_.uppercone = []
                 for small_rule, inc_l in self.pfunctor.iter_small(rule):
                     small_match = inc_l.compose(ins)
+                    print("NEW small match ", small_match)
+                    for mins in matches:
+                        print(mins)
+                        print(id(mins))
+                        print(mins == small_match)
+                        print(type(mins))
+                        print(type(small_match))
                     if small_match not in matches:
+                        print("NOT IN MATCHES")
                         small_ins = add_instance(small_rule, small_match, False)
                         fifo.insert(0, small_ins)
                     else:
+                        print("IN MATCHES")
                         small_ins = matches[small_match]
                     small_ins.uppercone.append(self_)
 
@@ -146,12 +155,12 @@ class GT:
                 results.remove(res_new)
             else:
                 obj, on_new = self.pfunctor.CD.multi_merge_2_in_1(mult_merge_arg1, mult_merge_arg2)
-                for ins in res_new.ores_newbs_by:
+                for ins in res_new.obs_by:
                     ins.observe(res_old, on_new if ins.subresult is None else
                                 ins.subresult.compose(on_new))
                 res_new.obs_by = None
                 res_new.object = None
-                results.remove()
+                results.remove(res_new)
 
             def __repr__(self):
                 return str(self.object) + ", observed by " + str(-1 if self.obs_by is None else len(self.obs_by)) + " instance(s)"
@@ -253,6 +262,9 @@ class GT:
             for ins in matches:
                 print(ins)
                 print(id(ins))
+                print(ins == small_ins.ins)
+                print(type(small_ins.ins))
+                print(type(ins))
             del matches[small_ins.ins]
             print("DELETED")
             for ins in matches:
