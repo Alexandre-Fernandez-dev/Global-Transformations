@@ -811,6 +811,7 @@ class FamExpPFunctor(PFunctor):
             # print("PASS", type(g_b.rhs))
             if not auto:
                 print(g_b.rhs.subobjects)
+                print(g_b.rhs.expr)
                 if g_b.rhs.subobjects[fam_exp_inc.rhs_i] != None:
                     # print(g_b.rhs.subobjects[fam_exp_inc.rhs_i].dom.created_from, g_a.rhs.expr)
                     # if g_b.rhs.subobjects[fam_exp_inc.rhs_i].dom.created_from == g_a.rhs.expr:

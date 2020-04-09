@@ -302,6 +302,12 @@ class GraphO():
             self.g = g
         self.__pattern = None
 
+    def restrict(self, h):
+        if isinstance(h, GraphM):
+            return h
+        else:
+            raise Exception("PROUT")
+
     def __eq__(self, other):
         if not isinstance(other, GraphO):
             return False
