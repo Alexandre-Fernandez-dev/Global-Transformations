@@ -50,19 +50,19 @@ class GT:
                 self_.uppercone = []
                 for small_rule, inc_l in self.pfunctor.iter_small(rule):
                     small_match = inc_l.compose(ins)
-                    print("NEW small match ", small_match)
-                    for mins in matches:
-                        print(mins)
-                        print(id(mins))
-                        print(mins == small_match)
-                        print(type(mins))
-                        print(type(small_match))
+                    # print("NEW small match ", small_match)
+                    # for mins in matches:
+                    #     print(mins)
+                    #     print(id(mins))
+                    #     print(mins == small_match)
+                    #     print(type(mins))
+                    #     print(type(small_match))
                     if small_match not in matches:
-                        print("NOT IN MATCHES")
+                        # print("NOT IN MATCHES")
                         small_ins = add_instance(small_rule, small_match, False)
                         fifo.insert(0, small_ins)
                     else:
-                        print("IN MATCHES")
+                        # print("IN MATCHES")
                         small_ins = matches[small_match]
                     small_ins.uppercone.append(self_)
 
@@ -75,26 +75,27 @@ class GT:
 
             def decrNbDep(self):
                 self.nb_dep -= 1
-                print("nb_dep", self.nb_dep)
+                # print("nb_dep", self.nb_dep)
                 if self.nb_dep == 0:
                     self.result.obs_by.remove(self)
-                    print("  len_obs_by", len(self.result.obs_by))
+                    # print("  len_obs_by", len(self.result.obs_by))
                     if len(self.result.obs_by) == 0:
                         assert False
                         results.remove(self.result)
                         self.result = None
                         self.subresult = None
                     self.rule = None
+                    # print(">>>>>>>>>>>>>>>>>>>>>>>>>>start list matches")
                     # for i in matches:
                     #     print(i, matches[i])
                     #     print(id(i))
                     #     print()
                     # print(id(self.ins))
                     # if self.ins in matches:
-                    print(">>>>>>>>>>>>>>>>>>>>>>>>> del ", self.ins)
-                    print(id(self.ins))
+                    # print(">>>>>>>>>>>>>>>>>>>>>>>>> del ", self.ins)
+                    # print(id(self.ins))
                     del matches[self.ins]
-                    print("WORKED !")
+                    # print("WORKED !")
 
             def __repr__(self):
                 return "Instance : [" + " rule : " + str(self.rule) + " | match : " + str(self.ins) + " | result : " + str(self.result) + " | subresult : " + str(self.subresult) + "]"
@@ -178,7 +179,7 @@ class GT:
             ins.observe(res, None)
             matches[match] = ins
             for auto in self.pfunctor.iter_self_inclusions(rule):
-                print("FOUND SELF INCLUSION")
+                # print("FOUND SELF INCLUSION")
                 # print("ITER AUTO")
                 # print("autolhs", auto.lhs)
                 # print("compose")
@@ -194,7 +195,7 @@ class GT:
 
         def close(ins):
             global depth
-            print("  " * depth, "CLOSE", ins)
+            # print("  " * depth, "CLOSE", ins)
             l = []
             for get_u_rule, get_u_inc, under_match in self.pfunctor.iter_under(ins):
                 if under_match not in matches:
@@ -210,8 +211,8 @@ class GT:
 
         def close_aux(ins, inc, pins):
             global depth
-            print("  " * depth, "COMPOSE")
-            print(ins, pins)
+            # print("  " * depth, "COMPOSE")
+            # print(ins, pins)
             new_subresult = inc.rhs if pins.subresult == None else inc.rhs.compose(pins.subresult)
             if ins.subresult is None: # no subresult new one -> easy merge
                 Result.triv_merge(pins.result, new_subresult, ins.result, ins.subresult)
@@ -225,7 +226,7 @@ class GT:
         def star(ins):
             global depth
             # print("len result", len(results), len(matches))
-            print("  " * depth, "STAR ", ins)
+            # print("  " * depth, "STAR ", ins)
             top = True
             for over_rule, over_match in self.pfunctor.pmatch_up(ins):
                 # print("MATCH !!!")
@@ -254,22 +255,22 @@ class GT:
             assert not small_ins.black
             star(small_ins)
             for dep_ins in small_ins.uppercone:
-                print(dep_ins)
+                #print(dep_ins)
                 dep_ins.decrNbDep()
             small_ins.result.obs_by.remove(small_ins)
             small_ins.ins.rule = None
-            print(">>>>>>>>>>>>>>>>>>>>>>>>> del ", small_ins.ins, id(small_ins.ins))
-            for ins in matches:
-                print(ins)
-                print(id(ins))
-                print(ins == small_ins.ins)
-                print(type(small_ins.ins))
-                print(type(ins))
+            # print(">>>>>>>>>>>>>>>>>>>>>>>>> del ", small_ins.ins, id(small_ins.ins))
+            #for ins in matches:
+            #    print(ins)
+            #    print(id(ins))
+            #    print(ins == small_ins.ins)
+            #    print(type(small_ins.ins))
+            #    print(type(ins))
             del matches[small_ins.ins]
-            print("DELETED")
-            for ins in matches:
-                print(ins)
-                print(id(ins))
+            # print("DELETED")
+            # for ins in matches:
+            #     print(ins)
+            #     print(id(ins))
 
         # print(len(results), len(matches))
         # for result in results:

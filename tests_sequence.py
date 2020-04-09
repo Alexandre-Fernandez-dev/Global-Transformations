@@ -201,7 +201,7 @@ def test4():
             ret = SequenceO(s1.s + s2.s)
             return (ret, [ SequenceM(s1,ret,0) , SequenceM(s2,ret,len(s1.s))], [SequenceM(ret, ret, 0)])
         return er_aa_exp
-    g_aa = epf.add_fam_exp_rule(l_aa, er_aa, 1)
+    g_aa = epf.add_fam_exp_rule(l_aa, er_aa, 0)
 
     l_a_aa_0 = SequenceM(l_a,l_aa,0)
     ir_a_aa_0 = 0
@@ -211,9 +211,9 @@ def test4():
     ir_a_aa_1 = 1
     g_a_aa_1 = epf.add_fam_exp_inclusion(g_a, g_aa, l_a_aa_1, ir_a_aa_1)
 
-    l_aa_aa = SequenceM(l_aa, l_aa, 0)
-    ir_aa_aa = 0
-    g_aa_aa = epf.add_fam_exp_inclusion(g_aa, g_aa, l_aa_aa, ir_aa_aa)
+    # l_aa_aa = SequenceM(l_aa, l_aa, 0)
+    # ir_aa_aa = 0
+    # g_aa_aa = epf.add_fam_exp_inclusion(g_aa, g_aa, l_aa_aa, ir_aa_aa)
 
     epf = epf.get()
 
@@ -227,10 +227,10 @@ def test4():
     print((tuple(T.extend(SequenceO(['a','a','a'])))[0].object))
 
 if __name__ == "__main__":
-    test()
+    # test()
     # test3()
     print("-------------------------------------------------------------END1")
-    # test4()
+    test4()
 
 # g1 = ExprRule(['a'], lambda self: ['a', 'a'] if random() > 0.5 else ['a'])
 # 

@@ -6,9 +6,9 @@ import os,sys,inspect
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(0, parent_dir) 
-import Gmap
+import tests_gmap
 
-T, gp = Gmap.Test.sheaf_nodes()
+T, gp = tests_gmap.Test.sheaf_nodes()
 
 for i in range(0, 4):
     gp = tuple(T.extend(gp))[0].object

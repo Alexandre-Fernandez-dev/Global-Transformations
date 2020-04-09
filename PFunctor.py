@@ -467,7 +467,7 @@ class FamPFunctor(PFunctor):
             # print()
             # print("self_inc.lhs.cod ", self_inc.lhs.cod)
             # assert self_inc.g_a.lhs == self_inc.lhs.dom
-            raise Exception("PROUT")
+            # raise Exception("PROUT")
             yield self_inc
 
     def nb_small(self, rule):
