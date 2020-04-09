@@ -37,18 +37,18 @@ class SequenceO:
         else:
             raise Exception("PROUT")
 
-    # # new
-    # def __eq__(self, other):
-    #     if not isinstance(other, SequenceO):
-    #         return False
-    #     return self.s == other.s
-    #
-    # # new
-    # def __hash__(self):
-    #     r = len(self.s)
-    #     for i in self.s:
-    #         r ^= 31 * hash(i)
-    #     return r
+    # new
+    def __eq__(self, other):
+        if not isinstance(other, SequenceO):
+            return False
+        return self.s == other.s
+
+    # new
+    def __hash__(self):
+        r = len(self.s)
+        for i in self.s:
+            r ^= 31 * hash(i)
+        return r
 
     def __len__(self):
         return len(self.s)
