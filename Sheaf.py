@@ -97,6 +97,12 @@ class Parametrisation:
             'naked'     : morphism_naked
         })
 
+        def Category_TO():
+            return ObjectClass
+
+        def Category_TM():
+            return MorphismClass
+
         def Category_pattern_match_fam(p, s): #TODO remove when everything fixed
             if isinstance(p, C.TM()):
                 matches = C.pattern_match(p, s.naked())
@@ -128,6 +134,7 @@ class Parametrisation:
                     if ok:
                         yield MorphismClass(p, s, m)
             elif isinstance(p, C.TM()) or isinstance(p, C.TO()): #TODO clean conditions
+                print("pattern_match_fam")
                 if isinstance(p, C.TM()):
                     matches = C.pattern_match(p, s.naked())
                     p = p.cod
@@ -161,6 +168,8 @@ class Parametrisation:
             return m10, m2p
 
         CategoryClass = type(C.__name__ + "__" + T['name'], (DataStructure,), {
+            'TO'                  : Category_TO,
+            'TM'                  : Category_TM,
             'pattern_match_fam'   : Category_pattern_match_fam,
             'pattern_match'       : Category_pattern_match,
             'multi_merge'         : Category_multi_merge,

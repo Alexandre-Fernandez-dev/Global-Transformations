@@ -296,6 +296,7 @@ def Lazy(C):
         raise Exception("LazyM: illegal operation on lazy object")
 
     def compose_m(self, h):
+        print(C)
         if isinstance(h,C.TM()):
             # print(self.s == self.t)
             # print(h)
