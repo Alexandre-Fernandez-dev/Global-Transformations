@@ -1034,5 +1034,7 @@ if __name__ == "__main__":
     # test_pmatching2()
     # test_pmatching()
     # gt()
-    Test.sheaf_nodes()
+    T, gp = Test.sheaf_nodes()
+    for i in range(0, 5):
+        gp = tuple(T.extend(gp))[0].object
     # Test.rivers()
