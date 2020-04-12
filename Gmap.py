@@ -147,6 +147,7 @@ class PremapM:
         hash(self)
 
     def compose(self,h):
+        #print(self.t, h.s)
         assert self.t == h.s
         l = [ h.l[ld] for ld in self.l ]
         return PremapM(self.s,h.t,l)
@@ -176,8 +177,8 @@ class PremapM:
     def cod(self):
         return self.t
 
-    def pattern(self):
-        return None
+    # def pattern(self):
+    #     return None
 
     def clean(self):
         self.l = self.l.copy()

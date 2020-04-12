@@ -241,18 +241,33 @@ def Lazy(C):
     def force_o(self):
         # print("FORCE")
         if self.obj != None:
-            return self.obj
+            print("FORCE already")
+            print("sub")
+            for i, h in enumerate(self.subobjects):
+                print(id(h))
+                print(h.dom)
+            print("auto")
+            for i, h in enumerate(self.autos):
+                print(id(h))
+                print(h.dom)
+            return self
         if self.forceable():
+            print("FORCE")
             # print("lol", [h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects])
             # print("lol2", self.expr(*[h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects]))
-            self.obj, incs, autos = self.expr(*[h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects])
+            self.obj, incs, autos = self.expr(*[h.s.force().obj if isinstance(h.s,OClass) else h.s for h in self.subobjects])
             for i, h in enumerate(self.subobjects):
                 h.set(incs[i])
+                print(id(h))
             for i, h in enumerate(self.autos):
                 h.set(autos[i])
-            self.obj.created_from = self.expr # HARD FIX TO SEE FROM WHICH RHS A OBJECT IS CREATED
+                print(id(h))
+            # self.obj.created_from = self.expr # HARD FIX TO SEE FROM WHICH RHS A OBJECT IS CREATED
             # self.obj.subobjects = self.subobjects # ALSO hard fix
-            return self.obj
+            # self.obj.autos = self.autos # ALSO hard fix
+            # self.obj.forceable = lambda : False # ALSO hard fix
+            return self
+            #return self.obj
         raise Exception("LazyO: Force: some subobjects are missing")
 
     def repr_o(self):
@@ -305,7 +320,12 @@ def Lazy(C):
             #     print(self.t.force())
             # else:
             #     print(self.t)
-            assert self.h != None
+            # assert self.h != None
+            if self.h == None:
+                print("force compose")
+                print(id(self))
+                self.t.force()
+                print(self.h)
             return self.h.compose(h)
         if self.h != None and h.h != None:
             return self.h.compose(h.h)
@@ -341,7 +361,7 @@ def Lazy(C):
             self.t.force()
             if self.h == None:
                 raise Exception("LazyMBase: Force: not yet set")
-        return self.h
+        return self#self.h
     
     MBaseClass = type('Lazy' + C.__name__ + 'MBase', (MClass,), {
         '__init__'  : init_m_base,
@@ -356,10 +376,11 @@ def Lazy(C):
 
     def force_m_compose(self):
         if self.h == None:
-            self.h = self.h1.force().compose(self.h2.force())
-            self.s = self.h.dom
-            self.t = self.h.cod
-        return self.h
+            print(type(self.h1.force().h), type(self.h2.force().h))
+            self.h = self.h1.force().h.compose(self.h2.force().h)
+            # self.s = self.h.dom
+            # self.t = self.h.cod
+        return self#self.h
 
     MComposeClass = type('Lazy' + C.__name__ + 'MCompose', (MClass,), {
         '__init__'  : init_m_compose,
@@ -376,13 +397,13 @@ def Lazy(C):
         raise Exception("LazySequenceM: illegal operation on lazy object")
 
     def multi_merge_2_in_1_C(m1s, m2s):
-        m1s = [ h.force() if isinstance(h,MClass) else h for h in m1s ]
-        m2s = [ h.force() if isinstance(h,MClass) else h for h in m2s ]
+        m1s = [ h.force().h if isinstance(h,MClass) else h for h in m1s ]
+        m2s = [ h.force().h if isinstance(h,MClass) else h for h in m2s ]
         return C.multi_merge_2_in_1(m1s, m2s)
 
     def multi_merge_C(m1s, m2s):
-        m1s = [ h.force() if isinstance(h,MClass) else h for h in m1s ]
-        m2s = [ h.force() if isinstance(h,MClass) else h for h in m2s ]
+        m1s = [ h.force().h if isinstance(h,MClass) else h for h in m1s ]
+        m2s = [ h.force().h if isinstance(h,MClass) else h for h in m2s ]
         return C.multi_merge(m1s, m2s)
     
     

@@ -141,14 +141,20 @@ class GT:
                 res = Result(obj, False)
                 results.add(res)
                 for ins in res_old.obs_by:
-                    # print("SUB", ins.subresult)
-                    # print("on_old", on_old)
+                    print("SUB", ins.subresult)
+                    if ins.subresult != None:
+                        print(ins.subresult.force())
+                    print("on_old", on_old)
                     ins.observe(res, on_old if ins.subresult is None else
                                 ins.subresult.compose(on_old))
                 res_old.obs_by = None
                 res_old.object = None
                 results.remove(res_old)
                 for ins in res_new.obs_by:
+                    print("SUB", ins.subresult)
+                    if ins.subresult != None:
+                        print(ins.subresult.force())
+                    print("on_new", on_new)
                     ins.observe(res, on_new if ins.subresult is None else
                                 ins.subresult.compose(on_new))
                 res_new.obs_by = None
@@ -157,6 +163,10 @@ class GT:
             else:
                 obj, on_new = self.pfunctor.CD.multi_merge_2_in_1(mult_merge_arg1, mult_merge_arg2)
                 for ins in res_new.obs_by:
+                    print("SUB", ins.subresult)
+                    if ins.subresult != None:
+                        print(ins.subresult.force())
+                    print("on_new", on_new)
                     ins.observe(res_old, on_new if ins.subresult is None else
                                 ins.subresult.compose(on_new))
                 res_new.obs_by = None
@@ -195,7 +205,7 @@ class GT:
 
         def close(ins):
             global depth
-            # print("  " * depth, "CLOSE", ins)
+            print("  " * depth, "CLOSE", ins)
             l = []
             for get_u_rule, get_u_inc, under_match in self.pfunctor.iter_under(ins):
                 if under_match not in matches:
@@ -225,8 +235,8 @@ class GT:
 
         def star(ins):
             global depth
-            # print("len result", len(results), len(matches))
-            # print("  " * depth, "STAR ", ins)
+            print("len result", len(results), len(matches))
+            print("  " * depth, "STAR ", ins)
             top = True
             for over_rule, over_match in self.pfunctor.pmatch_up(ins):
                 # print("MATCH !!!")
@@ -252,6 +262,7 @@ class GT:
         while len(fifo) > 0:
             depth = 0
             small_ins = fifo.pop()
+            print("SMALL", small_ins)
             assert not small_ins.black
             star(small_ins)
             for dep_ins in small_ins.uppercone:

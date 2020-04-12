@@ -808,6 +808,8 @@ class FamExpPFunctor(PFunctor):
             self.g_a = g_a
             self.g_b = g_b
             self.lhs = lhs
+            # self.rhs_autos = None
+            # self.rhs_subojbects = None
             # print("PASS", type(g_b.rhs))
             if not auto:
                 print(g_b.rhs.subobjects)
@@ -820,21 +822,23 @@ class FamExpPFunctor(PFunctor):
                 else:
                     self.rhs = g_b.rhs.setSubobject(fam_exp_inc.rhs_i, g_a.rhs)
                 # print("type self rhs", type(self.rhs))
-                # if g_b.rhs.forceable():
-                #     # print("force forceable")
-                #     # print(g_b.lhs)
-                #     g_b.rhs = g_b.rhs.force()
-                #     self.rhs = self.rhs.force()
+                if g_b.rhs.forceable():
+                    # print("force forceable")
+                    # print(g_b.lhs)
+                    g_b.rhs.force()
+                    self.rhs.force()
             else:
                 # print(type(g_a.rhs.subobjects))
                 # print(self.rhs.force())
                 print("NEW AUTO INCLUSION")
-                assert g_a == g_b
+                print(g_a)
+                print(g_b)
+                # assert g_a == g_b
                 self.rhs = g_b.rhs.autos[fam_exp_inc.rhs_i]
-                # if g_b.rhs.forceable():
-                #     print("FOOOOOOOOOOOOOOOOOOOOOOOOOOORCE")
-                #     g_b.rhs = g_b.rhs.force()
-                #     self.rhs = self.rhs.force()
+                if g_b.rhs.forceable():
+                    print("FOOOOOOOOOOOOOOOOOOOOOOOOOOORCE")
+                    g_b.rhs.force()
+                    self.rhs.force()
 
         def __eq__(self, other):
             if not isinstance(other, FamExpPFunctor.Inclusion):
@@ -900,7 +904,9 @@ class FamExpPFunctor(PFunctor):
 
     def next_small(self, X):
         for small_rule_fam_exp in self.smalls:
+            print("small_rule", small_rule_fam_exp.lhs)
             for small_match in self.CS.pattern_match(small_rule_fam_exp.lhs, X):
+                print("small_match")
                 small_match.clean()
                 # print("force next_small")
                 small_rule = self.Rule(small_rule_fam_exp, small_match.dom, self.CD.TO()(small_rule_fam_exp.rhs_fam_exp(small_match.dom), small_rule_fam_exp.rhs_auto).force())
@@ -911,7 +917,7 @@ class FamExpPFunctor(PFunctor):
             print("ITER SELF INCLUSIONS", inc_fam_exp)
             inc_lhs = rule.lhs.restrict(inc_fam_exp.lhs)
             # print("new rule iter_self_inclusions")
-            self_rule = self.Rule(rule.fam_exp, inc_lhs.dom, rule.rhs)
+            self_rule = self.Rule(rule.fam_exp, inc_lhs.dom, rule.rhs.autos[inc_fam_exp.rhs_i].dom)
             # print("new inclusion iter_self_inclusions")
             self_inc = self.Inclusion(inc_fam_exp, self_rule, rule, inc_lhs, True)
             print("id self_rule ", id(self_rule))

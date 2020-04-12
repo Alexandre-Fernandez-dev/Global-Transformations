@@ -1,9 +1,15 @@
-from PFunctor import FlatPFunctor, FamPFunctor, ExpPFunctor
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir) 
+
+from PFunctor import FlatPFunctor, FamPFunctor, ExpPFunctor, FamExpPFunctor
 from Gmap import Premap, PremapO, PremapM
 from GT import GT
 import Sheaf
 import math
 from DataStructure import Lazy
+from random import random
 
 def test_pmatching():
     p0 = PremapO(2)
@@ -398,7 +404,6 @@ class Test:
 
         CO, CM, C = Sheaf.Parametrisation.get(Premap, ParNodesGmap)
 
-
         fpf = FamPFunctor.Maker(C, C)
 
         l0 = PremapO(2)
@@ -423,7 +428,7 @@ class Test:
             r0p = CO(r0, p)
             return r0p
 
-        g0 = fpf.add_fam_rule(l0, r0_)
+        g0 = fpf.add_fam_exp_rule(l0, r0_)
 
         l1 = PremapO(2)
         l1d0 = l1.add_dart()
@@ -906,6 +911,11 @@ class Test:
             for n in f.dom.iter_icells(0):
                 ret[(0, n)] = q[(0, f.cod.get_icell(0, f.apply(n)))]
             for e in f.dom.iter_icells(1):
+                # print(q)
+                # for qi in q:
+                #     print(qi)
+                #     print(qi[0], f.cod.get_icell(1, qi[1]))
+                # # print({ (k[0], f.cod.get_icell(1, f.apply(k[1]))): v for k, v in q })
                 ret[(1, e)] = q[(1, f.cod.get_icell(1, f.apply(e)))]
             return ret
 
@@ -925,11 +935,30 @@ class Test:
                 elif ret[(0, gn)] != q[(0, n)]:
                     raise Exception("fail amalgamation")
 
+            sf = set(f.l)
+            sg = set(g.l)
+            print(len(sf))
+            print(sf)
+            print(len(sg))
+            print(sg)
+            d = {}
+            for i in range(len(f.l)):
+                d1 = f.l[i]
+                for j in range(len(g.l)):
+                    d2 = g.l[j]
+                    if d1 == d2:
+                        d[d1] = (i, j)
+            print(sf.intersection(sg))
+            for k, v in d.items():
+                print(k)
+                print(p[(1, f.dom.get_icell(1, v[0]))])
+                print(q[(1, g.dom.get_icell(1, v[1]))])
             for e in g.dom.iter_icells(1):
                 ge = g.cod.get_icell(1, g.apply(e))
                 if (1, ge) not in ret:
                     ret[(1, ge)] = q[(1, e)]
                 elif ret[(1, ge)] != q[(1, e)]:
+                    print(ret[(1, ge)], q[(1, e)])
                     raise Exception("fail amalgamation")
 
             # print('amalgamation', len(list(g.cod.iter_icells(0))), len(ret))
@@ -943,7 +972,7 @@ class Test:
                 elif ret[(0, gn)] != q[(0, n)]:
                     raise Exception("fail amalgamation 2 in 1")
 
-            for e in g.dom.iter_icells(e):
+            for e in g.dom.iter_icells(1):
                 ge = g.cod.get_icell(1, g.apply(e))
                 if (1, ge) not in ret:
                     ret[(1, ge)] = q[(1, e)]
@@ -963,36 +992,308 @@ class Test:
         }
 
         CO, CM, C = Sheaf.Parametrisation.get(Premap, ParNodesEdgesGmap)
-        LC = Lazy(Premap)
+        LC = Lazy(C)
 
-        epf = ExpPFunctor.Maker(Premap, LC) # PRemap -> LC ???
+        epf = FamExpPFunctor.Maker(C, LC) # PRemap -> LC ???
 
-        l0 = PremapO(2)
-        l0d0 = l0.add_dart()
-        l0d1 = l0.add_dart()
-        l0.sew(0, l0d0, l0d1)
+        # l0 = PremapO(2)
+        # l0d0 = l0.add_dart()
+        # l0d1 = l0.add_dart()
+        # l0.sew(0, l0d0, l0d1)
 
-        # l_a = SequenceO(['a'])
-        # def er_a():
-        #     return (SequenceO(['a','a']), []) if random() <= 0.5  else (SequenceO(['a']), [])
-        # g_a = epf.add_exp_rule(l_a, er_a)
+        # # l_a = SequenceO(['a'])
+        # # def er_a():
+        # #     return (SequenceO(['a','a']), []) if random() <= 0.5  else (SequenceO(['a']), [])
+        # # g_a = epf.add_exp_rule(l_a, er_a)
 
-        r0 = PremapO(2)
-        r0d0 = r0.add_dart()
-        r0d1 = r0.add_dart()
-        r0d2 = r0.add_dart()
-        r0d3 = r0.add_dart()
-        r0.sew(0, r0d0, r0d1)
-        # r0.sew(1, r0d1, r0d2)
-        r0.sew(0, r0d2, r0d3)
-        def r0_(x):
-            assert x.OC == l0
-            p = {r0d0: x.ET[l0d0],
-                r0d1: ((x.ET[l0d0][0] + x.ET[l0d1][0])/2, (x.ET[l0d0][1] + x.ET[l0d1][1])/2, (x.ET[l0d0][2] + x.ET[l0d1][2])/2),
-                r0d2: ((x.ET[l0d0][0] + x.ET[l0d1][0])/2, (x.ET[l0d0][1] + x.ET[l0d1][1])/2, (x.ET[l0d0][2] + x.ET[l0d1][2])/2),
-                r0d3: x.ET[l0d1]}
-            r0p = CO(r0, p)
-            return r0p
+        # r0 = PremapO(2)
+        # r0d0 = r0.add_dart()
+        # r0d1 = r0.add_dart()
+        # r0d2 = r0.add_dart()
+        # r0d3 = r0.add_dart()
+        # r0.sew(0, r0d0, r0d1)
+        # r0.sew(0, r0d2, r0d3)
+        # def r0_(x):
+        #     def r0__():
+        #         assert x.OC == l0
+        #         if x.ET[(1, l0d0)]:
+        #             river = True
+        #             r = random() > 0.5
+        #         else:
+        #             river = True
+        #         p = {(0, r0d0): x.ET[(0, l0d0)],
+        #             (0, r0d1): ((x.ET[(0, l0d0)][0] + x.ET[(0, l0d1)][0])/2, (x.ET[(0, l0d0)][1] + x.ET[(0, l0d1)][1])/2, (x.ET[(0, l0d0)][2] + x.ET[(0, l0d1)][2])/2),
+        #             (0, r0d2): ((x.ET[(0, l0d0)][0] + x.ET[(0, l0d1)][0])/2, (x.ET[(0, l0d0)][1] + x.ET[(0, l0d1)][1])/2, (x.ET[(0, l0d0)][2] + x.ET[(0, l0d1)][2])/2),
+        #             (0, r0d3): x.ET[(0, l0d1)],
+        #             (1, r0d0): r if river == True else river,
+        #             (1, r0d2): not r if river == True else river
+        #             }
+        #         return (CO(r0, p), [], [])
+        #     return r0__
+
+        l1 = PremapO(2)
+        l1d0 = l1.add_dart()
+        l1d1 = l1.add_dart()
+        l1.sew(0, l1d0, l1d1)
+        l1d2 = l1.add_dart()
+        l1d3 = l1.add_dart()
+        l1.sew(0, l1d2, l1d3)
+        l1.sew(2, l1d0, l1d2)
+        l1.sew(2, l1d1, l1d3)
+
+        r1 = PremapO(2)
+        r1d0 = r1.add_dart()
+        r1d1 = r1.add_dart()
+        r1d2 = r1.add_dart()
+        r1d3 = r1.add_dart()
+        r1.sew(0, r1d0, r1d1)
+        # r1.sew(1, r1d1, r1d2)
+        r1.sew(0, r1d2, r1d3)
+        r1d4 = r1.add_dart()
+        r1d5 = r1.add_dart()
+        r1d6 = r1.add_dart()
+        r1d7 = r1.add_dart()
+        r1.sew(0, r1d4, r1d5)
+        # r1.sew(1, r1d5, r1d6)
+        r1.sew(0, r1d6, r1d7)
+        r1.sew(2, r1d0, r1d4)
+        r1.sew(2, r1d1, r1d5)
+        r1.sew(2, r1d2, r1d6)
+        r1.sew(2, r1d3, r1d7)
+
+        # f1l1 = PremapM(l1, l1, [l1d1, l1d0, l1d3, l1d2])
+        # f1r1 = PremapM(r1, r1, [r1d3, r1d2, r1d1, r1d0, r1d7, r1d6, r1d5, r1d4])
+
+        f2l1 = PremapM(l1, l1, [l1d2, l1d3, l1d0, l1d1])
+        f2r1 = PremapM(r1, r1, [r1d4, r1d5, r1d6, r1d7, r1d0, r1d1, r1d2, r1d3])
+
+        # f3l1 = f1l1.compose(f2l1)
+        # f3r1 = f1r1.compose(f2r1)
+
+        def r1_(x):
+            def r1__():
+                assert x.OC == l1
+                river = x.ET[(1, l1d0)]
+                if river:
+                    #assert x.ET[(1, l1d2)]
+                    r = random() > 0.5
+                p = {(0, r1d0): x.ET[(0, l1d0)],
+                    (0, r1d1): ((x.ET[(0, l1d0)][0] + x.ET[(0, l1d1)][0])/2, (x.ET[(0, l1d0)][1] + x.ET[(0, l1d1)][1])/2, (x.ET[(0, l1d0)][2] + x.ET[(0, l1d1)][2])/2),
+                    (0, r1d2): ((x.ET[(0, l1d0)][0] + x.ET[(0, l1d1)][0])/2, (x.ET[(0, l1d0)][1] + x.ET[(0, l1d1)][1])/2, (x.ET[(0, l1d0)][2] + x.ET[(0, l1d1)][2])/2),
+                    (0, r1d3): x.ET[(0, l1d1)],
+                    (1, r1d0): r if river == True else river,
+                    (1, r1d2): not r if river == True else river}
+                ret = CO(r1, p)
+                return (ret, [], [CM(ret.restrict(f2r1).dom, ret, f2r1)])#[CM(ret, ret, f1r1), CM(ret, ret, f2r1), CM(ret, ret, f3r1)])
+            return r1__
+
+        g1 = epf.add_fam_exp_rule(l1, r1_, 1)#3)
+        ag1_2 = epf.add_fam_exp_inclusion(g1, g1, f2l1, 0)
+
+        # ag1_1 = epf.add_fam_exp_inclusion(g1, g1, f1l1, 0)
+        # ag1_2 = epf.add_fam_exp_inclusion(g1, g1, f2l1, 1)
+        # ag1_3 = epf.add_fam_exp_inclusion(g1, g1, f3l1, 2)
+
+        l2 = PremapO(2)
+        l2d0 = l2.add_dart()
+        l2d1 = l2.add_dart()
+        l2.sew(0, l2d0, l2d1)
+        l2d2 = l2.add_dart()
+        l2d3 = l2.add_dart()
+        l2.sew(0, l2d2, l2d3)
+        l2.sew(1, l2d1, l2d2)
+        l2d4 = l2.add_dart()
+        l2d5 = l2.add_dart()
+        l2.sew(0, l2d4, l2d5)
+        l2.sew(1, l2d3, l2d4)
+        l2.sew(1, l2d0, l2d5)
+        l2d0p = l2.add_dart()
+        l2d1p = l2.add_dart()
+        l2.sew(0, l2d0p, l2d1p)
+        l2d2p = l2.add_dart()
+        l2d3p = l2.add_dart()
+        l2.sew(0, l2d2p, l2d3p)
+        l2d4p = l2.add_dart()
+        l2d5p = l2.add_dart()
+        l2.sew(0, l2d4p, l2d5p)
+        l2.sew(2, l2d0, l2d0p)
+        l2.sew(2, l2d1, l2d1p)
+        l2.sew(2, l2d2, l2d2p)
+        l2.sew(2, l2d3, l2d3p)
+        l2.sew(2, l2d4, l2d4p)
+        l2.sew(2, l2d5, l2d5p)
+
+        r2 = PremapO(2)
+        r2d0 = r2.add_dart()
+        r2d1 = r2.add_dart()
+        r2.sew(0, r2d0, r2d1)
+        r2d2 = r2.add_dart()
+        r2d3 = r2.add_dart()
+        r2.sew(0, r2d2, r2d3)
+        r2.sew(1, r2d1, r2d2)
+        r2d4 = r2.add_dart()
+        r2d5 = r2.add_dart()
+        r2.sew(0, r2d4, r2d5)
+        r2.sew(1, r2d3, r2d4)
+        r2.sew(1, r2d0, r2d5)
+        r2d6 = r2.add_dart()
+        r2d7 = r2.add_dart()
+        r2.sew(0, r2d6, r2d7)
+        r2d8 = r2.add_dart()
+        r2d9 = r2.add_dart()
+        r2.sew(0, r2d8, r2d9)
+        r2.sew(1, r2d7, r2d8)
+        r2d10 = r2.add_dart()
+        r2d11 = r2.add_dart()
+        r2.sew(0, r2d10, r2d11)
+        r2.sew(1, r2d9, r2d10)
+        r2.sew(1, r2d6, r2d11)
+        r2d12 = r2.add_dart()
+        r2d13 = r2.add_dart()
+        r2.sew(0, r2d12, r2d13)
+        r2d14 = r2.add_dart()
+        r2d15 = r2.add_dart()
+        r2.sew(0, r2d14, r2d15)
+        r2.sew(1, r2d13, r2d14)
+        r2d16 = r2.add_dart()
+        r2d17 = r2.add_dart()
+        r2.sew(0, r2d16, r2d17)
+        r2.sew(1, r2d15, r2d16)
+        r2.sew(1, r2d12, r2d17)
+        r2d18 = r2.add_dart()
+        r2d19 = r2.add_dart()
+        r2.sew(0, r2d18, r2d19)
+        r2d20 = r2.add_dart()
+        r2d21 = r2.add_dart()
+        r2.sew(0, r2d20, r2d21)
+        r2.sew(1, r2d19, r2d20)
+        r2d22 = r2.add_dart()
+        r2d23 = r2.add_dart()
+        r2.sew(0, r2d22, r2d23)
+        r2.sew(1, r2d21, r2d22)
+        r2.sew(1, r2d18, r2d23)
+        r2.sew(2, r2d3, r2d18)
+        r2.sew(2, r2d2, r2d19)
+        r2.sew(2, r2d20, r2d11)
+        r2.sew(2, r2d10, r2d21)
+        r2.sew(2, r2d22, r2d13)
+        r2.sew(2, r2d23, r2d12)
+        r2d0p = r2.add_dart()
+        r2d1p = r2.add_dart()
+        r2.sew(0, r2d0p, r2d1p)
+        r2d4p = r2.add_dart()
+        r2d5p = r2.add_dart()
+        r2.sew(0, r2d4p, r2d5p)
+        r2d6p = r2.add_dart()
+        r2d7p = r2.add_dart()
+        r2.sew(0, r2d6p, r2d7p)
+        r2d8p = r2.add_dart()
+        r2d9p = r2.add_dart()
+        r2.sew(0, r2d8p, r2d9p)
+        r2d14p = r2.add_dart()
+        r2d15p = r2.add_dart()
+        r2.sew(0, r2d14p, r2d15p)
+        r2d16p = r2.add_dart()
+        r2d17p = r2.add_dart()
+        r2.sew(0, r2d16p, r2d17p)
+        r2.sew(2, r2d0, r2d0p)
+        r2.sew(2, r2d1, r2d1p)
+        r2.sew(2, r2d4, r2d4p)
+        r2.sew(2, r2d5, r2d5p)
+        r2.sew(2, r2d6, r2d6p)
+        r2.sew(2, r2d7, r2d7p)
+        r2.sew(2, r2d8, r2d8p)
+        r2.sew(2, r2d9, r2d9p)
+        r2.sew(2, r2d14, r2d14p)
+        r2.sew(2, r2d15, r2d15p)
+        r2.sew(2, r2d16, r2d16p)
+        r2.sew(2, r2d17, r2d17p)
+
+        incl12_1 = PremapM(l1, l2, [l2d0, l2d1, l2d0p, l2d1p])
+        incl12_1p = PremapM(l1, l2, [l2d0p, l2d1p, l2d0, l2d1])
+        incl12_2 = PremapM(l1, l2, [l2d2, l2d3, l2d2p, l2d3p])
+        incl12_2p = PremapM(l1, l2, [l2d2p, l2d3p, l2d2, l2d3])
+        incl12_3  = PremapM(l1, l2, [l2d4, l2d5, l2d4p, l2d5p])
+        incl12_3p  = PremapM(l1, l2, [l2d4p, l2d5p, l2d4, l2d5])
+
+        incr12_1 = PremapM(r1, r2, [r2d0, r2d1, r2d6, r2d7, r2d0p, r2d1p, r2d6p, r2d7p])
+        incr12_1p = PremapM(r1, r2, [r2d0p, r2d1p, r2d6p, r2d7p, r2d0, r2d1, r2d6, r2d7])
+        incr12_2 = PremapM(r1, r2, [r2d8, r2d9, r2d14, r2d15, r2d8p, r2d9p, r2d14p, r2d15p])
+        incr12_2p = PremapM(r1, r2, [r2d8p, r2d9p, r2d14p, r2d15p, r2d8, r2d9, r2d14, r2d15])
+        incr12_3 = PremapM(r1, r2, [r2d16, r2d17, r2d4, r2d5, r2d16p, r2d17p, r2d4p, r2d5p])
+        incr12_3p = PremapM(r1, r2, [r2d16p, r2d17p, r2d4p, r2d5p, r2d16, r2d17, r2d4, r2d5])
+
+        r1l2 = PremapM(l2, l2, [l2d2, l2d3, l2d4, l2d5, l2d0, l2d1, l2d2p, l2d3p, l2d4p, l2d5p, l2d0p, l2d1p])
+        r1r2 = PremapM(r2, r2, [r2d8, r2d9, r2d10, r2d11, r2d6, r2d7, r2d14, r2d15, r2d16, r2d17, r2d12, r2d13, r2d2, r2d3, r2d4, r2d5, r2d0, r2d1, r2d20, r2d21, r2d22, r2d23, r2d18, r2d19, r2d8p, r2d9p, r2d6p, r2d7p, r2d14p, r2d15p, r2d16p, r2d17p, r2d4p, r2d5p, r2d0p, r2d1p])
+
+        r2l2 = r1l2.compose(r1l2)
+        r2r2 = r1r2.compose(r1r2)
+        
+        fl2 = PremapM(l2, l2, [l2d5, l2d4, l2d3, l2d2, l2d1, l2d0, l2d5p, l2d4p, l2d3p, l2d2p, l2d1p, l2d0p])
+        fr2 = PremapM(r2, r2, [r2d5, r2d4, r2d3, r2d2, r2d1, r2d0, r2d17, r2d16, r2d15, r2d14, r2d13, r2d12, r2d11, r2d10, r2d9, r2d8, r2d7, r2d6, r2d19, r2d18, r2d23, r2d22, r2d21, r2d20, r2d5p, r2d4p, r2d1p, r2d0p, r2d17p, r2d16p, r2d15p, r2d14p, r2d9p, r2d8p, r2d7p, r2d6p])
+
+        fr1l2 = fl2.compose(r1l2)
+        fr1r2 = fr2.compose(r1r2)
+
+        fr2l2 = fl2.compose(r2l2)
+        fr2r2 = fr2.compose(r2r2)
+
+        def incr02c(lps, lpo, rs, ro):
+            gm = PremapM(rs.OC, ro.OC, [])
+            return CM(rs, ro, gm)
+
+        def r2_(x):
+            def r2__(e1, e1p, e2, e2p, e3, e3p):
+                assert x.OC == l2
+                p = {(0, r2d0): x.ET[(0, l2d0)],
+                    (0, r2d1): ((x.ET[(0, l2d0)][0] + x.ET[(0, l2d1)][0])/2, (x.ET[(0, l2d0)][1] + x.ET[(0, l2d1)][1])/2, (x.ET[(0, l2d0)][2] + x.ET[(0, l2d1)][2])/2),
+                    (0, r2d7): x.ET[(0, l2d1)],
+                    (0, r2d9): ((x.ET[(0, l2d1)][0] + x.ET[(0, l2d3)][0])/2, (x.ET[(0, l2d1)][1] + x.ET[(0, l2d3)][1])/2, (x.ET[(0, l2d1)][2] + x.ET[(0, l2d3)][2])/2),
+                    (0, r2d15): x.ET[(0, l1d3)],
+                    (0, r2d3): ((x.ET[(0, l2d3)][0] + x.ET[(0, l2d0)][0])/2, (x.ET[(0, l2d3)][1] + x.ET[(0, l2d0)][1])/2, (x.ET[(0, l2d3)][2] + x.ET[(0, l2d0)][2])/2),
+                    (1, r2d0): e1.ET[(1, r1d0)],
+                    (1, r2d2): e1.ET[(1, r1d0)] is not e3.ET[(1, r1d2)],
+                    (1, r2d6): e1.ET[(1, r1d2)],
+                    (1, r2d8): e2.ET[(1, r1d0)],
+                    (1, r2d10): e1.ET[(1, r1d2)] is not e2.ET[(1, r1d0)],
+                    (1, r2d12): e2.ET[(1, r1d2)] is not e3.ET[(1, r1d0)],
+                    (1, r2d14): e2.ET[(1, r1d2)],
+                    (1, r2d16): e3.ET[(1, r1d0)],
+                    (1, r2d4): e3.ET[(1, r1d2)]
+                }
+                r2p = CO(r2, p)
+                return (r2p, [CM(e1, r2p, incr12_1), CM(e1p, r2p, incr12_1p), CM(e2, r2p, incr12_2), CM(e2p, r2p, incr12_2p), CM(e3, r2p, incr12_3), CM(e3p, r2p, incr12_3p)], [CM(r2p.restrict(r1r2).dom, r2p, r1r2), CM(r2p.restrict(r2r2).dom, r2p, r2r2), CM(r2p.restrict(fr2).dom, r2p, fr2), CM(r2p.restrict(fr1r2).dom, r2p, fr1r2), CM(r2p.restrict(fr2r2).dom, r2p, fr2r2)])
+            return r2__
+
+        g2 = epf.add_fam_exp_rule(l2, r2_, 5)
+
+        inc12_1 = epf.add_fam_exp_inclusion(g1, g2, incl12_1, 0)
+        inc12_1p = epf.add_fam_exp_inclusion(g1, g2, incl12_1p, 1)
+        inc12_2 = epf.add_fam_exp_inclusion(g1, g2, incl12_2, 2)
+        inc12_2p = epf.add_fam_exp_inclusion(g1, g2, incl12_2p, 3)
+        inc12_3 = epf.add_fam_exp_inclusion(g1, g2, incl12_3, 4)
+        inc12_3p = epf.add_fam_exp_inclusion(g1, g2, incl12_3p, 5)
+
+        ag2_1 = epf.add_fam_exp_inclusion(g2, g2, r1l2, 0)
+        ag2_2 = epf.add_fam_exp_inclusion(g2, g2, r2l2, 1)
+        ag2_3 = epf.add_fam_exp_inclusion(g2, g2, fl2, 2)
+        ag2_4 = epf.add_fam_exp_inclusion(g2, g2, fr1l2, 3)
+        ag2_5 = epf.add_fam_exp_inclusion(g2, g2, fr2l2, 4)
+        
+        f = epf.get()
+
+        p = {(0, l2d0): (0.0, 0.0, 0.0),
+            (0, l2d1): (1.0, 0.0, 0.0),
+            (0, l2d3): (0.5, 0.5, 0.0),
+            (1, l2d0): True,
+            (1, l2d2): True,
+            (1, l2d4): False
+            }
+        trip = CO(l2, p)
+
+        T = GT(f)
+
+        return T, trip
 
         # g0 = fpf.add_fam_rule(l0, r0_)
 
