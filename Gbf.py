@@ -452,6 +452,54 @@ class GbfM():
         return repr(self.shift) + ": " + repr(self.s) + " -> " + repr(self.t)
 
 
+class Gbf(DataStructure):
+    @staticmethod
+    def TO():
+        return GbfO
+
+    @staticmethod
+    def TM():
+        return GbfM
+
+    @staticmethod
+    def pattern_match(p, s):
+        if isinstance(p, GbfO):
+            if(len(p.map) == 0):
+                raise Exception('Pattern matching from the empty configuration not yet implemented')
+            else:
+                for i in k.search(s, p):
+                    yield SequenceM(p, s, i)
+        else:
+            start1 = s.i - p.i
+            end1 = s.i
+            start2 = start1 + len(p.dom.s) + p.i
+            end2 = start1 + len(p.cod.s)
+            if start1 < 0 or end2 > len(s.cod.s):
+               return
+            for i in range(start1, end1):
+                if s.cod.s[i] != p.cod.s[i - start1]:
+                    return
+            for i in range(start2, end2):
+                if s.cod.s[i] != p.cod.s[i - start1]:
+                    return
+
+            yield SequenceM(p.cod, s.cod, start1)
+
+
+
+21961198,21800584,21802437,21966878,
+21960898,21987348,21950678,21914233,
+21934335,21927215,31903294,21914153,
+21911351,31901408,21987945,31902708
+
+
+
+# Dr Klingler
+
+
+NBDYNP
+ZZITPZ
+
 
 
 
