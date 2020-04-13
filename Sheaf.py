@@ -134,7 +134,7 @@ class Parametrisation:
                     if ok:
                         yield MorphismClass(p, s, m)
             elif isinstance(p, C.TM()) or isinstance(p, C.TO()): #TODO clean conditions
-                print("pattern_match_fam")
+                # print("pattern_match_fam")
                 if isinstance(p, C.TM()):
                     matches = C.pattern_match(p, s.naked())
                     p = p.cod

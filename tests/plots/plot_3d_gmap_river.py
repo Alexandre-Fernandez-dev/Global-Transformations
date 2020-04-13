@@ -39,6 +39,8 @@ xedgesn = []
 yedgesn = []
 zedgesn = []
 
+nb_edges = 0
+
 itri = []
 jtri = []
 ktri = []
@@ -79,27 +81,35 @@ for e in gp.OC.iter_icells(1):
         xedgesn.append(None)
         yedgesn.append(None)
         zedgesn.append(None)
+    nb_edges += 1
 
+colortri = []
 for t in gp.OC.iter_icells(2):
     print(t)
     cont = True
     t0i = t
     nodes = [nodescorres[gp.OC.get_icell(0, t0i)]]
+    cpt_color = 1 if gp.ET[(1, gp.OC.get_icell(1, t0i))] else 0
     while cont:
         t0ip = gp.OC.alpha(1, t0i)
         t0i = gp.OC.alpha(0, t0ip)
         if t == t0i:
             cont = False
         else:
+            cpt_color += 1 if gp.ET[(1, gp.OC.get_icell(1, t0i))] else 0
             nodes.append(nodescorres[gp.OC.get_icell(0, t0i)])
     if len(nodes) == 3:
         print(nodes)
+        if cpt_color >= 2:
+            colortri.append(1)
+        else:
+            colortri.append(0)
         itri.append(nodes[0])
         jtri.append(nodes[1])
         ktri.append(nodes[2])
 
 print("nodes : ", len(xnodes))
-print("edges : ", len(xedgesb) + len(xedgesn))
+print("edges : ", nb_edges)
 print("triangles : ", len(itri))
 node_trace = go.Scatter3d(
     x=xnodes, y=ynodes, z=znodes,
@@ -141,12 +151,11 @@ fig = go.Figure(data=[node_trace,
         y=ynodes,
         z=znodes,
         colorbar_title='z',
-        colorscale=[[0, 'gold'],
-                    [0.5, 'mediumturquoise'],
-                    [1, 'magenta']],
+        colorscale=[[0, 'green'],
+                    [1, 'blue']],
         # Intensity of each vertex, which will be interpolated and color-coded
         # intensity=[0, 0.33, 0.66, 1],
-        intensity = [0] * len(itri),#np.linspace(0, 1, len(itri), endpoint=True),
+        intensity = colortri,#np.linspace(0, 1, len(itri), endpoint=True),
         intensitymode='cell',
         # i, j and k give the vertices of triangles
         # here we represent the 4 triangles of the tetrahedron surface
@@ -157,4 +166,5 @@ fig = go.Figure(data=[node_trace,
         showscale=True
     ), edge_tracen, edge_traceb])
 
+print(colortri, len(colortri))
 fig.show()

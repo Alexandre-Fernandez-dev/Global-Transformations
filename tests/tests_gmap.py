@@ -935,30 +935,30 @@ class Test:
                 elif ret[(0, gn)] != q[(0, n)]:
                     raise Exception("fail amalgamation")
 
-            sf = set(f.l)
-            sg = set(g.l)
-            print(len(sf))
-            print(sf)
-            print(len(sg))
-            print(sg)
-            d = {}
-            for i in range(len(f.l)):
-                d1 = f.l[i]
-                for j in range(len(g.l)):
-                    d2 = g.l[j]
-                    if d1 == d2:
-                        d[d1] = (i, j)
-            print(sf.intersection(sg))
-            for k, v in d.items():
-                print(k)
-                print(p[(1, f.dom.get_icell(1, v[0]))])
-                print(q[(1, g.dom.get_icell(1, v[1]))])
+            # sf = set(f.l)
+            # sg = set(g.l)
+            # print(len(sf))
+            # print(sf)
+            # print(len(sg))
+            # print(sg)
+            # d = {}
+            # for i in range(len(f.l)):
+            #     d1 = f.l[i]
+            #     for j in range(len(g.l)):
+            #         d2 = g.l[j]
+            #         if d1 == d2:
+            #             d[d1] = (i, j)
+            # print(sf.intersection(sg))
+            # for k, v in d.items():
+            #     print(k)
+            #     print(p[(1, f.dom.get_icell(1, v[0]))])
+            #     print(q[(1, g.dom.get_icell(1, v[1]))])
             for e in g.dom.iter_icells(1):
                 ge = g.cod.get_icell(1, g.apply(e))
                 if (1, ge) not in ret:
                     ret[(1, ge)] = q[(1, e)]
                 elif ret[(1, ge)] != q[(1, e)]:
-                    print(ret[(1, ge)], q[(1, e)])
+                    # print(ret[(1, ge)], q[(1, e)])
                     raise Exception("fail amalgamation")
 
             # print('amalgamation', len(list(g.cod.iter_icells(0))), len(ret))
@@ -1061,14 +1061,14 @@ class Test:
         r1.sew(2, r1d2, r1d6)
         r1.sew(2, r1d3, r1d7)
 
-        # f1l1 = PremapM(l1, l1, [l1d1, l1d0, l1d3, l1d2])
-        # f1r1 = PremapM(r1, r1, [r1d3, r1d2, r1d1, r1d0, r1d7, r1d6, r1d5, r1d4])
+        f1l1 = PremapM(l1, l1, [l1d1, l1d0, l1d3, l1d2])
+        f1r1 = PremapM(r1, r1, [r1d3, r1d2, r1d1, r1d0, r1d7, r1d6, r1d5, r1d4])
 
         f2l1 = PremapM(l1, l1, [l1d2, l1d3, l1d0, l1d1])
         f2r1 = PremapM(r1, r1, [r1d4, r1d5, r1d6, r1d7, r1d0, r1d1, r1d2, r1d3])
 
-        # f3l1 = f1l1.compose(f2l1)
-        # f3r1 = f1r1.compose(f2r1)
+        f3l1 = f1l1.compose(f2l1)
+        f3r1 = f1r1.compose(f2r1)
 
         def r1_(x):
             def r1__():
@@ -1084,7 +1084,7 @@ class Test:
                     (1, r1d0): r if river == True else river,
                     (1, r1d2): not r if river == True else river}
                 ret = CO(r1, p)
-                return (ret, [], [CM(ret.restrict(f2r1).dom, ret, f2r1)])#[CM(ret, ret, f1r1), CM(ret, ret, f2r1), CM(ret, ret, f3r1)])
+                return (ret, [], [CM(ret.restrict(f2r1).dom, ret, f2r1)])#, CM(ret.restrict(f2r1).dom, ret, f2r1), CM(ret.restrict(f3r1).dom, ret, f3r1)])
             return r1__
 
         g1 = epf.add_fam_exp_rule(l1, r1_, 1)#3)

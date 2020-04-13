@@ -699,7 +699,7 @@ class FamExpPFunctor(PFunctor):
 
         def iter_self_inclusions(self):
             # TODO
-            print(self.self_fam_exp_inclusions)
+            # print(self.self_fam_exp_inclusions)
             for i in self.self_fam_exp_inclusions:
                 yield self.self_fam_exp_inclusions[i]
 
@@ -812,8 +812,8 @@ class FamExpPFunctor(PFunctor):
             # self.rhs_subojbects = None
             # print("PASS", type(g_b.rhs))
             if not auto:
-                print(g_b.rhs.subobjects)
-                print(g_b.rhs.expr)
+                # print(g_b.rhs.subobjects)
+                # print(g_b.rhs.expr)
                 if g_b.rhs.subobjects[fam_exp_inc.rhs_i] != None:
                     # print(g_b.rhs.subobjects[fam_exp_inc.rhs_i].dom.created_from, g_a.rhs.expr)
                     # if g_b.rhs.subobjects[fam_exp_inc.rhs_i].dom.created_from == g_a.rhs.expr:
@@ -830,13 +830,13 @@ class FamExpPFunctor(PFunctor):
             else:
                 # print(type(g_a.rhs.subobjects))
                 # print(self.rhs.force())
-                print("NEW AUTO INCLUSION")
-                print(g_a)
-                print(g_b)
+                # print("NEW AUTO INCLUSION")
+                # print(g_a)
+                # print(g_b)
                 # assert g_a == g_b
                 self.rhs = g_b.rhs.autos[fam_exp_inc.rhs_i]
                 if g_b.rhs.forceable():
-                    print("FOOOOOOOOOOOOOOOOOOOOOOOOOOORCE")
+                    # print("FOOOOOOOOOOOOOOOOOOOOOOOOOOORCE")
                     g_b.rhs.force()
                     self.rhs.force()
 
@@ -883,13 +883,13 @@ class FamExpPFunctor(PFunctor):
             # print(type(match.rule.rhs))
             # print("new inclusion iter_under")
             def u_inc(u_rule):
-                print("UINC ITER UNDER")
-                print("u_rule")
-                print(id(u_rule))
-                print(u_rule)
-                print("match_rule")
-                print(id(match.rule))
-                print(match.rule)
+                # print("UINC ITER UNDER")
+                # print("u_rule")
+                # print(id(u_rule))
+                # print(u_rule)
+                # print("match_rule")
+                # print(id(match.rule))
+                # print(match.rule)
                 return self.Inclusion(u_inc_fam_exp, u_rule, match.rule, u_inc_lhs)
             # u_inc = lambda u_rule: self.Inclusion(u_inc_fam_exp, u_rule, match.rule, u_inc_lhs)
             yield u_rule, u_inc, u_inc_lhs.compose(match.ins)
@@ -904,9 +904,9 @@ class FamExpPFunctor(PFunctor):
 
     def next_small(self, X):
         for small_rule_fam_exp in self.smalls:
-            print("small_rule", small_rule_fam_exp.lhs)
+            # print("small_rule", small_rule_fam_exp.lhs)
             for small_match in self.CS.pattern_match(small_rule_fam_exp.lhs, X):
-                print("small_match")
+                # print("small_match")
                 small_match.clean()
                 # print("force next_small")
                 small_rule = self.Rule(small_rule_fam_exp, small_match.dom, self.CD.TO()(small_rule_fam_exp.rhs_fam_exp(small_match.dom), small_rule_fam_exp.rhs_auto).force())
@@ -914,15 +914,23 @@ class FamExpPFunctor(PFunctor):
 
     def iter_self_inclusions(self, rule): # TODO check ?
         for inc_fam_exp in rule.fam_exp.iter_self_inclusions():
-            print("ITER SELF INCLUSIONS", inc_fam_exp)
+            # print("ITER SELF INCLUSIONS", inc_fam_exp)
             inc_lhs = rule.lhs.restrict(inc_fam_exp.lhs)
             # print("new rule iter_self_inclusions")
             self_rule = self.Rule(rule.fam_exp, inc_lhs.dom, rule.rhs.autos[inc_fam_exp.rhs_i].dom)
+            # self_rule_fam_exp = self.FamExpRule(inc_fam_exp.lhs.dom, lambda x : lambda : (rule.rhs.autos[inc_fam_exp.rhs_i].dom, [], []), 0)
+            # self_rule = self.Rule(self_rule_fam_exp, inc_lhs.dom, self.CD.TO()(self_rule_fam_exp.rhs_fam_exp(inc_lhs.dom), 0))
+            #  invert_op = getattr(self_rule.rhs, "force", None)
+            #  if callable(invert_op):
+            #      # invert_op(self.path.parent_op)
+            #      if rule.rhs.forceable():
+            #          print("SELF_RULE", self_rule.rhs.force())
+            #          print("RULE", rule.rhs.force())
             # print("new inclusion iter_self_inclusions")
             self_inc = self.Inclusion(inc_fam_exp, self_rule, rule, inc_lhs, True)
-            print("id self_rule ", id(self_rule))
-            print("self_rule", self_rule)
-            print("id rule ", id(rule))
-            print("rule", rule)
+            # print("id self_rule ", id(self_rule))
+            # print("self_rule", self_rule)
+            # print("id rule ", id(rule))
+            # print("rule", rule)
             # print("id inc ", id(self_inc))
             yield self_inc

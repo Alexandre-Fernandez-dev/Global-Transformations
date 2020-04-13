@@ -241,27 +241,27 @@ def Lazy(C):
     def force_o(self):
         # print("FORCE")
         if self.obj != None:
-            print("FORCE already")
-            print("sub")
-            for i, h in enumerate(self.subobjects):
-                print(id(h))
-                print(h.dom)
-            print("auto")
-            for i, h in enumerate(self.autos):
-                print(id(h))
-                print(h.dom)
+            # print("FORCE already")
+            # print("sub")
+            # for i, h in enumerate(self.subobjects):
+            #     print(id(h))
+            #     print(h.dom)
+            # print("auto")
+            # for i, h in enumerate(self.autos):
+            #     print(id(h))
+            #     print(h.dom)
             return self
         if self.forceable():
-            print("FORCE")
+            # print("FORCE forceable")
             # print("lol", [h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects])
             # print("lol2", self.expr(*[h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects]))
             self.obj, incs, autos = self.expr(*[h.s.force().obj if isinstance(h.s,OClass) else h.s for h in self.subobjects])
             for i, h in enumerate(self.subobjects):
                 h.set(incs[i])
-                print(id(h))
+                # print(id(h))
             for i, h in enumerate(self.autos):
                 h.set(autos[i])
-                print(id(h))
+                # print(id(h))
             # self.obj.created_from = self.expr # HARD FIX TO SEE FROM WHICH RHS A OBJECT IS CREATED
             # self.obj.subobjects = self.subobjects # ALSO hard fix
             # self.obj.autos = self.autos # ALSO hard fix
@@ -311,21 +311,8 @@ def Lazy(C):
         raise Exception("LazyM: illegal operation on lazy object")
 
     def compose_m(self, h):
-        print(C)
         if isinstance(h,C.TM()):
-            # print(self.s == self.t)
-            # print(h)
-            # if isinstance(self.t, OClass):
-            #     print(self.t.subobjects)
-            #     print(self.t.force())
-            # else:
-            #     print(self.t)
-            # assert self.h != None
-            if self.h == None:
-                print("force compose")
-                print(id(self))
-                self.t.force()
-                print(self.h)
+            self.force()
             return self.h.compose(h)
         if self.h != None and h.h != None:
             return self.h.compose(h.h)
@@ -376,7 +363,7 @@ def Lazy(C):
 
     def force_m_compose(self):
         if self.h == None:
-            print(type(self.h1.force().h), type(self.h2.force().h))
+            #print(type(self.h1.force().h), type(self.h2.force().h))
             self.h = self.h1.force().h.compose(self.h2.force().h)
             # self.s = self.h.dom
             # self.t = self.h.cod
