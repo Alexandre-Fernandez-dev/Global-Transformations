@@ -131,6 +131,8 @@ class GT:
                 if res_old == None:
                     res_old = res_old_i
                 else:
+                    # print(res_old.object)
+                    # print(res_old_i.object)
                     assert(res_old == res_old_i)
                 mult_merge_arg1.append(h_old) #TODO improve
                 mult_merge_arg2.append(h_new)

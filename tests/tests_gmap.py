@@ -1069,7 +1069,12 @@ class Test:
 
         f3l1 = f1l1.compose(f2l1)
         f3r1 = f1r1.compose(f2r1)
+        # f3l1 = PremapM(l1, l1, [l1d3, l1d2, l1d1, l1d0])
+        # f3r1 = PremapM(r1, r1, [r1d7, r1d6, r1d5, r1d4, r1d3, r1d2, r1d1, r1d0])
 
+        ###########################################################################################
+        # To make the test crash because of automorphisms decomment/edit lines until next separator
+ 
         def r1_(x):
             def r1__():
                 assert x.OC == l1
@@ -1084,14 +1089,13 @@ class Test:
                     (1, r1d0): r if river == True else river,
                     (1, r1d2): not r if river == True else river}
                 ret = CO(r1, p)
-                return (ret, [], [CM(ret.restrict(f2r1).dom, ret, f2r1)])#, CM(ret.restrict(f2r1).dom, ret, f2r1), CM(ret.restrict(f3r1).dom, ret, f3r1)])
+                return (ret, [], [CM(ret.restrict(f2r1).dom, ret, f2r1) ])#, CM(ret.restrict(f1r1).dom, ret, f1r1), CM(ret.restrict(f3r1).dom, ret, f3r1)])
             return r1__
 
         g1 = epf.add_fam_exp_rule(l1, r1_, 1)#3)
-        ag1_2 = epf.add_fam_exp_inclusion(g1, g1, f2l1, 0)
 
         # ag1_1 = epf.add_fam_exp_inclusion(g1, g1, f1l1, 0)
-        # ag1_2 = epf.add_fam_exp_inclusion(g1, g1, f2l1, 1)
+        ag1_2 = epf.add_fam_exp_inclusion(g1, g1, f2l1, 0)#1)
         # ag1_3 = epf.add_fam_exp_inclusion(g1, g1, f3l1, 2)
 
         l2 = PremapO(2)
@@ -1210,18 +1214,30 @@ class Test:
         r2.sew(2, r2d17, r2d17p)
 
         incl12_1 = PremapM(l1, l2, [l2d0, l2d1, l2d0p, l2d1p])
-        incl12_1p = PremapM(l1, l2, [l2d0p, l2d1p, l2d0, l2d1])
+        incl12_1p = f2l1.compose(incl12_1)
+        incl12_1pp = f1l1.compose(incl12_1)
+        incl12_1ppp = f3l1.compose(incl12_1)
         incl12_2 = PremapM(l1, l2, [l2d2, l2d3, l2d2p, l2d3p])
-        incl12_2p = PremapM(l1, l2, [l2d2p, l2d3p, l2d2, l2d3])
+        incl12_2p = f2l1.compose(incl12_2)
+        incl12_2pp = f1l1.compose(incl12_2)
+        incl12_2ppp = f3l1.compose(incl12_2)
         incl12_3  = PremapM(l1, l2, [l2d4, l2d5, l2d4p, l2d5p])
-        incl12_3p  = PremapM(l1, l2, [l2d4p, l2d5p, l2d4, l2d5])
+        incl12_3p  = f2l1.compose(incl12_3)
+        incl12_3pp  = f1l1.compose(incl12_3)
+        incl12_3ppp  = f3l1.compose(incl12_3)
 
         incr12_1 = PremapM(r1, r2, [r2d0, r2d1, r2d6, r2d7, r2d0p, r2d1p, r2d6p, r2d7p])
-        incr12_1p = PremapM(r1, r2, [r2d0p, r2d1p, r2d6p, r2d7p, r2d0, r2d1, r2d6, r2d7])
+        incr12_1p = f2r1.compose(incr12_1)
+        incr12_1pp = f1r1.compose(incr12_1)
+        incr12_1ppp = f3r1.compose(incr12_1)
         incr12_2 = PremapM(r1, r2, [r2d8, r2d9, r2d14, r2d15, r2d8p, r2d9p, r2d14p, r2d15p])
-        incr12_2p = PremapM(r1, r2, [r2d8p, r2d9p, r2d14p, r2d15p, r2d8, r2d9, r2d14, r2d15])
+        incr12_2p = f2r1.compose(incr12_2)
+        incr12_2pp = f1r1.compose(incr12_2)
+        incr12_2ppp = f3r1.compose(incr12_2)
         incr12_3 = PremapM(r1, r2, [r2d16, r2d17, r2d4, r2d5, r2d16p, r2d17p, r2d4p, r2d5p])
-        incr12_3p = PremapM(r1, r2, [r2d16p, r2d17p, r2d4p, r2d5p, r2d16, r2d17, r2d4, r2d5])
+        incr12_3p = f2r1.compose(incr12_2)
+        incr12_3pp = f1r1.compose(incr12_2)
+        incr12_3ppp = f3r1.compose(incr12_2)
 
         r1l2 = PremapM(l2, l2, [l2d2, l2d3, l2d4, l2d5, l2d0, l2d1, l2d2p, l2d3p, l2d4p, l2d5p, l2d0p, l2d1p])
         r1r2 = PremapM(r2, r2, [r2d8, r2d9, r2d10, r2d11, r2d6, r2d7, r2d14, r2d15, r2d16, r2d17, r2d12, r2d13, r2d2, r2d3, r2d4, r2d5, r2d0, r2d1, r2d20, r2d21, r2d22, r2d23, r2d18, r2d19, r2d8p, r2d9p, r2d6p, r2d7p, r2d14p, r2d15p, r2d16p, r2d17p, r2d4p, r2d5p, r2d0p, r2d1p])
@@ -1243,6 +1259,7 @@ class Test:
             return CM(rs, ro, gm)
 
         def r2_(x):
+            #def r2__(e1, e1p, e1pp, e1ppp, e2, e2p, e2pp, e2ppp, e3, e3p, e3pp, e3ppp):
             def r2__(e1, e1p, e2, e2p, e3, e3p):
                 assert x.OC == l2
                 p = {(0, r2d0): x.ET[(0, l2d0)],
@@ -1262,17 +1279,43 @@ class Test:
                     (1, r2d4): e3.ET[(1, r1d2)]
                 }
                 r2p = CO(r2, p)
-                return (r2p, [CM(e1, r2p, incr12_1), CM(e1p, r2p, incr12_1p), CM(e2, r2p, incr12_2), CM(e2p, r2p, incr12_2p), CM(e3, r2p, incr12_3), CM(e3p, r2p, incr12_3p)], [CM(r2p.restrict(r1r2).dom, r2p, r1r2), CM(r2p.restrict(r2r2).dom, r2p, r2r2), CM(r2p.restrict(fr2).dom, r2p, fr2), CM(r2p.restrict(fr1r2).dom, r2p, fr1r2), CM(r2p.restrict(fr2r2).dom, r2p, fr2r2)])
+                return (r2p, [
+                              CM(e1, r2p, incr12_1), 
+                              CM(e1p, r2p, incr12_1p),
+                              # CM(e1pp, r2p, incr12_1pp),
+                              # CM(e1ppp, r2p, incr12_1ppp),
+                              CM(e2, r2p, incr12_2),
+                              CM(e2p, r2p, incr12_2p),
+                              # CM(e2pp, r2p, incr12_2pp),
+                              # CM(e2ppp, r2p, incr12_2ppp),
+                              CM(e3, r2p, incr12_3),
+                              CM(e3p, r2p, incr12_3p),
+                              # CM(e3pp, r2p, incr12_3pp),
+                              # CM(e3ppp, r2p, incr12_3ppp)
+                              ],
+                             [CM(r2p.restrict(r1r2).dom, r2p, r1r2),
+                              CM(r2p.restrict(r2r2).dom, r2p, r2r2),
+                              CM(r2p.restrict(fr2).dom, r2p, fr2),
+                              CM(r2p.restrict(fr1r2).dom, r2p, fr1r2),
+                              CM(r2p.restrict(fr2r2).dom, r2p, fr2r2)])
             return r2__
 
         g2 = epf.add_fam_exp_rule(l2, r2_, 5)
 
         inc12_1 = epf.add_fam_exp_inclusion(g1, g2, incl12_1, 0)
         inc12_1p = epf.add_fam_exp_inclusion(g1, g2, incl12_1p, 1)
-        inc12_2 = epf.add_fam_exp_inclusion(g1, g2, incl12_2, 2)
-        inc12_2p = epf.add_fam_exp_inclusion(g1, g2, incl12_2p, 3)
-        inc12_3 = epf.add_fam_exp_inclusion(g1, g2, incl12_3, 4)
-        inc12_3p = epf.add_fam_exp_inclusion(g1, g2, incl12_3p, 5)
+        # inc12_1pp = epf.add_fam_exp_inclusion(g1, g2, incl12_1pp, 2)
+        # inc12_1ppp = epf.add_fam_exp_inclusion(g1, g2, incl12_1ppp, 3)
+        inc12_2 = epf.add_fam_exp_inclusion(g1, g2, incl12_2, 2)#4)
+        inc12_2p = epf.add_fam_exp_inclusion(g1, g2, incl12_2p, 3)#5)
+        # inc12_2pp = epf.add_fam_exp_inclusion(g1, g2, incl12_2pp, 6)
+        # inc12_2ppp = epf.add_fam_exp_inclusion(g1, g2, incl12_2ppp, 7)
+        inc12_3 = epf.add_fam_exp_inclusion(g1, g2, incl12_3, 4)#8)
+        inc12_3p = epf.add_fam_exp_inclusion(g1, g2, incl12_3p, 5)#9)
+        # inc12_3pp = epf.add_fam_exp_inclusion(g1, g2, incl12_3pp, 10)
+        # inc12_3ppp = epf.add_fam_exp_inclusion(g1, g2, incl12_3ppp, 11)
+
+        ###########################################################################################
 
         ag2_1 = epf.add_fam_exp_inclusion(g2, g2, r1l2, 0)
         ag2_2 = epf.add_fam_exp_inclusion(g2, g2, r2l2, 1)
