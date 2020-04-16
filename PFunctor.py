@@ -503,9 +503,11 @@ class FamPFunctor(PFunctor):
 
 class ExpPFunctor(PFunctor):
     class ExpRule:
-        def __init__(self, lhs, rhs_exp):
+        def __init__(self, lhs, rhs_exp, rhs_auto_exp, rhs_auto_cpt):
             self.lhs = lhs
             self.rhs_exp = rhs_exp
+            self.rhs_auto_exp = rhs_auto_exp
+            self.rhs_auto_cpt = self.rhs_auto_cpt
             self.self_exp_inclusions = {  }
 
         def __eq__(self, other):
@@ -521,8 +523,8 @@ class ExpPFunctor(PFunctor):
 
         def iter_self_inclusions(self):
             # TODO
-            for i in self.self_inclusions:
-                yield i
+            for i in self.self_exp_inclusions:
+                yield self.self_exp_inclusions[i]
 
     class ExpInclusion():
         def __init__(self, g_a, g_b, lhs, rhs_i):
@@ -547,15 +549,14 @@ class ExpPFunctor(PFunctor):
             # TODO
             return ExpPFunctor.ExpInclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), None)
 
-
     class Maker():
         def __init__(self, CS, LCD):
             self.CS = CS
             self.CD = LCD
             self.G = nx.MultiDiGraph()
 
-        def add_exp_rule(self, l, re):
-            rule = ExpPFunctor.ExpRule(l, re)
+        def add_exp_rule(self, l, re, ra, racpt):
+            rule = ExpPFunctor.ExpRule(l, re, ra, racpt)
             self.G.add_node(rule)
             return rule
 
@@ -613,31 +614,56 @@ class ExpPFunctor(PFunctor):
             return str(self.lhs) + " => " + str(self.rhs)
 
     class Inclusion():
-        def __init__(self, exp_inc, g_a, g_b):
+        def __init__(self, exp_inc, g_a, g_b, auto=False):
             self.exp = exp_inc
             self.g_a = g_a
             self.g_b = g_b
             self.lhs = exp_inc.lhs
+            self.auto = auto
             self.rhs = g_b.rhs.setSubobject(exp_inc.rhs_i, g_a.rhs)
-            if g_b.rhs.forceable():
-                # print("force forceable")
-                g_b.rhs = g_b.rhs.force()
-                self.rhs = self.rhs.force()
+            if not auto:
+                # print(g_b.rhs.subobjects)
+                # print(g_b.rhs.expr)
+                if g_b.rhs.subobjects[exp_inc.rhs_i] != None:
+                    # print(g_b.rhs.subobjects[fam_exp_inc.rhs_i].dom.created_from, g_a.rhs.expr)
+                    # if g_b.rhs.subobjects[fam_exp_inc.rhs_i].dom.created_from == g_a.rhs.expr:
+                    #     print("LOL")
+                    self.rhs = g_b.rhs.subobjects[exp_inc.rhs_i]
+                else:
+                    self.rhs = g_b.rhs.setSubobject(exp_inc.rhs_i, g_a.rhs)
+                # print("type self rhs", type(self.rhs))
+                if g_b.rhs.forceable():
+                    # print("force forceable")
+                    # print(g_b.lhs)
+                    g_b.rhs.force()
+                    self.rhs.force()
+            else:
+                # print(type(g_a.rhs.subobjects))
+                # print(self.rhs.force())
+                # print("NEW AUTO INCLUSION")
+                # print(g_a)
+                # print(g_b)
+                # assert g_a == g_b
+                self.rhs = g_b.rhs.autos[exp_inc.rhs_i]
+                if g_b.rhs.forceable():
+                    # print("FOOOOOOOOOOOOOOOOOOOOOOOOOOORCE")
+                    g_b.rhs.force()
+                    self.rhs.force()
 
         def __eq__(self, other):
             if not isinstance(other, ExpPFunctor.Inclusion):
                 return False
-            return self.lhs == other.lhs
+            return self.exp == other.exp and self.g_a == other.g_a and self.g_b == other.g_b and self.lhs == other.lhs
 
         def __hash__(self):
-            return hash(self.lhs)
+            return hash(self.exp) ^ 31 * hash(self.lhs) ^ 31 * hash(self.g_a) ^ 31 * hash(self.g_b)
 
         def __repr__(self):
-            return str(self.lhs) + ' => ...' #+ str(self.rhs)
+            return "i(exp: " + str(self.exp) + ", g_a " + str(self.g_a) + " g_b " + str(self.g_b) + ", lhs " + str(self.lhs) + ", rhs " + str(self.rhs) + ")"
 
-        def compose(self, other):
-            raise Exception('Oh Fuck!')
-            return NDPFunctor.Inclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), self.rhs.compose(other.rhs))
+        # def compose(self, other):
+        #     raise Exception('Oh Fuck!')
+        #     return NDPFunctor.Inclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), self.rhs.compose(other.rhs))
 
 
     def nb_small(self, rule):
@@ -646,13 +672,13 @@ class ExpPFunctor(PFunctor):
     def iter_small(self, rule):
         for small_exp_rule, _, inc_exp in self.small_pred.in_edges(rule.exp, keys = True):
             # print("force iter_small")
-            small_rule = self.Rule(small_exp_rule, self.CD.TO()(small_exp_rule.rhs_exp).force())
+            small_rule = self.Rule(small_exp_rule, self.CD.TO()(small_exp_rule.rhs_exp, small_exp_rule.rhs_auto_cpt).force())
             yield small_rule, inc_exp.lhs
 
     def iter_under(self, match):
         for u_exp_rule, _, u_exp_inc in self.G.in_edges(match.rule.exp, keys=True):
             # print("new rule iter_under")
-            u_rule = lambda: self.Rule(u_exp_rule, self.CD.TO()(u_exp_rule.rhs_exp))
+            u_rule = lambda: self.Rule(u_exp_rule, self.CD.TO()(u_exp_rule.rhs_exp, u_exp_rule.rhs_auto_cpt))
             # print(type(match.rule.rhs))
             # print("new inclusion iter_under")
             u_inc = lambda u_rule: self.Inclusion(u_exp_inc, u_rule, match.rule)
@@ -662,20 +688,21 @@ class ExpPFunctor(PFunctor):
         for _, over_exp_rule, inc_exp in self.G.out_edges(match.rule.exp, keys = True):
             for over_match in self.CS.pattern_match(inc_exp.lhs, match.ins):
                 # print("new rule pmatch_up")
-                over_rule = self.Rule(over_exp_rule, self.CD.TO()(over_exp_rule.rhs_exp))
+                over_rule = self.Rule(over_exp_rule, self.CD.TO()(over_exp_rule.rhs_exp, over_exp_rule.rhs_auto_cpt))
                 yield over_rule, over_match
 
     def iter_self_inclusions(self, rule):
-        # TODO
-        return
-        yield
+        for inc_exp in rule.exp.iter_self_inclusions():
+            self_rule = self.Rule(rule.exp, self.CD.TO()(rule.exp.rhs_auto_exp(rule.rhs.autos[inc_exp.rhs_i]), rule.exp.rhs_auto_cpt))
+            self_inc = self.Inclusion(inc_exp, self_rule, rule, True)
+            yield self_inc
 
     def next_small(self, X):
         for small_exp_rule in self.smalls:
             for small_match in self.CS.pattern_match(small_exp_rule.lhs, X):
                 small_match.clean()
                 # print("force next_small")
-                small_rule = self.Rule(small_exp_rule, self.CD.TO()(small_exp_rule.rhs_exp).force())
+                small_rule = self.Rule(small_exp_rule, self.CD.TO()(small_exp_rule.rhs_fam_exp, small_exp_rule.rhs_auto_cpt).force())
                 yield small_rule, small_match
 
 class FamExpPFunctor(PFunctor):
