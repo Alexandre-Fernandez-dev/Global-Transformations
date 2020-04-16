@@ -48,6 +48,8 @@ class Parametrisation:
         })
 
         def morphism_init(self, s, t, MC):
+            # print("type")
+            # print(ObjectClass.__name__)
             assert isinstance(MC, C.TM())
             assert isinstance(s, ObjectClass)
             assert isinstance(t, ObjectClass)

@@ -10,7 +10,7 @@ import tests_gmap
 
 T, gp = tests_gmap.Test.rivers()
 
-for i in range(0, 5):
+for i in range(0, 2):
     gp = tuple(T.extend(gp))[0].object
     if isinstance(gp, T.pfunctor.CD.TO()):
         gp = gp.force().obj

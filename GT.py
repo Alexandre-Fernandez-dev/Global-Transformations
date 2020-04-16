@@ -118,6 +118,13 @@ class GT:
                 results.remove(u_res)
 
         def multi_merge(l_merges):
+            # for res_old_i, h_old, res_new_i, h_new in l_merges:
+            #     print("l_merge_i:")
+            #     print(res_old_i.object)
+            #     print(h_old)
+            #     print(res_new_i.object)
+            #     print(h_new)
+            #     print()
             if len(l_merges) == 0:
                 return
             res_old, res_new = None, None
@@ -212,7 +219,8 @@ class GT:
         def close_aux(ins, inc, pins):
             global depth
             # print("  " * depth, "COMPOSE")
-            # print(ins, pins)
+            # print(inc.rhs)
+            # print(inc.auto)
             new_subresult = inc.rhs if pins.subresult == None else inc.rhs.compose(pins.subresult)
             if ins.subresult is None: # no subresult new one -> easy merge
                 Result.triv_merge(pins.result, new_subresult, ins.result, ins.subresult)

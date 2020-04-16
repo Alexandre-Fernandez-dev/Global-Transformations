@@ -312,7 +312,13 @@ def Lazy(C):
 
     def compose_m(self, h):
         if isinstance(h,C.TM()):
-            self.force()
+            # self.force()
+            # return self.h.compose(h)
+            if self.h == None:
+                if self.t.forceable():
+                    self.force()
+                else:
+                    return MComposeClass(self, h)
             return self.h.compose(h)
         if self.h != None and h.h != None:
             return self.h.compose(h.h)
@@ -345,6 +351,7 @@ def Lazy(C):
 
     def force_m_base(self):
         if self.h == None:
+            # print(self.t.finalCountDown)
             self.t.force()
             if self.h == None:
                 raise Exception("LazyMBase: Force: not yet set")

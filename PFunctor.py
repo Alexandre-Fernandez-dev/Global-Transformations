@@ -680,10 +680,11 @@ class ExpPFunctor(PFunctor):
 
 class FamExpPFunctor(PFunctor):
     class FamExpRule:
-        def __init__(self, lhs, rhs_fam_exp, rhs_auto):
+        def __init__(self, lhs, rhs_fam_exp, rhs_auto_exp, rhs_auto_cpt):
             self.lhs = lhs
             self.rhs_fam_exp = rhs_fam_exp
-            self.rhs_auto = rhs_auto
+            self.rhs_auto_exp = rhs_auto_exp
+            self.rhs_auto_cpt = rhs_auto_cpt
             self.self_fam_exp_inclusions = {  }
 
         def __eq__(self, other):
@@ -741,8 +742,8 @@ class FamExpPFunctor(PFunctor):
             self.CD = CD
             self.G = nx.MultiDiGraph()
 
-        def add_fam_exp_rule(self, l, re, ra):
-            rule = FamExpPFunctor.FamExpRule(l, re, ra)
+        def add_fam_exp_rule(self, l, re, ra, acpt):
+            rule = FamExpPFunctor.FamExpRule(l, re, ra, acpt)
             self.G.add_node(rule)
             return rule
 
@@ -808,6 +809,7 @@ class FamExpPFunctor(PFunctor):
             self.g_a = g_a
             self.g_b = g_b
             self.lhs = lhs
+            self.auto = auto
             # self.rhs_autos = None
             # self.rhs_subojbects = None
             # print("PASS", type(g_b.rhs))
@@ -870,7 +872,7 @@ class FamExpPFunctor(PFunctor):
         for small_rule_fam_exp, _, inc_fam_exp in self.small_pred.in_edges(rule.fam_exp, keys = True):
             inc_lhs = rule.lhs.restrict(inc_fam_exp.lhs)
             # print("force iter_small")
-            small_rule = self.Rule(small_rule_fam_exp, inc_lhs.dom, self.CD.TO()(small_rule_fam_exp.rhs_fam_exp(inc_lhs.dom), small_rule_fam_exp.rhs_auto).force())
+            small_rule = self.Rule(small_rule_fam_exp, inc_lhs.dom, self.CD.TO()(small_rule_fam_exp.rhs_fam_exp(inc_lhs.dom), small_rule_fam_exp.rhs_auto_cpt).force())
             # print("new inclusion iter_small")
             # pinclusion = self.Inclusion(inc_fam_exp, small_rule, rule, inc_lhs) FORCE TOO EARLY -> fix not so general ?
             yield small_rule, inc_lhs #pinclusion.lhs
@@ -879,7 +881,7 @@ class FamExpPFunctor(PFunctor):
         for u_rule_fam_exp, _, u_inc_fam_exp in self.G.in_edges(match.rule.fam_exp, keys=True):
             u_inc_lhs = match.rule.lhs.restrict(u_inc_fam_exp.lhs)
             # print("new rule iter_under")
-            u_rule = lambda: self.Rule(u_rule_fam_exp, u_inc_lhs.dom, self.CD.TO()(u_rule_fam_exp.rhs_fam_exp(u_inc_lhs.dom), u_rule_fam_exp.rhs_auto))
+            u_rule = lambda: self.Rule(u_rule_fam_exp, u_inc_lhs.dom, self.CD.TO()(u_rule_fam_exp.rhs_fam_exp(u_inc_lhs.dom), u_rule_fam_exp.rhs_auto_cpt))
             # print(type(match.rule.rhs))
             # print("new inclusion iter_under")
             def u_inc(u_rule):
@@ -899,7 +901,7 @@ class FamExpPFunctor(PFunctor):
             for over_match in self.CS.pattern_match(inc_fam_exp.lhs, match.ins):
                 # print("lel", over_rule_fam_exp.rhs_fam_exp(over_match.dom))
                 # print("new rule pmatch_up")
-                over_rule = self.Rule(over_rule_fam_exp, over_match.dom, self.CD.TO()(over_rule_fam_exp.rhs_fam_exp(over_match.dom), over_rule_fam_exp.rhs_auto))
+                over_rule = self.Rule(over_rule_fam_exp, over_match.dom, self.CD.TO()(over_rule_fam_exp.rhs_fam_exp(over_match.dom), over_rule_fam_exp.rhs_auto_cpt))
                 yield over_rule, over_match
 
     def next_small(self, X):
@@ -909,7 +911,7 @@ class FamExpPFunctor(PFunctor):
                 # print("small_match")
                 small_match.clean()
                 # print("force next_small")
-                small_rule = self.Rule(small_rule_fam_exp, small_match.dom, self.CD.TO()(small_rule_fam_exp.rhs_fam_exp(small_match.dom), small_rule_fam_exp.rhs_auto).force())
+                small_rule = self.Rule(small_rule_fam_exp, small_match.dom, self.CD.TO()(small_rule_fam_exp.rhs_fam_exp(small_match.dom), small_rule_fam_exp.rhs_auto_cpt).force())
                 yield small_rule, small_match
 
     def iter_self_inclusions(self, rule): # TODO check ?
@@ -917,7 +919,8 @@ class FamExpPFunctor(PFunctor):
             # print("ITER SELF INCLUSIONS", inc_fam_exp)
             inc_lhs = rule.lhs.restrict(inc_fam_exp.lhs)
             # print("new rule iter_self_inclusions")
-            self_rule = self.Rule(rule.fam_exp, inc_lhs.dom, rule.rhs.autos[inc_fam_exp.rhs_i].dom)
+            self_rule = self.Rule(rule.fam_exp, inc_lhs.dom, self.CD.TO()(rule.fam_exp.rhs_auto_exp(rule.rhs.autos[inc_fam_exp.rhs_i]), rule.fam_exp.rhs_auto_cpt))
+            #self_rule = self.Rule(rule.fam_exp, inc_lhs.dom, self.CD.TO()(rule.fam_exp.rhs_fam_exp(rule.rhs.autos[inc_fam_exp.rhs_i].dom), rule.fam_exp.rhs_auto).force())
             # self_rule_fam_exp = self.FamExpRule(inc_fam_exp.lhs.dom, lambda x : lambda : (rule.rhs.autos[inc_fam_exp.rhs_i].dom, [], []), 0)
             # self_rule = self.Rule(self_rule_fam_exp, inc_lhs.dom, self.CD.TO()(self_rule_fam_exp.rhs_fam_exp(inc_lhs.dom), 0))
             #  invert_op = getattr(self_rule.rhs, "force", None)
