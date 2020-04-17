@@ -254,7 +254,7 @@ def Lazy(C):
         if self.forceable():
             # print("FORCE forceable")
             # print("lol", [h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects])
-            # print("lol2", self.expr(*[h.s.force() if isinstance(h.s,OClass) else h.s for h in self.subobjects]))
+            # print("lol2", self.expr(*[h.s.force().obj if isinstance(h.s,OClass) else h.s for h in self.subobjects]))
             self.obj, incs, autos = self.expr(*[h.s.force().obj if isinstance(h.s,OClass) else h.s for h in self.subobjects])
             for i, h in enumerate(self.subobjects):
                 h.set(incs[i])

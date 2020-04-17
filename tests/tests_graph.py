@@ -637,21 +637,234 @@ def test_graph_nda_sheaf():
     print(len(g.OC.nodes))
     print(len(g.OC.edges))
 
+
+def test_graph_nda_sheaf_2():
+    def restriction(f, q):
+        ret = {}
+        # TODO :genericity with element operator ?
+        for n in f.dom.nodes:
+            ret[n] = q[f.apply(n)]
+        return ret
+
+    def amalgamation(f, p, g, q):
+        assert f.cod == g.cod
+        ret = {}
+        for n in f.dom.nodes:
+            ret[f.apply(n)] = p[n]
+
+        for n in g.dom.nodes:
+            if ret.get(g.apply(n)) == None:
+                ret[g.apply(n)] = q[n]
+            elif ret[g.apply(n)] != q[n]:
+                raise Exception("fail amalgamation")
+
+        return ret
+
+    def amalgamation_2_in_1(ret, g, q):
+        for n in g.dom.nodes:
+            if ret.get(g.apply(n)) == None:
+                ret[g.apply(n)] = q[n]
+            elif ret[g.apply(n)] != q[n]:
+                raise Exception("fail amalgamation 2 in 1")
+
+    def amalgamation_quotient(f, p):
+        ret = {}
+        for n in f.dom.nodes:
+            ret[f.apply(n)] = p[n]
+
+        return ret
+
+    def phash(p): # TODO WHY NOT NEEDED, REMOVE ?
+        r = 1
+        # r = 31 * len(p.items())
+        # for k, v in p.items():
+        #     r ^= 31 * hash(k)
+        #     r ^= 31 * hash(v)
+        return r
+
+    ParameterNodesGraph = {
+        'name'                  : "ParGraph",
+        'parhash'               : phash,
+        'restriction'           : restriction,
+        'amalgamation'          : amalgamation,
+        'amalgamation_2_in_1'   : amalgamation_2_in_1,
+        'amalgamation_quotient' : amalgamation_quotient
+    }
+    ParGraphO, ParGraphM, ParGraph = Parametrisation.get(Graph, ParameterNodesGraph)
+    LParGraph = Lazy(ParGraph)
+
+    epf = FamExpPFunctor.Maker(ParGraph, LParGraph)
+
+    l0 = GraphO()
+    nl0 = l0.add_node()
+
+    r0 = l0
+    nr0 = nl0
+
+    r0 = l0
+    def er_0(lp):
+        assert lp.OC == l0
+        def er_0_exp():
+            return (ParGraphO(r0, { nr0: random() > 0.5 }), [], [])
+        return er_0_exp
+    
+    def er_0_auto(auto):
+        def er_0_exp():
+            raise Exception("Should not be called")
+    
+    g_0 = epf.add_fam_exp_rule(l0, er_0, er_0_auto, 0)
+
+    l1 = GraphO()
+    nl1_0 = l1.add_node()
+    nl1_1 = l1.add_node()
+    el1_0 = l1.add_edge(nl1_0, nl1_1)
+    el1_1 = l1.add_edge(nl1_1, nl1_0)
+
+    r1a = l1
+    r1b = GraphO()
+    nr1b_0 = r1b.add_node()
+    nr1b_1 = r1b.add_node()
+    nr1b_2 = r1b.add_node()
+    er1b_0 = r1b.add_edge(nr1b_0, nr1b_1)
+    er1b_1 = r1b.add_edge(nr1b_1, nr1b_0)
+    er1b_2 = r1b.add_edge(nr1b_1, nr1b_2)
+    er1b_3 = r1b.add_edge(nr1b_2, nr1b_1)
+
+    l01_0 = GraphM(l0, l1, {
+        nl0 : nl1_0
+    })
+    r01_0a = l01_0
+
+    r01_0b = GraphM(r0, r1b, {
+        nl0 : nr1b_0
+    })
+
+    l01_1 = GraphM(l0, l1, {
+        nl0 : nl1_1
+    })
+
+    r01_1a = l01_1
+
+    r01_1b = GraphM(r0, r1b, {
+        nl0 : nr1b_2
+    })
+
+    l11 = GraphM(l1, l1, {
+        nl1_0 : nl1_1,
+        nl1_1 : nl1_0,
+        el1_0 : el1_1,
+        el1_1 : el1_0
+    })
+
+    r11a = l11
+
+    r11b = GraphM(r1b, r1b, {
+        nr1b_0 : nr1b_2,
+        nr1b_1 : nr1b_1,
+        nr1b_2 : nr1b_0,
+        er1b_0 : er1b_3,
+        er1b_1 : er1b_2,
+        er1b_2 : er1b_1,
+        er1b_3 : er1b_0,
+
+    })
+
+    cptsub = 0
+    def er_1(lp):
+        assert lp.OC == l1
+        def er_1_exp(s1, s2):
+            nonlocal cptsub
+            if s1.ET[nr0] and s2.ET[nr0]:
+                print("sub")
+                cptsub += 1
+                res = ParGraphO(r1b, {nr1b_0 : True, nr1b_1 : True, nr1b_2 : True})
+                m1 = ParGraphM(s1, res, r01_0b)
+                m2 = ParGraphM(s2, res, r01_1b)
+                ma = ParGraphM(res, res, r11b)
+                return (res.restrict(r11b).dom, [m1, m2], [ma])
+            else:
+                res = ParGraphO(r1a, {nl1_0 : s1.ET[nr0], nl1_1 : s2.ET[nr0]})
+                m1 = ParGraphM(s1, res, r01_0a)
+                m2 = ParGraphM(s2, res, r01_1a)
+                ma = ParGraphM(res.restrict(r11a).dom, res, r11a)
+                return (res, [m1, m2], [ma])
+        return er_1_exp
+    
+    def er_1_auto(auto):
+        def er_1_exp(s1, s2):
+            if s1.ET[nr0] and s2.ET[nr0]:
+                res = auto.dom
+                m1 = ParGraphM(s1, res, r01_0b)
+                m2 = ParGraphM(s2, res, r01_1b)
+                ma = ParGraphM(res, res, r11b)
+                return (res.restrict(r11b).dom, [m1, m2], [ma])
+            else:
+                res = auto.dom
+                m1 = ParGraphM(s1, res, r01_0a)
+                m2 = ParGraphM(s2, res, r01_1a)
+                ma = ParGraphM(res.restrict(r11a).dom, res, r11a)
+                return (res, [m1, m2], [ma])
+        return er_1_exp
+    g_1 = epf.add_fam_exp_rule(l1, er_1, er_1_auto, 1)
+
+    ###
+
+    g_0_1_0 = epf.add_fam_exp_inclusion(g_0, g_1, l01_0, 0)
+
+    g_0_1_1 = epf.add_fam_exp_inclusion(g_0, g_1, l01_1, 1)
+
+    g_1_1 = epf.add_fam_exp_inclusion(g_1, g_1, l11, 0)
+
+    epf = epf.get()
+    T = GT(epf)
+
+    g = GraphO()
+    n1 = g.add_node()
+    n2 = g.add_node()
+    n3 = g.add_node()
+    e12 = g.add_edge(n1,n2)
+    e21 = g.add_edge(n2,n1)
+    e23 = g.add_edge(n2,n3)
+    e32 = g.add_edge(n3,n2)
+    e31 = g.add_edge(n3,n1)
+    e13 = g.add_edge(n1,n3)
+    g = ParGraphO(g, {n1 : False, n2 : False, n3 : False})
+    # print(len(g.g.nodes))
+
+    #plt.subplot(121)
+    options = {
+        'node_color': 'black',
+        'node_size': 20,
+        'width': 1,
+    }
+
+    GraphModule.show = False
+    # options['edge_colors'] = g.ET
+    #ec = [ 'red' if g.ET[v] else 'blue' for v in g.OC.nodes()]
+    #print(ec)
+    nx.draw(g.OC.g, layout=nx.spring_layout(g.OC.g), node_size = 20, width = 1)#**options)
+    plt.show()
+    print("drawed")
+    for i in range(0, 6):
+        #if i == 3:
+        #    GraphModule.show = True
+        g_ = T.extend(g)
+        g = tuple(g_)[0].object
+        print("sub", cptsub)
+        # options['edge_colors'] = g.ET
+        # plt.subplot(121)
+        ec = [ 'red' if g.ET[v] else 'blue' for v in g.OC.nodes()]
+        print(ec)
+        nx.draw(g.OC.g, layout=nx.spring_layout(g.OC.g), node_color= ec, node_size = 20, width = 1)#**options)
+        plt.show()
+
+    print(len(g.OC.nodes))
+    print(len(g.OC.edges))
+
 # test_seq()
 # test_graph()
 # test_graph_nd()
-test_graph_nda_sheaf()
-
-
-
-
-
-
-
-
-
-
-
+test_graph_nda_sheaf_2()
 
 
 #
