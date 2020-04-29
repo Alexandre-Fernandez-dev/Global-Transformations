@@ -622,10 +622,14 @@ class OPFunctor(PFunctor):
             else:
                 if self.auto == None:
                     self.r = self.o_rule.rhs_run(self.o_rule.rhs_choice, self.incs_in)
+                    # print(self.incs_in)
+                    # DEBUG CHECK !
+                    for linc, incinst in self.incs_in.items():
+                        assert self.r in self.o_rule.rhs_choice.f_alpha_inv[incinst.g_a.rhs]
                     return self.r
                 else:
                     incl, over_rule = self.auto 
-                    self.r = over_rule.rhs.restrict(over_rule.f_beta(incl, over_rule.rhs)) # SHOUD be a equal to the over rhs or this rhs must have been specified in the choices
+                    self.r = over_rule.rhs.restrict(over_rule.o_rule.rhs_choice.f_beta[(incl, over_rule.rhs)]).dom # SHOUD be a equal to the over rhs or this rhs must have been specified in the choices
                     return self.r
 
         def __eq__(self, other):
@@ -656,6 +660,7 @@ class OPFunctor(PFunctor):
             if self.r != None:
                 return self.r
             else:
+                # print(type(self.lhs), type(self.g_b.rhs))
                 self.r = self.g_b.o_rule.rhs_choice.f_beta[(self.lhs, self.g_b.rhs)]
                 return self.r
 

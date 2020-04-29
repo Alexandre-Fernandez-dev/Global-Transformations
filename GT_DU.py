@@ -203,7 +203,7 @@ class GT_DU:
                 match_ = auto.lhs.compose(match)
                 # print(type(auto))
                 ins_ = Instance(auto.g_a, match_, black)
-                ins_.observe(res,auto.rhs)
+                ins_.observe(res, None) # changed auto.rhs to None hope it works
                 matches[match_] = ins_
             return ins
         
@@ -241,9 +241,9 @@ class GT_DU:
                 if ins.result.object == None:
                     ins.result.object = ins.rule.rhs
                 # new_subresult = u_inc.rhs if ins.subresult == None else u_inc.rhs.compose(ins.subresult)
-                assert ins.subresult == None
+                # assert ins.subresult == None
                 # print("u_inc.rhs")
-                new_subresult = u_inc.rhs
+                new_subresult = u_inc.rhs if ins.subresult == None else u_inc.rhs.compose(ins.subresult)
                 # print("new subresult", new_subresult)
                 if under_ins.subresult is None: # no subresult new one -> easy merge
                     # print(">>>>>triv_merge")

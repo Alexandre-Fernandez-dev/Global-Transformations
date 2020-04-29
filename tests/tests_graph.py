@@ -1300,10 +1300,144 @@ def test_graph_nda_sheaf_2():
     print(len(g.OC.nodes))
     print(len(g.OC.edges))
 
+def test_graph_ndv2():
+    from GT_DU import GT_DU
+    from PFunctor import OPFunctor
+
+    fpfm = OPFunctor.Maker(Graph, Graph)
+    Choices = OPFunctor.Choices
+
+    # dot
+    l0 = GraphO()
+    nl0 = l0.add_node()
+    r0 = l0
+    nr0 = nl0
+
+    r0C = Choices(l0, [r0])
+
+    # edge
+    l1 = GraphO()
+    nl1_0 = l1.add_node()
+    nl1_1 = l1.add_node()
+    el1_0 = l1.add_edge(nl1_0, nl1_1)
+    el1_1 = l1.add_edge(nl1_1, nl1_0)
+
+    r1a = l1
+    r1b = GraphO()
+    nr1b_0 = r1b.add_node()
+    nr1b_1 = r1b.add_node()
+    nr1b_2 = r1b.add_node()
+    er1b_0 = r1b.add_edge(nr1b_0, nr1b_1)
+    er1b_1 = r1b.add_edge(nr1b_1, nr1b_0)
+    er1b_2 = r1b.add_edge(nr1b_1, nr1b_2)
+    er1b_3 = r1b.add_edge(nr1b_2, nr1b_1)
+
+    r1C = Choices(l1, [r1a, r1b])
+
+    #first dot in edge
+    l01_0 = GraphM(l0, l1, {
+        nl0 : nl1_0
+    })
+
+    r01_0a = l01_0
+
+    r01_0b = GraphM(r0, r1b, {
+        nl0 : nr1b_0
+    })
+
+    r1C.add_under_choice(l01_0, r0C, [r01_0a, r01_0b])
+
+    # second dot in edge
+    l01_1 = GraphM(l0, l1, {
+        nl0 : nl1_1
+    })
+
+    r01_1a = l01_1
+
+    r01_1b = GraphM(r0, r1b, {
+        nl0 : nr1b_2
+    })
+
+    r1C.add_under_choice(l01_1, r0C, [r01_1a, r01_1b])
+
+    # auto edge
+    l11 = GraphM(l1, l1, {
+        nl1_0 : nl1_1,
+        nl1_1 : nl1_0,
+        el1_0 : el1_1,
+        el1_1 : el1_0
+    })
+
+    r11a = l11
+
+    r11b = GraphM(r1b, r1b, {
+        nr1b_0 : nr1b_2,
+        nr1b_1 : nr1b_1,
+        nr1b_2 : nr1b_0,
+        er1b_0 : er1b_3,
+        er1b_1 : er1b_2,
+        er1b_2 : er1b_1,
+        er1b_3 : er1b_0,
+
+    })
+
+    r1C.add_under_choice(l11, r1C, [r11a, r11b])
+
+    g0 = fpfm.add_o_rule(l0, r0C, lambda c, incs : r0)
+
+    g1 = fpfm.add_o_rule(l1, r1C, lambda c, incs : r1a if random() > 0.5 else r1b)
+
+    fpfm.add_o_inclusion(g0, g1, l01_0)
+    fpfm.add_o_inclusion(g0, g1, l01_1)
+
+    fpfm.add_o_inclusion(g1, g1, l11)
+    # for k, v in g1.rhs_choice.f_beta.items():
+    #     print(type(k[0]), type(k[1]))
+    #     print(k)
+    #     # print(" ", v)
+
+    # fpfm.add_o_inclusion(g0, g1, r11a)
+
+    # end
+
+    fpf = fpfm.get()
+
+    T = GT_DU(fpf)
+    
+    s = GraphO()
+    ns1 = s.add_node()
+    ns2 = s.add_node()
+    ns3 = s.add_node()
+    es12 = s.add_edge(ns1, ns2)
+    es21 = s.add_edge(ns2, ns1)
+    es23 = s.add_edge(ns2, ns3)
+    es32 = s.add_edge(ns3, ns2)
+    es31 = s.add_edge(ns3, ns1)
+    es13 = s.add_edge(ns1, ns3)
+    
+    options = {
+        'node_color': 'black',
+        'node_size': 20,
+        'width': 1,
+    }
+    GraphModule.show = False
+    nx.draw_kamada_kawai(s.g, **options)
+    plt.show()
+
+    for i in range(0, 10):
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        sp = T.extend(s)
+        # print(len(sp))
+        s = tuple(sp)[0].object
+        nx.draw_kamada_kawai(s.g, **options)
+        plt.show()
+        # print(s)
+
 # test_seq()
 # test_graph()
 # test_graph_nd()
-test_graph_nda_sheaf_2()
+# test_graph_nda_sheaf_2()
+test_graph_ndv2()
 
 
 #
