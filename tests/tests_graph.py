@@ -780,8 +780,8 @@ def test_graph_nda_sheaf_2():
                 res = ParGraphO(r1b, {nr1b_0 : True, nr1b_1 : True, nr1b_2 : True})
                 m1 = ParGraphM(s1, res, r01_0b)
                 m2 = ParGraphM(s2, res, r01_1b)
-                ma = ParGraphM(res, res, r11b)
-                return (res.restrict(r11b).dom, [m1, m2], [ma])
+                ma = ParGraphM(res.restrict(r11b).dom, res, r11b)
+                return (res, [m1, m2], [ma])
             else:
                 res = ParGraphO(r1a, {nl1_0 : s1.ET[nr0], nl1_1 : s2.ET[nr0]})
                 m1 = ParGraphM(s1, res, r01_0a)
@@ -796,8 +796,8 @@ def test_graph_nda_sheaf_2():
                 res = auto.dom
                 m1 = ParGraphM(s1, res, r01_0b)
                 m2 = ParGraphM(s2, res, r01_1b)
-                ma = ParGraphM(res, res, r11b)
-                return (res.restrict(r11b).dom, [m1, m2], [ma])
+                ma = ParGraphM(res.restrict(r11b).dom, res, r11b)
+                return (res, [m1, m2], [ma])
             else:
                 res = auto.dom
                 m1 = ParGraphM(s1, res, r01_0a)
@@ -807,13 +807,451 @@ def test_graph_nda_sheaf_2():
         return er_1_exp
     g_1 = epf.add_fam_exp_rule(l1, er_1, er_1_auto, 1)
 
-    ###
-
     g_0_1_0 = epf.add_fam_exp_inclusion(g_0, g_1, l01_0, 0)
 
     g_0_1_1 = epf.add_fam_exp_inclusion(g_0, g_1, l01_1, 1)
 
     g_1_1 = epf.add_fam_exp_inclusion(g_1, g_1, l11, 0)
+
+    ###
+
+    l2 = GraphO()
+    nl2_0 = l2.add_node()
+    nl2_1 = l2.add_node()
+    nl2_2 = l2.add_node()
+    el2_0 = l2.add_edge(nl2_0, nl2_1)
+    el2_1 = l2.add_edge(nl2_1, nl2_0)
+    el2_2 = l2.add_edge(nl2_1, nl2_2)
+    el2_3 = l2.add_edge(nl2_2, nl2_1)
+    el2_4 = l2.add_edge(nl2_2, nl2_0)
+    el2_5 = l2.add_edge(nl2_0, nl2_2)
+
+    l12_0 = GraphM(l1, l2, {
+        nl1_0 : nl2_0,
+        nl1_1 : nl2_1,
+        el1_0 : el2_0,
+        el1_1 : el2_1
+    })
+
+    l12_0p = l11.compose(l12_0)
+
+    l12_1 = GraphM(l1, l2, {
+        nl1_0 : nl2_1,
+        nl1_1 : nl2_2,
+        el1_0 : el2_2,
+        el1_1 : el2_3
+    })
+
+    l12_1p = l11.compose(l12_1)
+
+    l12_2 = GraphM(l1, l2, {
+        nl1_0 : nl2_2,
+        nl1_1 : nl2_0,
+        el1_0 : el2_4,
+        el1_1 : el2_5
+    })
+
+    l12_2p = l11.compose(l12_2)
+
+    l22_1 = GraphM(l2, l2, {
+        nl2_0 : nl2_1,
+        nl2_1 : nl2_2,
+        nl2_2 : nl2_0,
+        el2_0 : el2_2,
+        el2_1 : el2_3,
+        el2_2 : el2_4,
+        el2_3 : el2_5,
+        el2_4 : el2_0,
+        el2_5 : el2_1
+    })
+
+    l22_2 = l22_1.compose(l22_1)
+
+    l22_3 = GraphM(l2, l2, {
+        nl2_0 : nl2_0,
+        nl2_1 : nl2_2,
+        nl2_2 : nl2_1,
+        el2_0 : el2_5,
+        el2_1 : el2_4,
+        el2_2 : el2_3,
+        el2_3 : el2_2,
+        el2_4 : el2_1,
+        el2_5 : el2_0
+    })
+
+    l22_4 = l22_3.compose(l22_1)
+
+    l22_5 = l22_3.compose(l22_2)
+
+    r2a = l2
+
+    r2b = GraphO()
+    nr2b_0 = r2b.add_node()
+    nr2b_1 = r2b.add_node()
+    nr2b_2 = r2b.add_node()
+    nr2b_3 = r2b.add_node()
+    er2b_0 = r2b.add_edge(nr2b_0, nr2b_1)
+    er2b_1 = r2b.add_edge(nr2b_1, nr2b_0)
+    er2b_2 = r2b.add_edge(nr2b_1, nr2b_2)
+    er2b_3 = r2b.add_edge(nr2b_2, nr2b_1)
+    er2b_4 = r2b.add_edge(nr2b_2, nr2b_3)
+    er2b_5 = r2b.add_edge(nr2b_3, nr2b_2)
+    er2b_6 = r2b.add_edge(nr2b_3, nr2b_0)
+    er2b_7 = r2b.add_edge(nr2b_0, nr2b_3)
+
+    r2b2b3 = GraphM(r2b, r2b, {
+        nr2b_0 : nr2b_0,
+        nr2b_1 : nr2b_3,
+        nr2b_2 : nr2b_2,
+        nr2b_3 : nr2b_1,
+        er2b_0 : er2b_7,
+        er2b_1 : er2b_6,
+        er2b_2 : er2b_5,
+        er2b_3 : er2b_4,
+        er2b_4 : er2b_3,
+        er2b_5 : er2b_2,
+        er2b_6 : er2b_1,
+        er2b_7 : er2b_0
+    })
+
+    r2c = GraphO()
+    nr2c_0 = r2c.add_node()
+    nr2c_1 = r2c.add_node()
+    nr2c_2 = r2c.add_node()
+    nr2c_3 = r2c.add_node()
+    nr2c_4 = r2c.add_node()
+    nr2c_5 = r2c.add_node()
+    er2c_0 = r2b.add_edge(nr2c_0, nr2c_1)
+    er2c_1 = r2b.add_edge(nr2c_1, nr2c_0)
+    er2c_2 = r2b.add_edge(nr2c_1, nr2c_2)
+    er2c_3 = r2b.add_edge(nr2c_2, nr2c_1)
+    er2c_4 = r2b.add_edge(nr2c_2, nr2c_3)
+    er2c_5 = r2b.add_edge(nr2c_3, nr2c_2)
+    er2c_6 = r2b.add_edge(nr2c_3, nr2c_4)
+    er2c_7 = r2b.add_edge(nr2c_4, nr2c_3)
+    er2c_8 = r2b.add_edge(nr2c_4, nr2c_5)
+    er2c_9 = r2b.add_edge(nr2c_5, nr2c_4)
+    er2c_10 = r2b.add_edge(nr2c_5, nr2c_0)
+    er2c_11 = r2b.add_edge(nr2c_0, nr2c_5)
+
+    r2c2c_1 = GraphM(r2c, r2c, {
+        nr2c_0 : nr2c_2,
+        nr2c_1 : nr2c_3,
+        nr2c_2 : nr2c_4,
+        nr2c_3 : nr2c_5,
+        nr2c_4 : nr2c_0,
+        nr2c_5 : nr2c_1,
+        er2c_0 : er2c_2,
+        er2c_1 : er2c_3,
+        er2c_2 : er2c_4,
+        er2c_3 : er2c_5,
+        er2c_4 : er2c_6,
+        er2c_5 : er2c_7,
+        er2c_6 : er2c_8,
+        er2c_7 : er2c_9,
+        er2c_8 : er2c_10,
+        er2c_9 : er2c_11,
+        er2c_10 : er2c_0,
+        er2c_11 : er2c_1
+    })
+
+    r2c2c_2 = r2c2c_1.compose(r2c2c_1)
+
+    r2c2c_3 = GraphM(r2c, r2c, {
+        nr2c_0 : nr2c_0,
+        nr2c_1 : nr2c_5,
+        nr2c_2 : nr2c_4,
+        nr2c_3 : nr2c_3,
+        nr2c_4 : nr2c_2,
+        nr2c_5 : nr2c_1,
+        er2c_0 : er2c_11,
+        er2c_1 : er2c_10,
+        er2c_2 : er2c_9,
+        er2c_3 : er2c_8,
+        er2c_4 : er2c_7,
+        er2c_5 : er2c_6,
+        er2c_6 : er2c_5,
+        er2c_7 : er2c_4,
+        er2c_8 : er2c_3,
+        er2c_9 : er2c_2,
+        er2c_10 : er2c_1,
+        er2c_11 : er2c_0
+    })
+
+    r2c2c_4 = r2c2c_3.compose(r2c2c_1)
+
+    r2c2c_5 = r2c2c_3.compose(r2c2c_2)
+
+    r1a2a_0 = l12_0
+    r1a2a_0p = l12_0p
+    r1a2a_1 = l12_1
+    r1a2a_1p = l12_1p
+    r1a2a_2 = l12_2
+    r1a2a_2p = l12_2p
+    
+    r1a2b_0 = GraphM(r1a, r2b, {
+        nl1_0 : nr2b_0,
+        nl1_1 : nr2b_1,
+        el1_0 : er2b_0,
+        el1_1 : er2b_1
+    })
+
+    r1a2b_0p = r11a.compose(r1a2b_0)
+
+    r1b2b_1 = GraphM(r1b, r2b, {
+        nr1b_0 : nr2b_1,
+        nr1b_1 : nr2b_2,
+        nr1b_2 : nr2b_3,
+        er1b_0 : er2b_2,
+        er1b_1 : er2b_3,
+        er1b_2 : er2b_4,
+        er1b_3 : er2b_5
+    })
+
+    r1b2b_1p = r11b.compose(r1b2b_1)
+
+    r1a2b_2 = GraphM(r1a, r2b, {
+        nl1_0 : nr2b_3,
+        nl1_1 : nr2b_0,
+        el1_0 : er2b_6,
+        el1_1 : er2b_7
+    })
+
+    r1a2b_2p = r11a.compose(r1a2b_2)
+
+    r1b2c_1 = GraphM(r1b, r2c, {
+        nr1b_0 : nr2c_0,
+        nr1b_1 : nr2c_1,
+        nr1b_2 : nr2c_2,
+        er1b_0 : er2c_0,
+        er1b_1 : er2c_1,
+        er1b_2 : er2c_2,
+        er1b_3 : er2c_3
+    })
+
+    r1b2c_1p = r11b.compose(r1b2c_1)
+    
+    r1b2c_2 = GraphM(r1b, r2c, {
+        nr1b_0 : nr2c_2,
+        nr1b_1 : nr2c_3,
+        nr1b_2 : nr2c_4,
+        er1b_0 : er2c_4,
+        er1b_1 : er2c_5,
+        er1b_2 : er2c_6,
+        er1b_3 : er2c_7
+    })
+
+    r1b2c_2p = r11b.compose(r1b2c_2)
+    
+    r1b2c_3 = GraphM(r1b, r2c, {
+        nr1b_0 : nr2c_4,
+        nr1b_1 : nr2c_5,
+        nr1b_2 : nr2c_0,
+        er1b_0 : er2c_8,
+        er1b_1 : er2c_9,
+        er1b_2 : er2c_10,
+        er1b_3 : er2c_11
+    })
+
+    r1b2c_3p = r11b.compose(r1b2c_3)
+
+    def er_2(lp):
+        def er_2_exp(e1, e1p, e2, e2p, e3, e3p):
+            if e1.OC == r1a and e2.OC == r1a and e3.OC == r1a:
+                ret = ParGraphO(r2a, {nl2_0 : e1.ET[nl1_0],
+                                      nl2_1 : e2.ET[nl1_0],
+                                      nl2_2 : e3.ET[nl1_0],
+                                     })
+                return (ret, [
+                                 ParGraphM(r1a, r2a, r1a2a_0),
+                                 ParGraphM(r1a, r2a, r1a2a_0p),
+                                 ParGraphM(r1a, r2a, r1a2a_1),
+                                 ParGraphM(r1a, r2a, r1a2a_1p),
+                                 ParGraphM(r1a, r2a, r1a2a_2),
+                                 ParGraphM(r1a, r2a, r1a2a_2p),
+                             ],
+                             [
+                                 ParGraphM(r2a.restrict(l22_1).dom, r2a, l22_1),
+                                 ParGraphM(r2a.restrict(l22_2).dom, r2a, l22_2),
+                                 ParGraphM(r2a.restrict(l22_3).dom, r2a, l22_3),
+                                 ParGraphM(r2a.restrict(l22_4).dom, r2a, l22_4),
+                                 ParGraphM(r2a.restrict(l22_5).dom, r2a, l22_5)
+                             ])
+            elif e1.OC == r1a and e2.OC == r1b and e3.OC == r1a:
+                ret = ParGraphO(r2b, {nr2b_0 : False,
+                                      nr2b_1 : True,
+                                      nr2b_2 : True,
+                                      nr2b_3 : True
+                                     })
+                return (ret, [
+                                 ParGraphM(r1a, r2b, r1a2b_0),
+                                 ParGraphM(r1a, r2b, r1a2b_0p),
+                                 ParGraphM(r1b, r2b, r1b2b_1),
+                                 ParGraphM(r1b, r2b, r1b2b_1p),
+                                 ParGraphM(r1a, r2b, r1a2b_2),
+                                 ParGraphM(r1a, r2b, r1a2b_2p),
+                             ],
+                             [
+                                 None,
+                                 None,
+                                 ParGraphM(r2b.restrict(r2c2c_3).dom, r2b, r2c2c_3),
+                                 None,
+                                 None
+                             ])
+            elif e1.OC == r1a and e2.OC == r1a and e3.OC == r1b:
+                ret = ParGraphO(r2b, {nr2b_0 : False,
+                                      nr2b_1 : True,
+                                      nr2b_2 : True,
+                                      nr2b_3 : True
+                                     })
+                return (ret, [
+                                 ParGraphM(r1a, r2b, r1a2b_2),
+                                 ParGraphM(r1a, r2b, r1a2b_2p),
+                                 ParGraphM(r1a, r2b, r1a2b_0),
+                                 ParGraphM(r1a, r2b, r1a2b_0p),
+                                 ParGraphM(r1b, r2b, r1b2b_1),
+                                 ParGraphM(r1b, r2b, r1b2b_1p),
+                             ],
+                             [
+                                 None,
+                                 None,
+                                 ParGraphM(r2b.restrict(r2c2c_3).dom, r2b, r2c2c_3),
+                                 None,
+                                 None
+                             ])
+            elif e1.OC == r1b and e2.OC == r1a and e3.OC == r1a:
+                ret = ParGraphO(r2b, {nr2b_0 : False,
+                                      nr2b_1 : True,
+                                      nr2b_2 : True,
+                                      nr2b_3 : True
+                                     })
+                return (ret, [
+                                 ParGraphM(r1b, r2b, r1b2b_1),
+                                 ParGraphM(r1b, r2b, r1b2b_1p),
+                                 ParGraphM(r1a, r2b, r1a2b_2),
+                                 ParGraphM(r1a, r2b, r1a2b_2p),
+                                 ParGraphM(r1a, r2b, r1a2b_0),
+                                 ParGraphM(r1a, r2b, r1a2b_0p),
+                             ],
+                             [
+                                 None,
+                                 None,
+                                 ParGraphM(r2b.restrict(r2c2c_3).dom, r2b, r2c2c_3),
+                                 None,
+                                 None
+                             ])
+            else:
+                pass
+        return er_2_exp
+
+    def er_2_auto(auto):
+        def er_2_exp(e1, e1p, e2, e2p, e3, e3p):
+            ret = auto.dom
+            if e1.OC == r1a and e2.OC == r1a and e3.OC == r1a:
+                ret_test = ParGraphO(r2a, {nl2_0 : e1.ET[nl1_0],
+                                      nl2_1 : e2.ET[nl1_0],
+                                      nl2_2 : e3.ET[nl1_0],
+                                     })
+                assert ret == ret_test
+                return (ret, [
+                                 ParGraphM(r1a, r2a, r1a2a_0),
+                                 ParGraphM(r1a, r2a, r1a2a_0p),
+                                 ParGraphM(r1a, r2a, r1a2a_1),
+                                 ParGraphM(r1a, r2a, r1a2a_1p),
+                                 ParGraphM(r1a, r2a, r1a2a_2),
+                                 ParGraphM(r1a, r2a, r1a2a_2p),
+                             ],
+                             [
+                                 ParGraphM(r2a.restrict(l22_1).dom, r2a, l22_1),
+                                 ParGraphM(r2a.restrict(l22_2).dom, r2a, l22_2),
+                                 ParGraphM(r2a.restrict(l22_3).dom, r2a, l22_3),
+                                 ParGraphM(r2a.restrict(l22_4).dom, r2a, l22_4),
+                                 ParGraphM(r2a.restrict(l22_5).dom, r2a, l22_5)
+                             ])
+            elif e1.OC == r1a and e2.OC == r1b and e3.OC == r1a:
+                ret_test = ParGraphO(r2b, {nr2b_0 : False,
+                                      nr2b_1 : True,
+                                      nr2b_2 : True,
+                                      nr2b_3 : True
+                                     })
+                assert ret == ret_test
+                return (ret, [
+                                 ParGraphM(r1a, r2b, r1a2b_0),
+                                 ParGraphM(r1a, r2b, r1a2b_0p),
+                                 ParGraphM(r1b, r2b, r1b2b_1),
+                                 ParGraphM(r1b, r2b, r1b2b_1p),
+                                 ParGraphM(r1a, r2b, r1a2b_2),
+                                 ParGraphM(r1a, r2b, r1a2b_2p),
+                             ],
+                             [
+                                 None,
+                                 None,
+                                 ParGraphM(r2b.restrict(r2c2c_3).dom, r2b, r2c2c_3),
+                                 None,
+                                 None
+                             ])
+            elif e1.OC == r1a and e2.OC == r1a and e3.OC == r1b:
+                ret_test = ParGraphO(r2b, {nr2b_0 : False,
+                                      nr2b_1 : True,
+                                      nr2b_2 : True,
+                                      nr2b_3 : True
+                                     })
+                assert ret == ret_test
+                return (ret, [
+                                 ParGraphM(r1a, r2b, r1a2b_2),
+                                 ParGraphM(r1a, r2b, r1a2b_2p),
+                                 ParGraphM(r1a, r2b, r1a2b_0),
+                                 ParGraphM(r1a, r2b, r1a2b_0p),
+                                 ParGraphM(r1b, r2b, r1b2b_1),
+                                 ParGraphM(r1b, r2b, r1b2b_1p),
+                             ],
+                             [
+                                 None,
+                                 None,
+                                 ParGraphM(r2b.restrict(r2c2c_3).dom, r2b, r2c2c_3),
+                                 None,
+                                 None
+                             ])
+            elif e1.OC == r1b and e2.OC == r1a and e3.OC == r1a:
+                ret_test = ParGraphO(r2b, {nr2b_0 : False,
+                                      nr2b_1 : True,
+                                      nr2b_2 : True,
+                                      nr2b_3 : True
+                                     })
+                assert ret == ret_test
+                return (ret, [
+                                 ParGraphM(r1b, r2b, r1b2b_1),
+                                 ParGraphM(r1b, r2b, r1b2b_1p),
+                                 ParGraphM(r1a, r2b, r1a2b_2),
+                                 ParGraphM(r1a, r2b, r1a2b_2p),
+                                 ParGraphM(r1a, r2b, r1a2b_0),
+                                 ParGraphM(r1a, r2b, r1a2b_0p),
+                             ],
+                             [
+                                 None,
+                                 None,
+                                 ParGraphM(r2b.restrict(r2c2c_3).dom, r2b, r2c2c_3),
+                                 None,
+                                 None
+                             ])
+            else:
+                pass
+        return er_2_exp
+
+    g_2 = epf.add_fam_exp_rule(l2, er_2, er_2_auto, 5)
+
+    g_1_2_0 = epf.add_fam_exp_inclusion(g_1, g_2, l12_0, 0)
+    g_1_2_0p = epf.add_fam_exp_inclusion(g_1, g_2, l12_0p, 1)
+    g_1_2_1 = epf.add_fam_exp_inclusion(g_1, g_2, l12_1, 2)
+    g_1_2_1p = epf.add_fam_exp_inclusion(g_1, g_2, l12_1p, 3)
+    g_1_2_2 = epf.add_fam_exp_inclusion(g_1, g_2, l12_2, 4)
+    g_1_2_2p = epf.add_fam_exp_inclusion(g_1, g_2, l12_2p, 5)
+
+    g_2_2_1 = epf.add_fam_exp_inclusion(g_2, g_2, l22_1, 0)
+    g_2_2_2 = epf.add_fam_exp_inclusion(g_2, g_2, l22_2, 1)
+    g_2_2_3 = epf.add_fam_exp_inclusion(g_2, g_2, l22_3, 2)
+    g_2_2_4 = epf.add_fam_exp_inclusion(g_2, g_2, l22_4, 3)
+    g_2_2_5 = epf.add_fam_exp_inclusion(g_2, g_2, l22_5, 4)
 
     epf = epf.get()
     T = GT(epf)
@@ -822,12 +1260,13 @@ def test_graph_nda_sheaf_2():
     n1 = g.add_node()
     n2 = g.add_node()
     n3 = g.add_node()
-    e12 = g.add_edge(n1,n2)
-    e21 = g.add_edge(n2,n1)
-    e23 = g.add_edge(n2,n3)
-    e32 = g.add_edge(n3,n2)
-    e31 = g.add_edge(n3,n1)
-    e13 = g.add_edge(n1,n3)
+    e1 = g.add_edge(n1, n2)
+    e2 = g.add_edge(n2, n1)
+    e3 = g.add_edge(n2, n3)
+    e4 = g.add_edge(n3, n2)
+    e5 = g.add_edge(n3, n1)
+    e6 = g.add_edge(n1, n3)
+
     g = ParGraphO(g, {n1 : False, n2 : False, n3 : False})
     # print(len(g.g.nodes))
 

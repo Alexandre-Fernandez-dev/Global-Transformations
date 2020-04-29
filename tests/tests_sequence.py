@@ -1,3 +1,8 @@
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(current_dir)
+sys.path.insert(0, parent_dir) 
+
 from Sequence import Sequence, SequenceO, SequenceM, NkSeqO, NkSeqM
 
 def test():
@@ -226,11 +231,144 @@ def test4():
     print({s: 8*n/100 for (s,n) in sz.items() })
     print((tuple(T.extend(SequenceO(['a','a','a'])))[0].object))
 
+def test5():
+    from GT_DU import GT_DU
+    from PFunctor import OPFunctor
+
+    fpfm = OPFunctor.Maker(Sequence, Sequence)
+    Choices = OPFunctor.Choices
+    
+    l0 = SequenceO([])
+    r0 = SequenceO([])
+
+    r0C = Choices(l0, [r0])
+
+    l1 = SequenceO(['a'])
+    r1 = SequenceO(['a', 'b'])
+
+    r1C = Choices(l1, [r1])
+
+    il01a = SequenceM(l0, l1, 0)
+    ir01a = SequenceM(r0, r1, 0)
+
+    il01b = SequenceM(l0, l1, 1)
+    ir01b = SequenceM(r0, r1, 2)
+
+    r1C.add_under_choice(il01a, r0C, [ir01a])
+    r1C.add_under_choice(il01b, r0C, [ir01b])
+    
+    l2 = SequenceO(['b'])
+    r2 = SequenceO(['a'])
+
+    r2C = Choices(l2, [r2])
+
+    il02a = SequenceM(l0, l2, 0)
+    ir02a = SequenceM(r0, r2, 0)
+
+    il02b = SequenceM(l0, l2, 1)
+    ir02b = SequenceM(r0, r2, 1)
+
+    r2C.add_under_choice(il02a, r0C, [ir02a])
+    r2C.add_under_choice(il02b, r0C, [ir02b])
+
+    g0 = fpfm.add_o_rule(l0, r0C, lambda c, incs : r0)
+
+    g1 = fpfm.add_o_rule(l1, r1C, lambda c, incs : r1)
+
+    fpfm.add_o_inclusion(g0, g1, il01a)
+    fpfm.add_o_inclusion(g0, g1, il01b)
+
+    g2 = fpfm.add_o_rule(l2, r2C, lambda c, incs : r2)
+
+    fpfm.add_o_inclusion(g0, g2, il02a)
+    fpfm.add_o_inclusion(g0, g2, il02b)
+
+    fpf = fpfm.get()
+
+    T = GT_DU(fpf)
+    
+    s = SequenceO(['a'])
+    
+    for i in range(0, 3):
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        sp = T.extend(s)
+        print(len(sp))
+        s = tuple(sp)[0].object
+        print(s)
+        
+def test6():
+    from GT_DU import GT_DU
+    from PFunctor import OPFunctor
+
+    fpfm = OPFunctor.Maker(Sequence, Sequence)
+    Choices = OPFunctor.Choices
+    
+    l0 = SequenceO([])
+    r0 = SequenceO([])
+
+    r0C = Choices(l0, [r0])
+
+    l1 = SequenceO(['a'])
+    r1a = SequenceO(['a', 'b'])
+    r1b = SequenceO(['a'])
+
+    r1C = Choices(l1, [r1a, r1b])
+
+    il01_0 = SequenceM(l0, l1, 0)
+    ir01_0a = SequenceM(r0, r1a, 0)
+    ir01_0b = SequenceM(r0, r1b, 0)
+
+    il01_1 = SequenceM(l0, l1, 1)
+    ir01_1a = SequenceM(r0, r1a, 2)
+    ir01_1b = SequenceM(r0, r1b, 1)
+
+    r1C.add_under_choice(il01_0, r0C, [ir01_0a, ir01_0b])
+    r1C.add_under_choice(il01_1, r0C, [ir01_1a, ir01_1b])
+    
+    l2 = SequenceO(['b'])
+    r2 = SequenceO(['a'])
+
+    r2C = Choices(l2, [r2])
+
+    il02_0 = SequenceM(l0, l2, 0)
+    ir02_0 = SequenceM(r0, r2, 0)
+
+    il02_1 = SequenceM(l0, l2, 1)
+    ir02_1 = SequenceM(r0, r2, 1)
+
+    r2C.add_under_choice(il02_0, r0C, [ir02_0])
+    r2C.add_under_choice(il02_1, r0C, [ir02_1])
+
+    g0 = fpfm.add_o_rule(l0, r0C, lambda c, incs : r0)
+
+    g1 = fpfm.add_o_rule(l1, r1C, lambda c, incs : r1a if random() > 0.5 else r1b)
+
+    fpfm.add_o_inclusion(g0, g1, il01_0)
+    fpfm.add_o_inclusion(g0, g1, il01_1)
+
+    g2 = fpfm.add_o_rule(l2, r2C, lambda c, incs : r2)
+
+    fpfm.add_o_inclusion(g0, g2, il02_0)
+    fpfm.add_o_inclusion(g0, g2, il02_1)
+
+    fpf = fpfm.get()
+
+    T = GT_DU(fpf)
+    
+    s = SequenceO(['a'])
+    
+    for i in range(0, 10):
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        sp = T.extend(s)
+        print(len(sp))
+        s = tuple(sp)[0].object
+        print(s)
+
 if __name__ == "__main__":
     # test()
     # test3()
     print("-------------------------------------------------------------END1")
-    test4()
+    test6()
 
 # g1 = ExprRule(['a'], lambda self: ['a', 'a'] if random() > 0.5 else ['a'])
 # 

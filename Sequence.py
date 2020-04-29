@@ -106,8 +106,8 @@ class SequenceM:
     def __eq__(self, other):
         if not isinstance(other, SequenceM):
             return False
-        print("s == s", self.s == other.s)
-        print("t == t", self.t == other.t)
+        # print("s == s", self.s == other.s)
+        # print("t == t", self.t == other.t)
         return self.s == other.s and self.t == other.t and self.i == other.i
 
     def __hash__(self):
@@ -190,9 +190,9 @@ class Sequence(DataStructure):
 
     @staticmethod
     def pattern_match(p, s):
-        print(">>>>", type(p))
-        print(isinstance(p, NkSeqO))
-        print(isinstance(p, NkSeqM))
+        # print(">>>>", type(p))
+        # print(isinstance(p, NkSeqO))
+        # print(isinstance(p, NkSeqM))
         # if isinstance(p, NkSeqM) or isinstance(p, NkSeqO):
         #     print("IF YIELD FAM")
         if isinstance(p, NkSeqO):
@@ -215,7 +215,7 @@ class Sequence(DataStructure):
                 for i in k.search(s, p):
                     yield SequenceM(p, s, i)
         elif isinstance(p, SequenceM):
-            print(type(p))
+            # print(type(p))
             start1 = s.i - p.i
             end1 = s.i
             start2 = start1 + len(p.dom.s) + p.i

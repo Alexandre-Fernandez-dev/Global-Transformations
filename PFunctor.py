@@ -208,6 +208,7 @@ class FlatPFunctor(PFunctor):
             """
             assert g_a.lhs == l.dom
             assert g_b.lhs == l.cod
+            print(g_b.lhs, l.cod)
             assert g_a.rhs == r.dom
             assert g_b.rhs == r.cod
             inc = FlatPFunctor.Inclusion(g_a, g_b, l, r)
@@ -500,6 +501,200 @@ class FamPFunctor(PFunctor):
                 small_rule = self.Rule(small_rule_fam, small_match.dom)
                 yield small_rule, small_match
 
+class OPFunctor(PFunctor):
+    class Choices:
+        def __init__(self, lhs, results):
+            self.results = results
+            self.lhs = lhs # redundant may be removed keeped for the assert
+            self.f_alpha_inv = {}
+            self.f_beta = {}
+            self.under = {}
+
+        def add_under_choice(self, linc, uchoice, rincs):
+            assert linc.dom == uchoice.lhs
+            self.under[linc] = uchoice
+            for rinc in rincs:
+                assert rinc.cod in self.results
+                self.f_beta[(linc, rinc.cod)] = rinc
+                fiber = self.f_alpha_inv.setdefault(rinc.dom, [])
+                fiber.append(rinc.cod)
+
+    class ORule:
+        def __init__(self, lhs, rhs_choice, rhs_run):
+            self.lhs = lhs
+            self.rhs_choice = rhs_choice
+            self.rhs_run = rhs_run
+            self.self_inclusions = set()
+        
+        def __eq__(self, other):
+            if not isinstance(other,OPFunctor.ORule):
+                return False
+            return self.lhs == other.lhs
+
+        def __hash__(self):
+            return hash(self.lhs)
+
+        def __repr__(self):
+            return str(self.lhs) + " => " + str(self.rhs_choice)
+
+        def iter_self_inclusions(self):
+            yield from self.self_inclusions
+
+    class OInclusion():
+        def __init__(self, g_a, g_b, lhs):
+            self.g_a = g_a
+            self.g_b = g_b
+            self.lhs = lhs
+
+        def __eq__(self, other):
+            if not isinstance(other, OPFunctor.OInclusion):
+                return False
+            return self.lhs == other.lhs
+
+        def __hash__(self):
+            return hash(self.lhs)
+
+        def __repr__(self):
+            return str(self.lhs) + ' => ...' #+ str(self.rhs)
+
+        def compose(self, other):
+            return OPFunctor.OInclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs))
+
+    class Maker():
+        def __init__(self, CS, LCD):
+            self.CS = CS
+            self.CD = LCD
+            self.G = nx.MultiDiGraph()
+
+        def add_o_rule(self, l, rc, rr):
+            rule = OPFunctor.ORule(l, rc, rr)
+            self.G.add_node(rule)
+            return rule
+
+        def add_o_inclusion(self, g_a, g_b, l):
+            inc = OPFunctor.OInclusion(g_a, g_b, l)
+            if g_a == g_b:
+                g_a.self_inclusions.add(inc)
+            else:
+                self.G.add_edge(g_a, g_b, key = inc)
+            return (g_a, g_b, inc)
+
+        def get(self):
+            return OPFunctor(self.CS, self.CD, self.G)
+
+    def __init__(self, CS, CD, G):
+        self.CS = CS
+        self.CD = CD
+        self.G = G
+        self.smalls = set()
+        self.small_pred = nx.MultiDiGraph()
+        def f(g): # TODO replace by smaller function that only computes nb_small
+            if g in self.small_pred.nodes():
+                return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
+            self.small_pred.add_node(g)
+            l = []
+            for s, _, inc in self.G.in_edges(g, keys = True):
+                r = f(s)
+                if r == []:
+                    l.append(inc)
+                else:
+                    l = l + [ incp.compose(inc) for incp in r ]
+            if l == []:
+                self.smalls.add(g)
+            for inc in l:
+                self.small_pred.add_edge(inc.g_a, g, inc)
+            return l
+        for g in self.G.nodes:
+            f(g)
+
+    class RuleInst:
+        def __init__(self, o_rule, auto = None):
+            self.o_rule = o_rule
+            self.lhs = o_rule.lhs
+            self.incs_in = { linc : None for linc in o_rule.rhs_choice.under if linc.dom != o_rule.lhs}
+            self.r = None
+            self.auto = auto
+        
+        @property
+        def rhs(self):
+            if self.r != None:
+                return self.r
+            else:
+                if self.auto == None:
+                    self.r = self.o_rule.rhs_run(self.o_rule.rhs_choice, self.incs_in)
+                    return self.r
+                else:
+                    incl, over_rule = self.auto 
+                    self.r = over_rule.rhs.restrict(over_rule.f_beta(incl, over_rule.rhs)) # SHOUD be a equal to the over rhs or this rhs must have been specified in the choices
+                    return self.r
+
+        def __eq__(self, other):
+            if not isinstance(other,ExpPFunctor.Rule):
+                return False
+            return self.lhs == other.lhs and self.r == other.r
+
+        def __hash__(self):
+            return hash(self.lhs)
+
+        def __repr__(self):
+            return str(self.lhs)# + " => " + str(self.rhs)
+
+    class InclusionInst():
+        def __init__(self, o_inc, g_a, g_b, auto = False):
+            self.o_inc = o_inc
+            self.g_a = g_a
+            self.g_b = g_b
+            self.lhs = o_inc.lhs
+            self.r = None
+            if not auto:
+                assert self.g_b.incs_in[self.lhs] == None
+                self.g_b.incs_in[self.lhs] = self
+        
+        @property
+        def rhs(self):
+            # print("called")
+            if self.r != None:
+                return self.r
+            else:
+                self.r = self.g_b.o_rule.rhs_choice.f_beta[(self.lhs, self.g_b.rhs)]
+                return self.r
+
+        def __repr__(self):
+            return str(self.lhs)# + " => " + str(self.rhs)
+
+    def is_small(self, rule):
+        # print("is_small")
+        # print(rule)
+        # print(self.smalls)
+        return rule.o_rule in self.smalls
+
+    def nb_small(self, rule):
+        return len(self.small_pred.in_edges(rule.o_rule))
+
+    def iter_under(self, rule):
+        for u_o_rule, _, u_o_inc in self.G.in_edges(rule.o_rule, keys=True):
+            u_rule = self.RuleInst(u_o_rule)
+            u_inc = self.InclusionInst(u_o_inc, u_rule, rule)
+            yield u_inc
+    
+    def pmatch_up(self, rule, match):
+        for _, over_o_rule, inc_o in self.G.out_edges(rule.o_rule, keys = True):
+            for over_match in self.CS.pattern_match(inc_o.lhs, match):
+                over_rule = self.RuleInst(over_o_rule)
+                yield over_rule, over_match # why not buid the inclusion ?
+
+    def iter_self_inclusions(self, rule):
+        for inc_o in rule.o_rule.iter_self_inclusions():
+            self_rule = self.RuleInst(rule.o_rule, (inc_o.lhs, rule))
+            self_inc = self.InclusionInst(inc_o, self_rule, rule, True)
+            yield self_inc
+
+    def next_small(self, X):
+        for small_o_rule in self.smalls:
+            for small_match in self.CS.pattern_match(small_o_rule.lhs, X):
+                small_match.clean()
+                small_rule = self.RuleInst(small_o_rule)
+                yield small_rule, small_match
 
 class ExpPFunctor(PFunctor):
     class ExpRule:
