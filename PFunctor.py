@@ -514,10 +514,13 @@ class OPFunctor(PFunctor):
             assert linc.dom == uchoice.lhs
             self.under[linc] = uchoice
             for rinc in rincs:
+                if rinc == None:
+                    continue
                 assert rinc.cod in self.results
                 self.f_beta[(linc, rinc.cod)] = rinc
-                fiber = self.f_alpha_inv.setdefault(rinc.dom, [])
-                fiber.append(rinc.cod)
+                fiber = self.f_alpha_inv.setdefault(linc, {})
+                rfiber = fiber.setdefault(rinc.dom, [])
+                rfiber.append(rinc.cod)
 
     class ORule:
         def __init__(self, lhs, rhs_choice, rhs_run):
@@ -611,25 +614,35 @@ class OPFunctor(PFunctor):
         def __init__(self, o_rule, auto = None):
             self.o_rule = o_rule
             self.lhs = o_rule.lhs
-            self.incs_in = { linc : None for linc in o_rule.rhs_choice.under if linc.dom != o_rule.lhs}
+            self.incs_in = { linc : None for linc in o_rule.rhs_choice.under if linc.dom != o_rule.lhs }
             self.r = None
             self.auto = auto
         
-        @property
         def rhs(self):
             if self.r != None:
                 return self.r
             else:
                 if self.auto == None:
+                    print("incs_in", self.incs_in)
+                    print(self.o_rule.rhs_choice.under)
                     self.r = self.o_rule.rhs_run(self.o_rule.rhs_choice, self.incs_in)
                     # print(self.incs_in)
+                    print("got ", self.r)
                     # DEBUG CHECK !
+                    # for i in self.incs_in.items():
+                    #     print(i)
                     for linc, incinst in self.incs_in.items():
-                        assert self.r in self.o_rule.rhs_choice.f_alpha_inv[incinst.g_a.rhs]
+                        # print(linc, incinst)
+                        print(incinst.g_a.rhs())
+                        # print(self.o_rule.rhs_choice.f_alpha_inv[incinst.g_a.rhs()])
+                        print("rkfjg", type(self.o_rule.rhs_choice.f_alpha_inv[incinst.lhs][incinst.g_a.rhs()]))
+                        print(self.r)
+                        print(self.o_rule.rhs_choice.f_alpha_inv[incinst.lhs][incinst.g_a.rhs()])
+                        assert self.r in self.o_rule.rhs_choice.f_alpha_inv[incinst.lhs][incinst.g_a.rhs()]
                     return self.r
                 else:
                     incl, over_rule = self.auto 
-                    self.r = over_rule.rhs.restrict(over_rule.o_rule.rhs_choice.f_beta[(incl, over_rule.rhs)]).dom # SHOUD be a equal to the over rhs or this rhs must have been specified in the choices
+                    self.r = over_rule.rhs().restrict(over_rule.o_rule.rhs_choice.f_beta[(incl, over_rule.rhs())]).dom # SHOUD be a equal to the over rhs or this rhs must have been specified in the choices
                     return self.r
 
         def __eq__(self, other):
@@ -654,14 +667,13 @@ class OPFunctor(PFunctor):
                 assert self.g_b.incs_in[self.lhs] == None
                 self.g_b.incs_in[self.lhs] = self
         
-        @property
         def rhs(self):
             # print("called")
             if self.r != None:
                 return self.r
             else:
                 # print(type(self.lhs), type(self.g_b.rhs))
-                self.r = self.g_b.o_rule.rhs_choice.f_beta[(self.lhs, self.g_b.rhs)]
+                self.r = self.g_b.o_rule.rhs_choice.f_beta[(self.lhs, self.g_b.rhs())]
                 return self.r
 
         def __repr__(self):
@@ -676,23 +688,46 @@ class OPFunctor(PFunctor):
     def nb_small(self, rule):
         return len(self.small_pred.in_edges(rule.o_rule))
 
-    def iter_under(self, rule):
-        for u_o_rule, _, u_o_inc in self.G.in_edges(rule.o_rule, keys=True):
-            u_rule = self.RuleInst(u_o_rule)
-            u_inc = self.InclusionInst(u_o_inc, u_rule, rule)
-            yield u_inc
-    
-    def pmatch_up(self, rule, match):
-        for _, over_o_rule, inc_o in self.G.out_edges(rule.o_rule, keys = True):
-            for over_match in self.CS.pattern_match(inc_o.lhs, match):
-                over_rule = self.RuleInst(over_o_rule)
-                yield over_rule, over_match # why not buid the inclusion ?
+    def iter_under(self, match, matches):
+        for u_o_rule, _, u_o_inc in self.G.in_edges(match.rule.o_rule, keys=True):
+            # u_rule = self.RuleInst(u_o_rule)
+            # u_inc = self.InclusionInst(u_o_inc, u_rule, rule)
+            u_ins = u_o_inc.lhs.compose(match.ins)
+            if u_ins not in matches:
+                u_rule = self.RuleInst(u_o_rule)
+                u_inc = self.InclusionInst(u_o_inc, u_rule, match.rule)
+                yield u_inc
+            else:
+                print("RECOVERED RULEINST under")
+                u_match = matches[u_ins]
+                u_rule = u_match.rule
+                u_inc = self.InclusionInst(u_o_inc, u_rule, match.rule)
+                yield u_inc
 
-    def iter_self_inclusions(self, rule):
-        for inc_o in rule.o_rule.iter_self_inclusions():
-            self_rule = self.RuleInst(rule.o_rule, (inc_o.lhs, rule))
-            self_inc = self.InclusionInst(inc_o, self_rule, rule, True)
-            yield self_inc
+    
+    def pmatch_up(self, match, matches):
+        for _, over_o_rule, inc_o in self.G.out_edges(match.rule.o_rule, keys = True):
+            for over_match in self.CS.pattern_match(inc_o.lhs, match.ins):
+                if over_match in matches:
+                    print("RECOVERED RULEINST up")
+                    over_rule = matches[over_match].rule
+                    yield over_rule, over_match # why not buid the inclusion ?
+                else:
+                    over_rule = self.RuleInst(over_o_rule)
+                    yield over_rule, over_match # why not buid the inclusion ?
+
+    def iter_self_inclusions(self, match, matches):
+        for inc_o in match.rule.o_rule.iter_self_inclusions():
+            u_ins = inc_o.lhs.compose(match.ins)
+            if u_ins not in matches:
+                self_rule = self.RuleInst(match.rule.o_rule, (inc_o.lhs, match.rule))
+                self_inc = self.InclusionInst(inc_o, self_rule, match.rule, True)
+                yield self_inc
+            else:
+                print("RECOVERED RULEINST self")
+                self_rule = matches[u_ins].rule
+                self_inc = self.InclusionInst(inc_o, self_rule, match.rule, True)
+                yield self_inc
 
     def next_small(self, X):
         for small_o_rule in self.smalls:

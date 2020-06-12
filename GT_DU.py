@@ -114,8 +114,25 @@ class GT_DU:
                 assert u_h == None
                 # assert h.dom == u_res.object
                 on_u = h
+                print(h)
+                print(u_h)
                 for ins in u_res.obs_by:
-                    ins.observe(res, on_u if ins.subresult == None else ins.subresult.compose(on_u))
+                    print()
+                    print(ins.subresult)
+                    print(on_u)
+                    old_sb = ins.subresult
+                    def new_f():
+                        if old_sb == None:
+                            return on_u()
+                        else:
+                            print(old_sb)
+                            print(on_u)
+                            print("TEST")
+                            print(old_sb())
+                            print(on_u())
+                            return old_sb().compose(on_u())
+                    # ins.observe(res, (lambda self : on_u(None)) if ins.subresult == None else (lambda self : ins.subresult(None).compose(on_u(None))))
+                    ins.observe(res, new_f)
                 u_res.obs_by = None
                 u_res.object = None
                 results.remove(u_res)
@@ -138,6 +155,12 @@ class GT_DU:
                 if res_new == None:
                     res_new = res_new_i
                 else:
+                    print()
+                    print(h_new)
+                    print(res_new)
+                    print(res_new_i)
+                    print(res_new.object)
+                    print(res_new_i.object)
                     assert(res_new == res_new_i)
                 if res_old == None:
                     res_old = res_old_i
@@ -145,31 +168,35 @@ class GT_DU:
                     # print(res_old.object)
                     # print(res_old_i.object)
                     assert(res_old == res_old_i)
+                # import inspect
+                # print(inspect.getsource(h_old))
                 mult_merge_arg1.append(h_old) #TODO improve
                 mult_merge_arg2.append(h_new)
             assert res_old != None and res_new != None
             if res_old.is_rhs:
                 assert res_new.is_rhs #FIXME fail in some gmap
+                print(mult_merge_arg1)
+                print(mult_merge_arg2)
                 obj, on_old, on_new = self.pfunctor.CD.multi_merge(mult_merge_arg1, mult_merge_arg2)
                 res = Result(obj, False)
                 results.add(res)
                 for ins in res_old.obs_by:
-                    ins.observe(res, on_old if ins.subresult is None else
-                                ins.subresult.compose(on_old))
+                    ins.observe(res, (lambda : on_old()) if ins.subresult is None else
+                                (lambda : ins.subresult().compose(on_old())))
                 res_old.obs_by = None
                 res_old.object = None
                 results.remove(res_old)
                 for ins in res_new.obs_by:
-                    ins.observe(res, on_new if ins.subresult is None else
-                                ins.subresult.compose(on_new))
+                    ins.observe(res, (lambda : on_new()) if ins.subresult is None else
+                                (lambda : ins.subresult().compose(on_new())))
                 res_new.obs_by = None
                 res_new.object = None
                 results.remove(res_new)
             else:
                 obj, on_new = self.pfunctor.CD.multi_merge_2_in_1(mult_merge_arg1, mult_merge_arg2)
                 for ins in res_new.obs_by:
-                    ins.observe(res_old, on_new if ins.subresult is None else
-                                ins.subresult.compose(on_new))
+                    ins.observe(res_old, (lambda : on_new()) if ins.subresult is None else
+                                (lambda : ins.subresult().compose(on_new())))
                 res_new.obs_by = None
                 res_new.object = None
                 results.remove(res_new)
@@ -192,7 +219,7 @@ class GT_DU:
             # print("RES", res)
             ins.observe(res, None)
             matches[match] = ins
-            for auto in self.pfunctor.iter_self_inclusions(rule):
+            for auto in self.pfunctor.iter_self_inclusions(ins, matches):
                 # print("FOUND SELF INCLUSION")
                 # print("ITER AUTO")
                 # print("autolhs", auto.lhs)
@@ -203,57 +230,79 @@ class GT_DU:
                 match_ = auto.lhs.compose(match)
                 # print(type(auto))
                 ins_ = Instance(auto.g_a, match_, black)
-                ins_.observe(res, None) # changed auto.rhs to None hope it works
+                assert auto.g_b.rhs == ins.rule.rhs
+                ins_.observe(res, auto.rhs) # changed auto.rhs to None hope it works
                 matches[match_] = ins_
             return ins
         
         def close(ins):
             global depth
-            # print("  " * depth, "CLOSE", ins)
+            print("  " * depth, "CLOSE", ins)
             l = []
             todo = []
-            for u_inc in self.pfunctor.iter_under(ins.rule):
+            for u_inc in self.pfunctor.iter_under(ins, matches):
                 # print("  " * depth, "under :", u_inc)
                 under_match = u_inc.lhs.compose(ins.ins)
                 if under_match not in matches:
                     under_match.clean()
                     u_rule = u_inc.g_a
                     under_ins = add_instance(u_rule, under_match, Result(None, True), False)
-                    # print("  " * depth, "NEW INSTANCE", under_ins)
+                    print("  " * depth, "NEW INSTANCE", under_ins)
                     if self.pfunctor.is_small(u_rule):
                         # print("  " * depth, "SMALL")
                         fifo.insert(0, under_ins)
+                        # under_ins.result.object = under_ins.rule.rhs
                     # else:
                         # print("  " * depth, "NOT SMALL")
                 else:
                     under_ins = matches[under_match]
-                    # print("  " * depth, "KNOWN INSTANCE", under_ins)
+                    print("  " * depth, "KNOWN INSTANCE", under_ins)
                 # u_inc = u_inc(under_ins.rule)
                 todo += [(under_ins, u_inc)]
                 if under_ins.subresult is None:
                     depth += 1
                     l += close(under_ins)
+                    print("  " * depth, "under CLOSE returned", [(a.object, c.object) for a,b,c,d in l])
                     depth -= 1
+            print("  " * depth, "ALL under CLOSE returned", [(a.object, c.object) for a,b,c,d in l])
 
             for under_ins, u_inc in todo:
-                # print(ins.result.object)
+                print("  " * depth, "TODO ", ins.result, under_ins.result)
+                print("  " * depth, ins.rule, under_ins.rule)
+                print("  " * depth, u_inc)
                 # assert ins.result == dummy_result
-                if ins.result.object == None:
-                    ins.result.object = ins.rule.rhs
+                # if ins.result.object == None:
+                #     print("  " * depth, "INIT RHS A")
+                #     ins.result.object = ins.rule.rhs()
+                # if under_ins.result.object == None:
+                #     print("  " * depth, "INIT RHS B")
+                #     under_ins.result.object = under_ins.rule.rhs()
                 # new_subresult = u_inc.rhs if ins.subresult == None else u_inc.rhs.compose(ins.subresult)
                 # assert ins.subresult == None
                 # print("u_inc.rhs")
-                new_subresult = u_inc.rhs if ins.subresult == None else u_inc.rhs.compose(ins.subresult)
+                assert under_ins.rule.rhs == u_inc.g_a.rhs
+                assert ins.rule.rhs == u_inc.g_b.rhs
+                new_subresult = (lambda : u_inc.rhs()) if ins.subresult == None else (lambda : u_inc.rhs().compose(ins.subresult()))
                 # print("new subresult", new_subresult)
                 if under_ins.subresult is None: # no subresult new one -> easy merge
-                    # print(">>>>>triv_merge")
+                    print("  " * depth, ">>>>> triv_merge")
+                    # print(new_subresult.cod, under_ins.subresult.cod)
+                    l = [ (a, b, c, d) for a, b, c, d in l if c is not under_ins.result ]
                     Result.triv_merge(ins.result, new_subresult, under_ins.result, under_ins.subresult)
                 else: # there is a subresult
                     # print(">>>>>>>results", ins.result, under_ins.result)
+                    # print("  " * depth, ins.subresult(), under_ins.subresult())
+                    # print("  " * depth, new_subresult(), under_ins.subresult())
                     if ins.result is not under_ins.result: # not same result, different wave, accumulate
-                        l += [(under_ins.result, under_ins.subresult, ins.result, new_subresult)]
+                        print("\n\n")
+                        print("  " * depth, ">>>>>>>>>>>> ", ins.result.object)
+                        print("\n\n")
+                        l += [(under_ins.result, under_ins.subresult(), ins.result, new_subresult())]
             
-            # print("close returns ", l)
+            print("\n\n")
+            print("  " * depth, "close", ins)
+            print("  " * depth, "close returns ", [(a.object, c.object) for a,b,c,d in l])
+            print("\n\n")
             return l
 
         # def close_aux(ins, inc, pins):
@@ -274,11 +323,11 @@ class GT_DU:
         def star(ins):
             global depth
             # print("len result", len(results), len(matches))
-            # print("  " * depth, "STAR ", ins)
+            print("  " * depth, "STAR ", ins)
             uppercone = []
             assert not ins.black
             top = True
-            for over_rule, over_match in self.pfunctor.pmatch_up(ins.rule, ins.ins):
+            for over_rule, over_match in self.pfunctor.pmatch_up(ins, matches):
                 # print("  " * depth, "match_up", over_rule, over_match)
                 top = False
                 if over_match in matches:
@@ -297,7 +346,14 @@ class GT_DU:
             ins.black = True
             if top:
                 # print("  " * depth, "TOP")
-                multi_merge(close(ins))
+                # multi_merge(close(ins))
+                l = close(ins)
+                print("CLOSE RETURNED ")
+                for a, b, c, d in l:
+                    print(a, b)
+                    print(c, d)
+                    print()
+                multi_merge(l)
             return uppercone
 
         for small_rule, small_match in self.pfunctor.next_small(X):

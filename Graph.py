@@ -462,6 +462,8 @@ class GraphM:
         hash(self)
 
     def compose(self,h):
+        # print(self.t, h.s)
+        print(self, h)
         assert self.t == h.s
         # print(self.l, "\n|", h.l)
         l = { k: h.l[v] for k, v in self.l.items() }
@@ -556,8 +558,12 @@ class Graph(DataStructure):
     @staticmethod
     def multi_merge(m1s, m2s):
         global show
+        print("multi_merge", m1s, m2s)
+        show = True
         if show:
             draw(m1s, m2s, "multi_merge")
+        # import inspect
+        # print(inspect.getsource(m1s[0]))
         t1 = m1s[0].t
         t2 = m2s[0].t
         r = t1.copy()
