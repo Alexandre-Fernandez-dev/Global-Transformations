@@ -55,7 +55,7 @@ class Result():
         return u_res # to remove of results
     
     @staticmethod
-    def multi_merge_2(lm, CD, matches):
+    def multi_merge_2(lm, CD, m):
         l_new = []
         l_old = []
         res_old = None
@@ -75,15 +75,15 @@ class Result():
             #     print(ins.alt_result)
             #     assert res_new == ins.alt_result
             #     assert res_old == ins.result
-        return Result.multi_merge(l_old, l_new, res_old, res_new, CD, matches)
+        return Result.multi_merge(l_old, l_new, res_old, res_new, CD, m)
     
     @staticmethod
-    def multi_merge(l_old, l_new, res_old, res_new, CD, matches):
+    def multi_merge(l_old, l_new, res_old, res_new, CD, m):
         # print("MULTI MERGE", len(l_old), len(l_new))
         # print("res", res_old, res_new)
         # all l_old must refer to an instance with result res_old, same for res_new
-        for i in matches:
-            print(matches[i].result)
+        # for i in m:
+        #     print(m[i].result)
         if len(l_old) == 0:
             return [], []
         if res_old.is_rhs:
@@ -99,9 +99,9 @@ class Result():
                     ins.observe(res, on_new if ins.subresult is None else ins.subresult.compose(on_new))
             res_new.obs_by = None
             res_new.object = None
-            print()
-            for i in matches:
-                print(matches[i].result)
+            # print()
+            # for i in m:
+            #     print(m[i].result)
             return [res], [res_old, res_new]
         else:
             obj, on_new = CD.multi_merge_2_in_1(l_old, l_new)
@@ -283,7 +283,7 @@ class GT_DU:
         
         def close(ins):
             nonlocal depth
-            print("  " * depth, "close ", ins)
+            # print("  " * depth, "close ", ins)
             lm = []
             under = []
             for u_occ, get_u_ins, get_ins_inc in self.pfunctor.iter_under(ins): # iter under
@@ -322,7 +322,7 @@ class GT_DU:
                     s_ins = get_s_ins()
                     add_instance(s_ins)
                     s_ins.auto = True
-            print("  " * depth, "close ret ", lm)
+            # print("  " * depth, "close ret ", lm)
             return lm
         
         def star(ins):
@@ -348,7 +348,7 @@ class GT_DU:
             if top and not ins.auto: # on oublie les automorphismes des tops
                 lm = close(ins)
                 if len(lm) > 0:
-                    print(lm)
+                    # print(lm)
                     r_new, _ = Result.multi_merge_2(lm, self.pfunctor.CD, matches)
                     if len(r_new) > 0:
                         bigresult = r_new[0]
@@ -365,14 +365,14 @@ class GT_DU:
 
         while len(fifo) > 0:
             small_ins = fifo.pop()
-            print()
-            print("FIFO POP")
-            print()
+            # print()
+            # print("FIFO POP")
+            # print()
             star(small_ins)
-            for match in matches:
-                print(matches[match])
-                print(matches[match].result)
-            print()
+            # for match in matches:
+            #     print(matches[match])
+            #     print(matches[match].result)
+            # print()
             for dep_ins in small_ins.uppercone:
                 if dep_ins.decrNbDep():
                     # if len(dep_ins.result.obs_by) == 0:

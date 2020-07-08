@@ -623,21 +623,21 @@ class OPFunctor(PFunctor):
                 return self.r
             else:
                 if self.auto == None:
-                    print("incs_in", self.incs_in)
-                    print(self.o_rule.rhs_choice.under)
+                    # print("incs_in", self.incs_in)
+                    # print(self.o_rule.rhs_choice.under)
                     self.r = self.o_rule.rhs_run(self.o_rule.rhs_choice, self.incs_in)
                     # print(self.incs_in)
-                    print("got ", self.r)
+                    # print("got ", self.r)
                     # DEBUG CHECK !
                     # for i in self.incs_in.items():
                     #     print(i)
                     for linc, incinst in self.incs_in.items():
                         # print(linc, incinst)
-                        print(incinst.g_a.rhs())
+                        # print(incinst.g_a.rhs())
                         # print(self.o_rule.rhs_choice.f_alpha_inv[incinst.g_a.rhs()])
-                        print("rkfjg", type(self.o_rule.rhs_choice.f_alpha_inv[incinst.lhs][incinst.g_a.rhs()]))
-                        print(self.r)
-                        print(self.o_rule.rhs_choice.f_alpha_inv[incinst.lhs][incinst.g_a.rhs()])
+                        # print("rkfjg", type(self.o_rule.rhs_choice.f_alpha_inv[incinst.lhs][incinst.g_a.rhs()]))
+                        # print(self.r)
+                        # print(self.o_rule.rhs_choice.f_alpha_inv[incinst.lhs][incinst.g_a.rhs()])
                         assert self.r in self.o_rule.rhs_choice.f_alpha_inv[incinst.lhs][incinst.g_a.rhs()]
                     return self.r
                 else:
@@ -698,7 +698,7 @@ class OPFunctor(PFunctor):
                 u_inc = self.InclusionInst(u_o_inc, u_rule, match.rule)
                 yield u_inc
             else:
-                print("RECOVERED RULEINST under")
+                # print("RECOVERED RULEINST under")
                 u_match = matches[u_ins]
                 u_rule = u_match.rule
                 u_inc = self.InclusionInst(u_o_inc, u_rule, match.rule)
@@ -709,7 +709,7 @@ class OPFunctor(PFunctor):
         for _, over_o_rule, inc_o in self.G.out_edges(match.rule.o_rule, keys = True):
             for over_match in self.CS.pattern_match(inc_o.lhs, match.ins):
                 if over_match in matches:
-                    print("RECOVERED RULEINST up")
+                    # print("RECOVERED RULEINST up")
                     over_rule = matches[over_match].rule
                     yield over_rule, over_match # why not buid the inclusion ?
                 else:
@@ -724,7 +724,7 @@ class OPFunctor(PFunctor):
                 self_inc = self.InclusionInst(inc_o, self_rule, match.rule, True)
                 yield self_inc
             else:
-                print("RECOVERED RULEINST self")
+                # print("RECOVERED RULEINST self")
                 self_rule = matches[u_ins].rule
                 self_inc = self.InclusionInst(inc_o, self_rule, match.rule, True)
                 yield self_inc

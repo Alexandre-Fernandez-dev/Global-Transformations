@@ -463,7 +463,7 @@ class GraphM:
 
     def compose(self,h):
         # print(self.t, h.s)
-        print(self, h)
+        # print(self, h)
         assert self.t == h.s
         # print(self.l, "\n|", h.l)
         l = { k: h.l[v] for k, v in self.l.items() }
@@ -538,11 +538,12 @@ class Graph(DataStructure):
 
     @staticmethod
     def pattern_match(p, g):
+        import copy
         if isinstance(p,GraphO):
             pat = p.pattern()
             ctx = Graph.Ctx(g)
             for l in pat.match(ctx):
-                m = GraphM(p,g,l)
+                m = GraphM(p,g,copy.copy(l))
                 yield m
         else:
             pat = p.pattern()
@@ -552,14 +553,14 @@ class Graph(DataStructure):
                     ctx.curse(ii_eeij)
                 ctx.l[p.l[i_eij]] = ii_eeij
             for l in pat.match(ctx):
-                m = GraphM(p.cod,g.cod,l)
+                m = GraphM(p.cod,g.cod,copy.copy(l))
                 yield m
 
     @staticmethod
     def multi_merge(m1s, m2s):
         global show
-        print("multi_merge", m1s, m2s)
-        show = True
+        # print("multi_merge", m1s, m2s)
+        # show = True
         if show:
             draw(m1s, m2s, "multi_merge")
         # import inspect

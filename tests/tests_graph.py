@@ -190,20 +190,20 @@ def test_graph():
     # # figManager.window.showMaximized()
     #plt.show()
     GraphModule.show = False
-    for i in range(3):
-        GraphModule.show = True
+    for i in range(6):
+        # GraphModule.show = True
         print("------------------------------------------COMPUTE START", i)
         g_ = T.extend(g)
-        print(g_)
+        # print(g_)
         g = g_.object
         plt.subplot(121)
         # figManager = plt.get_current_fig_manager()
         # figManager.window.showMaximized()
-        nx.draw_kamada_kawai(g.g, **options)
-        plt.show()
+        print(len(g.nodes))
+        print(len(g.edges))
+        # nx.draw_kamada_kawai(g.g, **options)
+        # plt.show()
 
-    print(len(g.nodes))
-    print(len(g.edges))
     # print(1 + len(g.edges) - len(g.nodes))
     # print()
     # for n in T.G.nodes(): print(n)
@@ -2316,7 +2316,7 @@ def test_graph_ndv2_2():
         # print(s)
 
 def test_graph_ndv2_AC():
-    from GT_DU import GT_DU
+    from GT_DU_2 import GT_DU
     from PFunctor import OPFunctor
 
     fpfm = OPFunctor.Maker(Graph, Graph)
@@ -2629,11 +2629,11 @@ def test_graph_ndv2_AC():
         # print(s)
 
 # test_seq()
-test_graph()
+test_graph() # basic triang mesh refinement
 # test_graph_nd()
 # test_graph_nda_sheaf_2()
 # test_graph_ndv2_2()
-# test_graph_ndv2_AC()
+test_graph_ndv2_AC()
 
 
 #
