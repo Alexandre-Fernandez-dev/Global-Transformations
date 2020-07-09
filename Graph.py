@@ -356,7 +356,7 @@ class GraphO():
         return self.g.__len__()
 
     def __repr__(self):
-        return "{ " + str(self.nodes) + ", " + str(self.edges) + " }";
+        return "{ " + str(self.nodes) + ", " + str(self.edges) + " }"
 
     def pattern(self):
         if self.__pattern == None:
@@ -462,7 +462,8 @@ class GraphM:
         hash(self)
 
     def compose(self,h):
-        # print(self.t, h.s)
+        print(self.t, h.s)
+        print(id(self.t), id(h.s))
         # print(self, h)
         assert self.t == h.s
         # print(self.l, "\n|", h.l)

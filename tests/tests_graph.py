@@ -190,7 +190,7 @@ def test_graph():
     # # figManager.window.showMaximized()
     #plt.show()
     GraphModule.show = False
-    for i in range(6):
+    for i in range(3):
         # GraphModule.show = True
         print("------------------------------------------COMPUTE START", i)
         g_ = T.extend(g)
@@ -1301,8 +1301,7 @@ def test_graph_nda_sheaf_2():
     print(len(g.OC.edges))
 
 def test_graph_ndv2():
-    from GT_DU import GT_DU
-    from PFunctor import OPFunctor
+    from GT_DU_2 import GT_DU, OPFunctor
 
     fpfm = OPFunctor.Maker(Graph, Graph)
     Choices = OPFunctor.Choices
@@ -1434,8 +1433,7 @@ def test_graph_ndv2():
         # print(s)
     
 def test_graph_ndv2_2():
-    from GT_DU import GT_DU
-    from PFunctor import OPFunctor
+    from GT_DU_2 import GT_DU, OPFunctor
 
     fpfm = OPFunctor.Maker(Graph, Graph)
     Choices = OPFunctor.Choices
@@ -2308,16 +2306,15 @@ def test_graph_ndv2_2():
 
     for i in range(0, 10):
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-        sp = T.extend(s)
+        sp = T.extend(s).object
         # print(len(sp))
-        s = tuple(sp)[0].object
         nx.draw_kamada_kawai(s.g, **options)
         plt.show()
         # print(s)
 
 def test_graph_ndv2_AC():
-    from GT_DU_2 import GT_DU
-    from PFunctor import OPFunctor
+    from GT_DU_2 import GT_DU, OPFunctor
+    seed(10)
 
     fpfm = OPFunctor.Maker(Graph, Graph)
     Choices = OPFunctor.Choices
@@ -2519,10 +2516,10 @@ def test_graph_ndv2_AC():
     r01_1a = l01_1
 
     r01_1b = GraphM(r0a, r1b, {
-        nr0a[0] : nr1b[1],
-        nr0a[1] : nr1b[2],
-        er0a[0] : er1b[2],
-        er0a[1] : er1b[3],
+        nr0a[0] : nr1b[2],
+        nr0a[1] : nr1b[3],
+        er0a[0] : er1b[4],
+        er0a[1] : er1b[5],
     })
 
     r01_1c = GraphM(r0b, r1c, {
@@ -2563,17 +2560,21 @@ def test_graph_ndv2_AC():
 
     def chooser(c, incs):
         remaining = set(c.results)
-        print("choose", remaining)
+        print("choose", remaining, len(incs))
         for inc in incs:
             print("inc ", inc)
             print("inc g_a rhs", incs[inc].g_a.rhs())
+            print("remaining before", remaining)
+            print([id(x) for x in remaining])
             print("TO INTER", c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
+            print([id(x) for x in c.f_alpha_inv[inc][incs[inc].g_a.rhs()]])
             print()
-            if remaining == None:
-                remaining = set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
-            else:
-                remaining = remaining.intersection(set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()]))
-        print("remaining ", remaining)
+            # if remaining == None:
+            #     remaining = set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
+            # else:
+            remaining = remaining.intersection(set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()]))
+            print("remaining after", remaining)
+        print("remaining end ", remaining)
         r = randrange(0, len(remaining))
         return list(remaining)[r]
 
@@ -2620,16 +2621,15 @@ def test_graph_ndv2_AC():
 
     for i in range(0, 10):
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-        sp = T.extend(s)
-        print(len(sp))
-        s = tuple(sp)[0].object
+        s = T.extend(s).object
+        print(s)
         print(type(s))
         nx.draw_kamada_kawai(s.g, **options)
         plt.show()
         # print(s)
 
 # test_seq()
-test_graph() # basic triang mesh refinement
+# test_graph() # basic triang mesh refinement
 # test_graph_nd()
 # test_graph_nda_sheaf_2()
 # test_graph_ndv2_2()
