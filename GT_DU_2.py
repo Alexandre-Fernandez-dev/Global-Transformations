@@ -294,14 +294,41 @@ class OPFunctor:
         def add_under_choice(self, linc, uchoice, rincs):
             assert linc.dom == uchoice.lhs
             self.under[linc] = uchoice
+            j = 0
             for rinc in rincs:
+                print("j", j)
                 if rinc == None:
                     continue
                 assert rinc.cod in self.results
+                #if rinc.dom == rinc.cod:
+                #    self.f_beta[(linc, rinc.cod)] = rinc
+                #else:
                 self.f_beta[(linc, rinc.cod)] = rinc
                 fiber = self.f_alpha_inv.setdefault(linc, {})
                 rfiber = fiber.setdefault(rinc.dom, [])
                 rfiber.append(rinc.cod)
+                print("------")
+                print(rinc, rinc.name if rinc.name != None else None)
+                # self.checkChoices(self)
+                j+=1
+
+        @staticmethod
+        def checkChoices(ch):
+            for li, unc in ch.under.items():
+                if unc == ch:
+                    continue
+                print("li", li)
+                i = 0
+                for unr in unc.results:
+                    print(" i : ", i)
+                    # print(ch.f_alpha_inv)
+                    if unr in ch.f_alpha_inv[li]:
+                        for upr in ch.f_alpha_inv[li][unr]:
+                            m = ch.f_beta[(li, upr)]
+                            print(m.dom, unr, m.name)
+                            assert m.dom == unr
+                    i += 1
+            
 
     class ORule:
         def __init__(self, lhs, rhs_choice, rhs_run):
@@ -447,6 +474,7 @@ class OPFunctor:
             self.g_b = g_b
             self.lhs = o_inc.lhs
             self.r = None
+            self.auto = auto
             if not auto:
                 assert self.g_b.incs_in[self.lhs] == None
                 self.g_b.incs_in[self.lhs] = self
@@ -594,6 +622,8 @@ class GT_DU:
                         lm += [u_ins]
                         u_ins.alt_subresult = u_ins.subresult
                         u_ins.alt_result = u_ins.result
+                        if u_ins.alt_result != bigresult:
+                            print("FUCK")
                         add_result(u_ins)
                 else:
                     depth -= 1
@@ -610,20 +640,27 @@ class GT_DU:
                 #     # print(u_ins.alt_result.rhs, u_ins.result.rhs)
                 #     # assert u_ins.alt_result.rhs == u_ins.result.rhs
                 if u_ins.subresult == None:
+                    print(">>>")
+                    print(u_ins.result.object)
+                    print("----")
+                    for i in u_ins.result.obs_by:
+                        print(i.subresult.cod if i.subresult != None else None)
+                    print(">>>")
                     new_subresult = ins_inc.rhs() if ins.subresult == None else ins_inc.rhs().compose(ins.subresult)
+                    print("ns", new_subresult)
                     for u_u_ins in u_ins.result.obs_by:
                         if u_ins != u_u_ins:
                             assert u_u_ins.result == u_ins.result
                             u_u_ins.observe(ins.result, new_subresult if u_u_ins.subresult == None else u_u_ins.subresult.compose(new_subresult))
                     u_ins.observe(ins.result, new_subresult)
-                    print(ins.result.obs_by)
-                    for i in ins.result.obs_by:
-                        assert i.subresult == None or i.subresult.cod == u_ins.result.object
             for s_occ, get_s_ins, get_ins_inc in self.pfunctor.iter_self_inclusions(ins, matches): # add siblings
                 if s_occ not in matches:
                     s_ins = get_s_ins()
+                    ins_inc = get_ins_inc(s_ins)
                     add_instance(s_ins)
                     s_ins.auto = True
+                    new_subresult = ins_inc.rhs() if ins.subresult == None else ins_inc.rhs().compose(ins.subresult)
+                    s_ins.observe(ins.result, new_subresult)
             # print("  " * depth, "close ret ", lm)
             return lm
         
@@ -647,16 +684,22 @@ class GT_DU:
                     uppercone += o_ins.uppercone
             ins.uppercone = uppercone
             ins.black = True
-            if top and not ins.auto: # on oublie les automorphismes des tops
-                lm = close(ins)
-                if len(lm) > 0:
-                    # print(lm)
-                    r_new, _ = Result.multi_merge_2(lm, self.pfunctor.CD, matches)
-                    if len(r_new) > 0:
-                        bigresult = r_new[0]
-                        r_new[0].c = cpt - 1
-                elif bigresult == None:
-                    bigresult = ins.result
+            if top:# and not ins.auto: # on oublie les automorphismes des tops
+                if not ins.auto:
+                    lm = close(ins)
+                    print("lol")
+                    print(lm)
+                    print(type(lm))
+                    if len(lm) > 0:
+                        assert len(lm) > 0
+                        # print(lm)
+                        r_new, _ = Result.multi_merge_2(lm, self.pfunctor.CD, matches)
+                        if len(r_new) > 0:
+                            bigresult = r_new[0]
+                            r_new[0].c = cpt - 1
+                    elif bigresult == None:
+                        bigresult = ins.result
+                        bigresult.c = cpt - 1
             return uppercone
 
         for get_s_ins in self.pfunctor.next_small(X):

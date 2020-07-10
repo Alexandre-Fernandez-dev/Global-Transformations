@@ -1302,6 +1302,7 @@ def test_graph_nda_sheaf_2():
 
 def test_graph_ndv2():
     from GT_DU_2 import GT_DU, OPFunctor
+    # seed(10)
 
     fpfm = OPFunctor.Maker(Graph, Graph)
     Choices = OPFunctor.Choices
@@ -1425,15 +1426,16 @@ def test_graph_ndv2():
 
     for i in range(0, 10):
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-        sp = T.extend(s)
+        s = T.extend(s).object
         # print(len(sp))
-        s = tuple(sp)[0].object
+        # s = tuple(sp)[0].object
         nx.draw_kamada_kawai(s.g, **options)
         plt.show()
         # print(s)
     
 def test_graph_ndv2_2():
     from GT_DU_2 import GT_DU, OPFunctor
+    seed(10)
 
     fpfm = OPFunctor.Maker(Graph, Graph)
     Choices = OPFunctor.Choices
@@ -1832,6 +1834,7 @@ def test_graph_ndv2_2():
         er1b_2 : er2b[6],
         er1b_3 : er2b[7]
     })
+    r12_0b_3.name = "LOL"
 
     # r12_0br1 = GraphM(r1b, r2b_rot1, {
     #     nr1b_0 : nr2b[0],
@@ -1938,6 +1941,7 @@ def test_graph_ndv2_2():
         er1b_2 : er2d_2,
         er1b_3 : er2d_3
     })
+    print(">>>")
 
     r2C.add_under_choice(l12_0, r1C, [r12_0a, r12_0b_1, r12_0b_2, r12_0b_3, r12_0ca_1, r12_0ca_2, r12_0ca_3, r12_0cb_1, r12_0cb_2, r12_0cb_3, r12_0d])
 
@@ -2227,21 +2231,53 @@ def test_graph_ndv2_2():
                 print("        ", j)
     # sys.exit()
     
+    def checkChoices(ch):
+        for li, unc in ch.under.items():
+            for unr in unc.results:
+                print("lol")
+                print(ch.f_alpha_inv)
+                if unr in ch.f_alpha_inv[li]:
+                    for upr in ch.f_alpha_inv[li][unr]:
+                        m = ch.f_beta[(li, upr)]
+                        assert m.dom == unr
+    # checkChoices(r0C)
+    # checkChoices(r1C)
+    # checkChoices(r2C)
 
     g0 = fpfm.add_o_rule(l0, r0C, lambda c, incs : r0)
 
+    # def chooser(c, incs):
+    #     remaining = None
+    #     for inc in incs:
+    #         print("inc ", inc)
+    #         print("inc g_a rhs", incs[inc].g_a.rhs())
+    #         print("TO INTER", c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
+    #         print()
+    #         if remaining == None:
+    #             remaining = set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
+    #         else:
+    #             remaining = remaining.intersection(set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()]))
+    #     print("remaining ", remaining)
+    #     r = randrange(0, len(remaining))
+    #     return list(remaining)[r]
+
     def chooser(c, incs):
-        remaining = None
+        remaining = set(c.results)
+        print("choose", remaining, len(incs))
         for inc in incs:
             print("inc ", inc)
             print("inc g_a rhs", incs[inc].g_a.rhs())
+            print("remaining before", remaining)
+            print([id(x) for x in remaining])
             print("TO INTER", c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
+            print([id(x) for x in c.f_alpha_inv[inc][incs[inc].g_a.rhs()]])
             print()
-            if remaining == None:
-                remaining = set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
-            else:
-                remaining = remaining.intersection(set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()]))
-        print("remaining ", remaining)
+            # if remaining == None:
+            #     remaining = set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
+            # else:
+            remaining = remaining.intersection(set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()]))
+            print("remaining after", remaining)
+        print("remaining end ", remaining)
         r = randrange(0, len(remaining))
         return list(remaining)[r]
 
@@ -2314,7 +2350,7 @@ def test_graph_ndv2_2():
 
 def test_graph_ndv2_AC():
     from GT_DU_2 import GT_DU, OPFunctor
-    seed(10)
+    # seed(10)
 
     fpfm = OPFunctor.Maker(Graph, Graph)
     Choices = OPFunctor.Choices
@@ -2632,6 +2668,7 @@ def test_graph_ndv2_AC():
 # test_graph() # basic triang mesh refinement
 # test_graph_nd()
 # test_graph_nda_sheaf_2()
+# test_graph_ndv2()
 # test_graph_ndv2_2()
 test_graph_ndv2_AC()
 

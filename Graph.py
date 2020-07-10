@@ -455,6 +455,8 @@ class GraphO():
 
 class GraphM:
     def __init__(self, s, t, l):
+        #debub :
+        self.name = None
         self.s = s
         self.t = t
         self.l = l
@@ -464,7 +466,7 @@ class GraphM:
     def compose(self,h):
         print(self.t, h.s)
         print(id(self.t), id(h.s))
-        # print(self, h)
+        print(self, h)
         assert self.t == h.s
         # print(self.l, "\n|", h.l)
         l = { k: h.l[v] for k, v in self.l.items() }
