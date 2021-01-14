@@ -301,6 +301,7 @@ class GraphO():
         else:
             self.g = g
         self.__pattern = None
+        self.name = None
 
     def restrict(self, h):
         if isinstance(h, GraphM):
@@ -464,9 +465,9 @@ class GraphM:
         hash(self)
 
     def compose(self,h):
-        print(self.t, h.s)
-        print(id(self.t), id(h.s))
-        print(self, h)
+        # print(self.t, h.s)
+        # print(id(self.t), id(h.s))
+        # print(self, h)
         assert self.t == h.s
         # print(self.l, "\n|", h.l)
         l = { k: h.l[v] for k, v in self.l.items() }

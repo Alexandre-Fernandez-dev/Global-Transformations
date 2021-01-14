@@ -13,6 +13,96 @@ import matplotlib.pyplot as plt
 from Sequence import *
 from random import *
 
+def test_graph_old():
+    from GT import GT
+    from PFunctor import FlatPFunctor
+    pf = FlatPFunctor.Maker(Graph, Graph)
+
+    l0 = GraphO()
+    nl0 = l0.add_node()
+    r0 = GraphO()
+    n0r0 = r0.add_node()
+    n1r0 = r0.add_node()
+    e0r0 = r0.add_edge(n0r0, n1r0)
+
+    g0 = pf.add_rule(l0,r0)
+
+    l1 = GraphO()
+    nl1a = l1.add_node()
+    nl1b = l1.add_node()
+    el1ab = l1.add_edge(nl1a,nl1b)
+
+    r1 = GraphO()
+    nr1a = r1.add_node()
+    nr1ab = r1.add_node()
+    nr1b = r1.add_node()
+    er1aab = r1.add_edge(nr1a,nr1ab)
+    er1abb = r1.add_edge(nr1ab,nr1b)
+
+    g1 = pf.add_rule(l1,r1)
+
+    il01a = GraphM(l0, l1, {
+        nl0 : nl1a
+    })
+
+    ir01a = GraphM(r0, r1, {
+        n0r0 : nr1a,
+        n1r0 : nr1ab,
+        e0r0 : er1aab
+    })
+
+    il01b = GraphM(l0, l1, {
+        nl0 : nl1b
+    })
+
+    ir01b = GraphM(r0, r1, {
+        n0r0 : nr1ab,
+        n1r0 : nr1b,
+        e0r0 : er1abb
+    })
+
+    inc01a = pf.add_inclusion(g0,g1,il01a,ir01a)
+    inc01b = pf.add_inclusion(g0,g1,il01b,ir01b)
+    p = pf.get()
+
+    g = GraphO()
+    n1 = g.add_node()
+    n2 = g.add_node()
+    n3 = g.add_node()
+    e12 = g.add_edge(n1,n2)
+    e23 = g.add_edge(n2,n3)
+    e31 = g.add_edge(n3,n1)
+
+    T = GT(p)
+
+    plt.subplot(121)
+    options = {
+        'node_color': 'black',
+        'node_size': 20,
+        'width': 1,
+    }
+
+    # nx.draw_kamada_kawai(g.g, **options)
+    # figManager = plt.get_current_fig_manager()
+    # # figManager.window.showMaximized()
+    #plt.show()
+    GraphModule.show = False
+    for i in range(3):
+        GraphModule.show = True
+        print("------------------------------------------COMPUTE START", i)
+        g_ = T.extend(g)
+        # print(g_)
+        g = g_.object
+        plt.subplot(121)
+        # figManager = plt.get_current_fig_manager()
+        # figManager.window.showMaximized()
+        print(len(g.nodes))
+        print(len(g.edges))
+        # nx.draw_kamada_kawai(g.g, **options)
+        # plt.show()
+
+    
+
 def test_graph():
     from GT_DU_2 import FlatPFunctor, GT_DU
     pfTm = FlatPFunctor.Maker(Graph, Graph)
@@ -191,7 +281,7 @@ def test_graph():
     #plt.show()
     GraphModule.show = False
     for i in range(3):
-        # GraphModule.show = True
+        GraphModule.show = True
         print("------------------------------------------COMPUTE START", i)
         g_ = T.extend(g)
         # print(g_)
@@ -1818,6 +1908,7 @@ def test_graph_ndv2_2():
         el1_1 : er2b[1]
     })
 
+    ###
     r12_0b_2 = GraphM(r1a, r2b, {
         nl1_0 : nr2b[1],
         nl1_1 : nr2b[2],
@@ -1825,6 +1916,7 @@ def test_graph_ndv2_2():
         el1_1 : er2b[3]
     })
 
+    ###
     r12_0b_3 = GraphM(r1b, r2b, {
         nr1b_0 : nr2b[2],
         nr1b_1 : nr2b[3],
@@ -1836,23 +1928,6 @@ def test_graph_ndv2_2():
     })
     r12_0b_3.name = "LOL"
 
-    # r12_0br1 = GraphM(r1b, r2b_rot1, {
-    #     nr1b_0 : nr2b[0],
-    #     nr1b_1 : nr2b[1],
-    #     nr1b_2 : nr2b[2],
-    #     er1b_0 : er2b[0],
-    #     er1b_1 : er2b[1],
-    #     er1b_2 : er2b[2],
-    #     er1b_3 : er2b[3]
-    # })
-
-    # r12_0br2 = GraphM(r1a, r2b_rot2, {
-    #     nl1_0 : nr2b_rot2[0],
-    #     nl1_1 : nr2b_rot2[1],
-    #     el1_0 : er2b_rot2[0],
-    #     el1_1 : er2b_rot2[1]
-    # })
-
     r12_0ca_1 = GraphM(r1b, r2ca, {
         nr1b_0 : nr2ca[0],
         nr1b_1 : nr2ca[1],
@@ -1863,6 +1938,7 @@ def test_graph_ndv2_2():
         er1b_3 : er2ca[3]
     })
 
+    ###
     r12_0ca_2 = GraphM(r1a, r2ca, {
         nl1_0 : nr2ca[2],
         nl1_1 : nr2ca[3],
@@ -1870,6 +1946,7 @@ def test_graph_ndv2_2():
         el1_1 : er2ca[5]
     })
 
+    ###
     r12_0ca_3 = GraphM(r1b, r2ca, {
         nr1b_0 : nr2ca[3],
         nr1b_1 : nr2ca[4],
@@ -1879,23 +1956,6 @@ def test_graph_ndv2_2():
         er1b_2 : er2ca[8],
         er1b_3 : er2ca[9]
     })
-
-    # r12_0car1 = GraphM(r1b, r2ca_rot1, {
-    #     nr1b_0 : nr2ca_rot1[0],
-    #     nr1b_1 : nr2ca_rot1[1],
-    #     nr1b_2 : nr2ca_rot1[2],
-    #     er1b_0 : er2ca_rot1[0],
-    #     er1b_1 : er2ca_rot1[1],
-    #     er1b_2 : er2ca_rot1[2],
-    #     er1b_3 : er2ca_rot1[3]
-    # })
-
-    # r12_0car2 = GraphM(r1a, r2ca_rot2, {
-    #     nl1_0 : nr2ca_rot2[0],
-    #     nl1_1 : nr2ca_rot2[1],
-    #     el1_0 : er2ca_rot2[0],
-    #     el1_1 : er2ca_rot2[1]
-    # })
 
     r12_0cb_1 = GraphM(r1b, r2cb, {
         nr1b_0 : nr2ca[0],
@@ -1907,6 +1967,7 @@ def test_graph_ndv2_2():
         er1b_3 : er2ca[3]
     })
 
+    ###
     r12_0cb_2 = GraphM(r1a, r2cb, {
         nl1_0 : nr2ca[2],
         nl1_1 : nr2ca[3],
@@ -1914,6 +1975,7 @@ def test_graph_ndv2_2():
         el1_1 : er2ca[5]
     })
 
+    ###
     r12_0cb_3 = GraphM(r1b, r2cb, {
         nr1b_0 : nr2ca[3],
         nr1b_1 : nr2ca[4],
@@ -1923,14 +1985,6 @@ def test_graph_ndv2_2():
         er1b_2 : er2ca[8],
         er1b_3 : er2ca[9]
     })
-
-    # r12_0cbr1 = r_flip_22ca.compose(r12_0car1)
-
-    # r12_0cbr2 = GraphM(r1b, r2cb_rot1, { })
-    
-    # r12_0car2.compose(r_flip_22ca)
-
-    # sys.exit()
 
     r12_0d = GraphM(r1b, r2d, {
         nr1b_0 : nr2d_0,
@@ -1943,7 +1997,8 @@ def test_graph_ndv2_2():
     })
     print(">>>")
 
-    r2C.add_under_choice(l12_0, r1C, [r12_0a, r12_0b_1, r12_0b_2, r12_0b_3, r12_0ca_1, r12_0ca_2, r12_0ca_3, r12_0cb_1, r12_0cb_2, r12_0cb_3, r12_0d])
+    r2C.add_under_choice(l12_0, r1C, [r12_0a, r12_0b_1, r12_0ca_1, r12_0cb_1, r12_0d])
+    # r2C.add_under_choice(l12_0, r1C, [r12_0a, r12_0b_1, r12_0b_2, r12_0b_3, r12_0ca_1, r12_0ca_2, r12_0ca_3, r12_0cb_1, r12_0cb_2, r12_0cb_3, r12_0d])
 
     #first edge in triangle rev
 
@@ -1953,33 +2008,32 @@ def test_graph_ndv2_2():
     
     r12_0rb_1 = r11a.compose(r12_0b_1)
 
+    ###
     r12_0rb_2 = r11a.compose(r12_0b_2)
 
+    ###
     r12_0rb_3 = r11b.compose(r12_0b_3)
-
-    # r12_0rbr1 = r11b.compose(r12_0br1)
-
-    # r12_0rbr2 = r11a.compose(r12_0br2)
 
     r12_0rca_1 = r11b.compose(r12_0ca_1)
 
+    ###
     r12_0rca_2 = r11a.compose(r12_0ca_2)
 
+    ###
     r12_0rca_3 = r11b.compose(r12_0ca_3)
-
-    # r12_0rcar1 = r11b.compose(r12_0car1)
-
-    # r12_0rcar2 = r11a.compose(r12_0car2)
 
     r12_0rcb_1 = r11b.compose(r12_0cb_1)
 
+    ###
     r12_0rcb_2 = r11a.compose(r12_0cb_2)
 
+    ###
     r12_0rcb_3 = r11b.compose(r12_0cb_3)
 
     r12_0rd = r11b.compose(r12_0d)
 
-    r2C.add_under_choice(l12_0r, r1C, [r12_0ra, r12_0rb_1, r12_0rb_2, r12_0rb_3, r12_0rca_1, r12_0rca_2, r12_0rca_3, r12_0rcb_1, r12_0rcb_2, r12_0rcb_3, r12_0rd])
+    r2C.add_under_choice(l12_0r, r1C, [r12_0ra, r12_0rb_1, r12_0rca_1, r12_0rcb_1, r12_0rd])
+    # r2C.add_under_choice(l12_0r, r1C, [r12_0ra, r12_0rb_1, r12_0rb_2, r12_0rb_3, r12_0rca_1, r12_0rca_2, r12_0rca_3, r12_0rcb_1, r12_0rcb_2, r12_0rcb_3, r12_0rd])
 
     #second edge in triangle
 
@@ -1994,57 +2048,26 @@ def test_graph_ndv2_2():
 
     r12_1b_1 = r12_0b_2 
 
+    ###
     r12_1b_2 = r12_0b_3 
 
+    ###
     r12_1b_3 = r12_0b_1
-
-    # r12_1br1 = GraphM(r1a, r2b_rot1, {
-    #     nl1_0 : nr2b[2],
-    #     nl1_1 : nr2b[3],
-    #     el1_0 : er2b[4],
-    #     el1_1 : er2b[5],
-    # })
-
-    # r12_1br2 = GraphM(r1b, r2b_rot2, {
-    #     nr1b_0 : nr2b_rot2[1],
-    #     nr1b_1 : nr2b_rot2[2],
-    #     nr1b_2 : nr2b_rot2[3],
-    #     er1b_0 : er2b_rot2[2],
-    #     er1b_1 : er2b_rot2[3],
-    #     er1b_2 : er2b_rot2[4],
-    #     er1b_3 : er2b_rot2[5]
-    # })
 
     r12_1ca_1 = r12_0ca_2 
 
+    ###
     r12_1ca_2 = r12_0ca_3
 
+    ###
     r12_1ca_3 = r12_0ca_1 
-
-    # r12_1car1 = GraphM(r1b, r2ca_rot1, {
-    #     nr1b_0 : nr2ca_rot1[2],
-    #     nr1b_1 : nr2ca_rot1[3],
-    #     nr1b_2 : nr2ca_rot1[4],
-    #     er1b_0 : er2ca_rot1[4],
-    #     er1b_1 : er2ca_rot1[5],
-    #     er1b_2 : er2ca_rot1[6],
-    #     er1b_3 : er2ca_rot1[7]
-    # })
-
-    # r12_1car2 = GraphM(r1b, r2ca_rot2, {
-    #     nr1b_0 : nr2ca_rot2[1],
-    #     nr1b_1 : nr2ca_rot2[2],
-    #     nr1b_2 : nr2ca_rot2[3],
-    #     er1b_0 : er2ca_rot2[2],
-    #     er1b_1 : er2ca_rot2[3],
-    #     er1b_2 : er2ca_rot2[4],
-    #     er1b_3 : er2ca_rot2[5]
-    # })
 
     r12_1cb_1 = r12_0cb_2 
 
+    ###
     r12_1cb_2 = r12_0cb_3
 
+    ###
     r12_1cb_3 = r12_0cb_1
 
     r12_1d = GraphM(r1b, r2d, {
@@ -2057,7 +2080,8 @@ def test_graph_ndv2_2():
         er1b_3 : er2d_7
     })
 
-    r2C.add_under_choice(l12_1, r1C, [r12_1a, r12_1b_1, r12_1b_2, r12_1b_3, r12_1ca_1, r12_1ca_2, r12_1ca_3, r12_1cb_1, r12_1cb_2, r12_1cb_3, r12_1d])
+    r2C.add_under_choice(l12_1, r1C, [r12_1a, r12_1b_1, r12_1ca_1, r12_1cb_1, r12_1d])
+    # r2C.add_under_choice(l12_1, r1C, [r12_1a, r12_1b_1, r12_1b_2, r12_1b_3, r12_1ca_1, r12_1ca_2, r12_1ca_3, r12_1cb_1, r12_1cb_2, r12_1cb_3, r12_1d])
 
     #second edge in triangle rev
 
@@ -2067,33 +2091,31 @@ def test_graph_ndv2_2():
     
     r12_1rb_1 = r11a.compose(r12_1b_1)
 
+    ###
     r12_1rb_2 = r11b.compose(r12_1b_2)
 
+    ###
     r12_1rb_3 = r11a.compose(r12_1b_3)
-
-    # r12_1rbr1 = r11a.compose(r12_1br1)
-
-    # r12_1rbr2 = r11b.compose(r12_1br2)
 
     r12_1rca_1 = r11a.compose(r12_1ca_1)
 
+    ###
     r12_1rca_2 = r11b.compose(r12_1ca_2)
 
+    ###
     r12_1rca_3 = r11b.compose(r12_1ca_3)
-
-    # r12_1rcar1 = r11b.compose(r12_1car1)
-    
-    # r12_1rcar2 = r11b.compose(r12_1car2)
 
     r12_1rcb_1 = r11a.compose(r12_1cb_1)
 
+    ###
     r12_1rcb_2 = r11b.compose(r12_1cb_2)
 
+    ###
     r12_1rcb_3 = r11b.compose(r12_1cb_3)
 
     r12_1rd = r11b.compose(r12_1d)
 
-    r2C.add_under_choice(l12_1r, r1C, [r12_1ra, r12_1rb_1, r12_1rb_2, r12_1rb_3, r12_1rca_1, r12_1rca_2, r12_1rca_3, r12_1rcb_1, r12_1rcb_2, r12_1rcb_3, r12_1rd])
+    r2C.add_under_choice(l12_1r, r1C, [r12_1ra, r12_1rb_1, r12_1rca_1, r12_1rcb_1, r12_1rd])
 
     #third edge in triangle
     l12_2 = GraphM(l1, l2, {
@@ -2107,71 +2129,26 @@ def test_graph_ndv2_2():
 
     r12_2b_1 = r12_0b_3 
 
+    ###
     r12_2b_2 = r12_0b_1
 
+    ###
     r12_2b_3 = r12_0b_2
-
-    # r12_2br1 = GraphM(r1a, r2b_rot1, {
-    #     nl1_0 : nr2b[3],
-    #     nl1_1 : nr2b[0],
-    #     el1_0 : er2b[6],
-    #     el1_1 : er2b[7],
-    # })
-
-    # r12_2br2 = GraphM(r1a, r2b_rot2, {
-    #     nl1_0 : nr2b_rot2[3],
-    #     nl1_1 : nr2b_rot2[0],
-    #     el1_0 : er2b_rot2[6],
-    #     el1_1 : er2b_rot2[7],
-    # })
-
-    # r12_2ca = GraphM(r1b, r2ca, {
-    #     nr1b_0 : nr2ca[3],
-    #     nr1b_1 : nr2ca[4],
-    #     nr1b_2 : nr2ca[0],
-    #     er1b_0 : er2ca[6],
-    #     er1b_1 : er2ca[7],
-    #     er1b_2 : er2ca[8],
-    #     er1b_3 : er2ca[9]
-    # })
 
     r12_2ca_1 = r12_0ca_3 
 
+    ###
     r12_2ca_2 = r12_0ca_1
 
+    ###
     r12_2ca_3 = r12_0ca_2
-
-    # r12_2car1 = GraphM(r1a, r2ca_rot1, {
-    #     nl1_0 : nr2ca_rot1[4],
-    #     nl1_1 : nr2ca_rot1[0],
-    #     el1_0 : er2ca_rot1[8],
-    #     el1_1 : er2ca_rot1[9],
-    # })
-
-    # r12_2car2 = GraphM(r1b, r2ca_rot2, {
-    #     nr1b_0 : nr2ca_rot2[3],
-    #     nr1b_1 : nr2ca_rot2[4],
-    #     nr1b_2 : nr2ca_rot2[0],
-    #     er1b_0 : er2ca_rot2[6],
-    #     er1b_1 : er2ca_rot2[7],
-    #     er1b_2 : er2ca_rot2[8],
-    #     er1b_3 : er2ca_rot2[9]
-    # })
-
-    # r12_2cb = GraphM(r1b, r2cb, {
-    #     nr1b_0 : nr2cb[3],
-    #     nr1b_1 : nr2cb[4],
-    #     nr1b_2 : nr2cb[0],
-    #     er1b_0 : er2ca[6],
-    #     er1b_1 : er2ca[7],
-    #     er1b_2 : er2ca[8],
-    #     er1b_3 : er2ca[9]
-    # })
 
     r12_2cb_1 = r12_0cb_3 
 
+    ###
     r12_2cb_2 = r12_0cb_1
 
+    ###
     r12_2cb_3 = r12_0cb_2
 
     r12_2d = GraphM(r1b, r2d, {
@@ -2184,7 +2161,7 @@ def test_graph_ndv2_2():
         er1b_3 : er2d_11
     })
 
-    r2C.add_under_choice(l12_2, r1C, [r12_2a, r12_2b_1, r12_2b_2, r12_2b_3, r12_2ca_1, r12_2ca_2, r12_2ca_3, r12_2cb_1, r12_2cb_2, r12_2cb_3, r12_2d])
+    r2C.add_under_choice(l12_2, r1C, [r12_2a, r12_2b_1, r12_2ca_1, r12_2cb_1, r12_2d])
 
     #third edge in triangle rev
 
@@ -2194,33 +2171,31 @@ def test_graph_ndv2_2():
     
     r12_2rb_1 = r11b.compose(r12_2b_1)
 
+    ###
     r12_2rb_2 = r11a.compose(r12_2b_2)
 
+    ###
     r12_2rb_3 = r11a.compose(r12_2b_3)
-
-    # r12_2rbr1 = r11a.compose(r12_2br1)
-
-    # r12_2rbr2 = r11a.compose(r12_2br2)
 
     r12_2rca_1 = r11b.compose(r12_2ca_1)
 
+    ###
     r12_2rca_2 = r11b.compose(r12_2ca_2)
 
+    ###
     r12_2rca_3 = r11a.compose(r12_2ca_3)
-
-    # r12_2rcar1 = r11a.compose(r12_2car1)
-
-    # r12_2rcar2 = r11b.compose(r12_2car2)
 
     r12_2rcb_1 = r11b.compose(r12_2cb_1)
 
+    ###
     r12_2rcb_2 = r11b.compose(r12_2cb_2)
 
+    ###
     r12_2rcb_3 = r11a.compose(r12_2cb_3)
 
     r12_2rd = r11b.compose(r12_2d)
 
-    r2C.add_under_choice(l12_2r, r1C, [r12_2ra, r12_2rb_1, r12_2rb_2, r12_2rb_3, r12_2rca_1, r12_2rca_2, r12_2rca_3, r12_2rcb_1, r12_2rcb_2, r12_2rcb_3, r12_2rd])
+    r2C.add_under_choice(l12_2r, r1C, [r12_2ra, r12_2rb_1, r12_2rca_1, r12_2rcb_1, r12_2rd])
 
     print(r2C.f_alpha_inv)
     for k, v in r2C.f_alpha_inv.items():
@@ -2263,7 +2238,17 @@ def test_graph_ndv2_2():
 
     def chooser(c, incs):
         remaining = set(c.results)
-        print("choose", remaining, len(incs))
+        for inc in incs:
+            incs[inc].g_a.rhs()
+            c.f_alpha_inv[inc][incs[inc].g_a.rhs()]
+        print("choose", len(incs))
+        print("remaining")
+        for r in remaining:
+            print(" -", r)
+        print("incs")
+        for i in incs:
+            print(" -", i)
+            print("  g_a.rhs:", incs[i].g_a.rhs())
         for inc in incs:
             print("inc ", inc)
             print("inc g_a rhs", incs[inc].g_a.rhs())
@@ -2665,12 +2650,13 @@ def test_graph_ndv2_AC():
         # print(s)
 
 # test_seq()
+test_graph_old() # basic bugged gt
 # test_graph() # basic triang mesh refinement
 # test_graph_nd()
 # test_graph_nda_sheaf_2()
 # test_graph_ndv2()
 # test_graph_ndv2_2()
-test_graph_ndv2_AC()
+# test_graph_ndv2_AC()
 
 
 #

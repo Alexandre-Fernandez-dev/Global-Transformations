@@ -657,10 +657,14 @@ class GT_DU:
                 if s_occ not in matches:
                     s_ins = get_s_ins()
                     ins_inc = get_ins_inc(s_ins)
-                    add_instance(s_ins)
-                    s_ins.auto = True
-                    new_subresult = ins_inc.rhs() if ins.subresult == None else ins_inc.rhs().compose(ins.subresult)
-                    s_ins.observe(ins.result, new_subresult)
+                    try:
+                        rhs = ins_inc.rhs()
+                        add_instance(s_ins)
+                        s_ins.auto = True
+                        new_subresult = rhs if ins.subresult == None else rhs.compose(ins.subresult)
+                        s_ins.observe(ins.result, new_subresult)
+                    except:
+                        pass # here some symetry is broken
             # print("  " * depth, "close ret ", lm)
             return lm
         
