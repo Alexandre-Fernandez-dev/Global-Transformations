@@ -3,11 +3,12 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from PFunctor import FlatPFunctor, FamPFunctor, ExpPFunctor, FamExpPFunctor
+from src.engine.downward_resolv.PFunctor import FlatPFunctor, FamPFunctor, ExpPFunctor, FamExpPFunctor
 from src.data.Gmap import Premap, PremapO, PremapM
-import Sheaf
+import src.data.Sheaf as Sheaf
+
 import math
-from DataStructure import Lazy
+from src.data.DataStructure import Lazy
 from random import random
 
 def test_pmatching():
@@ -67,7 +68,8 @@ def test_pmatching():
     print(Premap.multi_merge([h1,h3],[h2,h4]))
 
 def gt():
-    from src.engine.downward_resolv.GT import GT
+    import src.engine.downward_resolv.GT as GT_M
+    from GT_M import GT
 
     fpf = FlatPFunctor.Maker(Premap, Premap)
 
@@ -335,7 +337,8 @@ def gt():
 class Test:
     @staticmethod
     def sheaf_nodes():
-        from data.src.engine.downward_resolv import GT
+
+        from src.engine.downward_resolv import GT
 
         def restriction(f, q):
             ret = {}
@@ -429,7 +432,7 @@ class Test:
             r0p = CO(r0, p)
             return r0p
 
-        g0 = fpf.add_fam_exp_rule(l0, r0_)
+        g0 = fpf.add_fam_rule(l0, r0_)
 
         l1 = PremapO(2)
         l1d0 = l1.add_dart()
@@ -715,7 +718,7 @@ class Test:
             }
         trip = CO(tri, p)
 
-        T = GT(f)
+        T = GT.GT(f)
 
         dsidedtri, lifttri, liftdside = Premap.multi_merge([incl02a], [incl01a])
         # print(dsidedtri, liftdside)
@@ -906,7 +909,7 @@ class Test:
 
     @staticmethod
     def rivers():
-        from data.src.engine.downward_resolv.GT import GT
+        from src.engine.downward_resolv.GT import GT
 
         def restriction(f, q):
             ret = {}

@@ -2244,8 +2244,165 @@ def test_graph_ndv2_2():
         plt.show()
         # print(s)
 
+def test_graph_ndv2_edge():
+    from src.engine.upward_resolv.GT_DU import GT_DU
+    from src.engine.upward_resolv.PFunctor_DU import OPFunctor
+    # seed(10)
+
+    fpfm = OPFunctor.Maker(Graph, Graph)
+    Choices = OPFunctor.Choices
+
+    l0 = GraphO()
+    nl0 = [ l0.add_node() ]
+    el0 = []
+    
+    r0a = l0
+    nr0a = nl0
+    er0a = el0
+
+    r0C = Choices(l0, [r0a])
+
+    ###
+
+    l1 = GraphO()
+    nl1 = [ l1.add_node() for i in range(0, 2) ]
+    el1 = [ l1.add_edge(0, 1), l1.add_edge(1, 0) ]
+
+    r1a = l1
+    nr1a = nl1
+    er1a = el1
+
+    r1b = GraphO()
+    nr1b = [ r1b.add_node() for i in range(0, 3) ]
+    er1b = []
+    for i in range(0, 2):
+        er1b.append(r1b.add_edge(i, i+1))
+        er1b.append(r1b.add_edge(i+1, i))
+
+    r1C = Choices(l1, [r1a, r1b])
+
+    ### auto
+    l11_0 = GraphM(l1, l1, {
+        nl1[0] : nl1[1],
+        nl1[1] : nl1[0],
+        el1[0] : el1[1],
+        el1[1] : el1[0],
+    })
+
+    r11_0a = l11_0
+
+    r11_0b = GraphM(r1b, r1b, {
+        nr1b[0] : nr1b[2],
+        nr1b[1] : nr1b[1],
+        nr1b[2] : nr1b[0],
+        er1b[0] : er1b[3],
+        er1b[1] : er1b[2],
+        er1b[2] : er1b[1],
+        er1b[3] : er1b[0],
+    })
+
+    r1C.add_under_choice(l11_0, r1C, [r11_0a, r11_0b])
+
+    ###
+
+    l01_0 = GraphM(l0, l1, {
+        nl0[0] : nl1[0],
+    })
+
+    r01_0a = l01_0
+
+    r01_0b = GraphM(r0a, r1b, {
+        nr0a[0] : nr1b[0],
+    })
+
+    r1C.add_under_choice(l01_0, r0C, [r01_0a, r01_0b])
+    
+    ###
+
+    l01_1 = GraphM(l0, l1, {
+        nl0[0] : nl1[1],
+    })
+
+    r01_1a = l01_1
+
+    r01_1b = GraphM(r0a, r1b, {
+        nr0a[0] : nr1b[2],
+    })
+
+    r1C.add_under_choice(l01_1, r0C, [r01_1a, r01_1b])
+
+    ###
+
+    def chooser(c, incs):
+        remaining = set(c.results)
+        print("choose", remaining, len(incs))
+        for inc in incs:
+            print("inc ", inc)
+            print("inc g_a rhs", incs[inc].g_a.rhs())
+            print("remaining before", remaining)
+            print([id(x) for x in remaining])
+            print("TO INTER", c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
+            print([id(x) for x in c.f_alpha_inv[inc][incs[inc].g_a.rhs()]])
+            print()
+            # if remaining == None:
+            #     remaining = set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()])
+            # else:
+            remaining = remaining.intersection(set(c.f_alpha_inv[inc][incs[inc].g_a.rhs()]))
+            print("remaining after", remaining)
+        print("remaining end ", remaining)
+        r = randrange(0, len(remaining))
+        return list(remaining)[r]
+
+    g0 = fpfm.add_o_rule(l0, r0C, chooser)
+
+    g1 = fpfm.add_o_rule(l1, r1C, chooser)
+
+    fpfm.add_o_inclusion(g0, g1, l01_0)
+
+    fpfm.add_o_inclusion(g0, g1, l01_1)
+
+    fpfm.add_o_inclusion(g1, g1, l11_0)
+
+    fpf = fpfm.get()
+
+    T = GT_DU(fpf)
+    
+    s = GraphO()
+    ns1 = s.add_node()
+    ns2 = s.add_node()
+    ns3 = s.add_node()
+    ns4 = s.add_node()
+    es12 = s.add_edge(ns1, ns2)
+    es21 = s.add_edge(ns2, ns1)
+    es23 = s.add_edge(ns2, ns3)
+    es32 = s.add_edge(ns3, ns2)
+    es34 = s.add_edge(ns3, ns4)
+    es43 = s.add_edge(ns4, ns3)
+    es41 = s.add_edge(ns4, ns1)
+    es14 = s.add_edge(ns1, ns4)
+    
+    options = {
+        'node_color': 'black',
+        'node_size': 20,
+        'width': 1,
+    }
+    GraphModule.show = False
+    GraphModule.show = True
+    nx.draw_kamada_kawai(s.g, **options)
+    plt.show()
+
+    for i in range(0, 10):
+        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        s = T.extend(s).object
+        print(s)
+        print(type(s))
+        nx.draw_kamada_kawai(s.g, **options)
+        plt.show()
+        # print(s)
+
 def test_graph_ndv2_AC():
-    from GT_DU_2 import GT_DU, OPFunctor
+    from src.engine.upward_resolv.GT_DU import GT_DU
+    from src.engine.upward_resolv.PFunctor_DU import OPFunctor
     # seed(10)
 
     fpfm = OPFunctor.Maker(Graph, Graph)
@@ -2567,8 +2724,9 @@ def test_graph_ndv2_AC():
 # test_graph_nd() # OLD GT
 # test_graph_nda_sheaf_2() # OLD GT
 # test_graph_ndv2() #OLD GT
-test_graph() # basic triang mesh refinement
+# test_graph() # basic triang mesh refinement
 # test_graph_ndv2_2() # attempt to triangle mesh ND
+test_graph_ndv2_edge()
 # test_graph_ndv2_AC()
 
 
