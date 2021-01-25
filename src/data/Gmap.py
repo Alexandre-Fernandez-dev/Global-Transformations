@@ -1,5 +1,5 @@
 import math
-from DataStructure import DataStructure
+from .DataStructure import DataStructure
 from itertools import chain
 import time
 

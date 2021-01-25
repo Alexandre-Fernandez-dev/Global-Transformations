@@ -4,10 +4,11 @@ import networkx as nx
 import os,sys,inspect
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(os.path.dirname(current_dir))
-sys.path.insert(0, parent_dir) 
-import Sheaf
+sys.path.insert(0, parent_dir)
+import src.data.Sheaf as Sheaf
+import tests.test_sheaf as test_sheaf
 
-T, gp = Sheaf.Test.triangle_mesh_refinement()
+T, gp = test_sheaf.triangle_mesh_refinement()
 gp = tuple(T.extend(gp))[0].object
 gp = tuple(T.extend(gp))[0].object
 gp = tuple(T.extend(gp))[0].object

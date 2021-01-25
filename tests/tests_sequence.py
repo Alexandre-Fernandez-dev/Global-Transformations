@@ -409,7 +409,7 @@ def test7():
     pfT = pfTm.get()
     T = GT_DU(pfT)
     for i in range(0, 3):
-        s = tuple(T.extend(s))[0].object
+        s = T.extend(s).object
         print(s)
 
 if __name__ == "__main__":

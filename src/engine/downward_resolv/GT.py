@@ -1,5 +1,5 @@
 import networkx as nx
-import PFunctor
+from .PFunctor import PFunctor
 
 depth = 0
 

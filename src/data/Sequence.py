@@ -1,4 +1,4 @@
-from DataStructure import DataStructure
+from .DataStructure import DataStructure
 
 class NkSeqO:
     def __init__(self, i):

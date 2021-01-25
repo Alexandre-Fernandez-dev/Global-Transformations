@@ -1,6 +1,6 @@
 import math
 import networkx as nx
-from DataStructure import DataStructure
+from .DataStructure import DataStructure
 import matplotlib.pyplot as plt
 from itertools import chain
 import time

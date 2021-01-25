@@ -3,19 +3,17 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from DataStructure import Lazy
-from Sheaf import Parametrisation
-import Graph as GraphModule
-from Graph import *
-from GT import *
-from PFunctor import *
+from src.data.DataStructure import Lazy
+from src.data.Sheaf import Parametrisation
+import src.data.Graph as GraphModule
+from src.data.Graph import *
 import matplotlib.pyplot as plt
-from Sequence import *
+from src.data.Sequence import *
 from random import *
 
 def test_graph_old():
-    from GT import GT
-    from PFunctor import FlatPFunctor
+    from src.engine.downward_resolv.GT import GT
+    from src.engine.downward_resolv.PFunctor import FlatPFunctor
     pf = FlatPFunctor.Maker(Graph, Graph)
 
     l0 = GraphO()
@@ -101,10 +99,9 @@ def test_graph_old():
         # nx.draw_kamada_kawai(g.g, **options)
         # plt.show()
 
-    
-
 def test_graph():
-    from GT_DU_2 import FlatPFunctor, GT_DU
+    from src.engine.upward_resolv.PFunctor_DU import FlatPFunctor
+    from src.engine.upward_resolv.GT_DU import GT_DU
     pfTm = FlatPFunctor.Maker(Graph, Graph)
 
     l0 = GraphO()
@@ -268,17 +265,17 @@ def test_graph():
     pfT = pfTm.get()
     T = GT_DU(pfT)
 
-    plt.subplot(121)
+    #plt.subplot(121)
     options = {
         'node_color': 'black',
         'node_size': 20,
         'width': 1,
     }
 
-    # nx.draw_kamada_kawai(g.g, **options)
+    nx.draw_kamada_kawai(g.g, **options)
     # figManager = plt.get_current_fig_manager()
     # # figManager.window.showMaximized()
-    #plt.show()
+    plt.show()
     GraphModule.show = False
     for i in range(3):
         GraphModule.show = True
@@ -286,105 +283,19 @@ def test_graph():
         g_ = T.extend(g)
         # print(g_)
         g = g_.object
-        plt.subplot(121)
+        # plt.subplot(121)
         # figManager = plt.get_current_fig_manager()
         # figManager.window.showMaximized()
         print(len(g.nodes))
         print(len(g.edges))
-        # nx.draw_kamada_kawai(g.g, **options)
-        # plt.show()
+        nx.draw_kamada_kawai(g.g, **options)
+        plt.show()
 
     # print(1 + len(g.edges) - len(g.nodes))
     # print()
     # for n in T.G.nodes(): print(n)
     # print()
     # for e in T.G.edges(keys=True): print(e)
-
-# SEQUENCES
-def test_seq():
-    l0 = SequenceO([])
-    r0 = SequenceO([])
-
-    l1 = SequenceO(['a'])
-    r1 = SequenceO(['a', 'b'])
-
-    l2 = SequenceO(['b'])
-    r2 = SequenceO(['a'])
-
-    incl01a = SequenceM(l0, l1, 0)
-    incl01b = SequenceM(l0, l1, 1)
-
-    incr01a = SequenceM(r0, r1, 0)
-    incr01b = SequenceM(r0, r1, 2)
-
-    incl02a = SequenceM(l0, l2, 0)
-    incl02b = SequenceM(l0, l2, 1)
-
-    incr02a = SequenceM(r0, r2, 0)
-    incr02b = SequenceM(r0, r2, 1)
-
-    pfTm = FlatPFunctor.Maker(Sequence, Sequence)
-    g0 = pfTm.add_rule(l0, r0)
-    g1 = pfTm.add_rule(l1, r1)
-    g2 = pfTm.add_rule(l2, r2)
-
-    pfTm.add_inclusion(g0, g1, incl01a, incr01a)
-    pfTm.add_inclusion(g0, g1, incl01b, incr01b)
-
-    pfTm.add_inclusion(g0, g2, incl02a, incr02a)
-    pfTm.add_inclusion(g0, g2, incl02b, incr02b)
-
-    pfT = pfTm.get()
-    T = GT(pfT)
-
-    s = SequenceO(['b'])
-    print(s)
-
-    for _ in range(8):
-        s_ = T.extend(s)
-        s = tuple(s_)[0].object
-        print(s)
-
-def test_seq_graph():
-    pfTm = FlatPFunctor.Maker(Sequence, Graph)
-    l0 = SequenceO([])
-    r0 = GraphO()
-    nr0 = r0.add_node()
-
-    l1 = SequenceO([None])
-    r1 = GraphO()
-    nr1a = r1.add_node()
-    nr1b = r1.add_node()
-    er1ab = r1.add_edge(nr1a,nr1b)
-
-    incl01a = SequenceM(l0, l1, 0)
-    incl01b = SequenceM(l0, l1, 1)
-
-    incr01a = GraphM(r0,r1,{
-        nr0: nr1a
-    })
-    incr01b = GraphM(r0,r1,{
-        nr0: nr1b
-    })
-    g0 = pfTm.add_rule(l0, r0)
-    g1 = pfTm.add_rule(l1, r1)
-
-    pfTm.add_inclusion(g0, g1, incl01a, incr01a)
-    pfTm.add_inclusion(g0, g1, incl01b, incr01b)
-
-    pfT = pfTm.get()
-    T = GT(pfT)
-
-    s = SequenceO([None] * 1000)
-    g_ = T.extend(s)
-    print(g_)
-    g = tuple(g_)[0].object
-    # nx.draw_kamada_kawai(g.g, **options)
-    # plt.show()
-
-    # print(len(g.nodes))
-    # print(len(g.edges))
-    # print(1 + len(g.edges) - len(g.nodes))
 
 def test_graph_nd():
     LGraph = Lazy(Graph)
@@ -2630,6 +2541,8 @@ def test_graph_ndv2_AC():
     es32 = s.add_edge(ns3, ns2)
     es34 = s.add_edge(ns3, ns4)
     es43 = s.add_edge(ns4, ns3)
+    es41 = s.add_edge(ns4, ns1)
+    es14 = s.add_edge(ns1, ns4)
     
     options = {
         'node_color': 'black',
@@ -2637,6 +2550,7 @@ def test_graph_ndv2_AC():
         'width': 1,
     }
     GraphModule.show = False
+    GraphModule.show = True
     nx.draw_kamada_kawai(s.g, **options)
     plt.show()
 
@@ -2649,13 +2563,12 @@ def test_graph_ndv2_AC():
         plt.show()
         # print(s)
 
-# test_seq()
-test_graph_old() # basic bugged gt
-# test_graph() # basic triang mesh refinement
-# test_graph_nd()
-# test_graph_nda_sheaf_2()
-# test_graph_ndv2()
-# test_graph_ndv2_2()
+# test_graph_old() # basic bugged gt
+# test_graph_nd() # OLD GT
+# test_graph_nda_sheaf_2() # OLD GT
+# test_graph_ndv2() #OLD GT
+test_graph() # basic triang mesh refinement
+# test_graph_ndv2_2() # attempt to triangle mesh ND
 # test_graph_ndv2_AC()
 
 
