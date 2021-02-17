@@ -3,7 +3,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from Sequence import Sequence, SequenceO, SequenceM, NkSeqO, NkSeqM
+from src.data.Sequence import Sequence, SequenceO, SequenceM, NkSeqO, NkSeqM
 
 def test():
     # test = ['b', 'o', 'n', 'j', 'o', 'n', 'r']
@@ -365,7 +365,9 @@ def test6():
         print(s)
 
 def test7():
-    from GT_DU_2 import FlatPFunctor, GT_DU
+    #from GT_DU_2 import FlatPFunctor, GT_DU
+    from src.engine.upward_resolv.PFunctor_DU import FlatPFunctor
+    from src.engine.upward_resolv.GT_DU import GT_DU
     pfTm = FlatPFunctor.Maker(Sequence, Sequence)
 
     l0 = SequenceO([])

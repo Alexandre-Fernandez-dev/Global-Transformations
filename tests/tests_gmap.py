@@ -1425,4 +1425,5 @@ if __name__ == "__main__":
     T, gp = Test.sheaf_nodes()
     for i in range(0, 5):
         gp = tuple(T.extend(gp))[0].object
+    # print(gp)
     # Test.rivers()
