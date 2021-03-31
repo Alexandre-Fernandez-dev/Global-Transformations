@@ -34,14 +34,16 @@ print("d6", t7 - t6)
 gp = tuple(T.extend(gp))[0].object
 t8 = time.time()
 print("d7", t8 - t7)
-gp = tuple(T.extend(gp))[0].object
-t9 = time.time()
-print("d8", t9 - t8)
-gp = tuple(T.extend(gp))[0].object
-t10 = time.time()
-print("d9", t10 - t9)
-print("dtotal", t10-t1)
+# gp = tuple(T.extend(gp))[0].object
+# t9 = time.time()
+# print("d8", t9 - t8)
+# gp = tuple(T.extend(gp))[0].object
+# t10 = time.time()
+# print("d9", t10 - t9)
+# print("dtotal", t10-t1)
 
+import sys
+sys.exit()
 print()
 
 edge_x = []
