@@ -502,7 +502,6 @@ class GraphM:
 
     def pattern(self):
         if self.__pattern == None:
-            print(self.l)
             known_nodes = { self.l[i] for i in self.s.nodes }
             known_edges = {}
             for (i,j,e) in self.s.edges:

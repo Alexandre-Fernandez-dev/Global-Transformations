@@ -18,7 +18,7 @@ class Instance():
         res.c = cpt
         self.observe(res, None)
         for ins_inc in underincs:
-            sub = ins_inc.get_rhs(rhs) # when ensure observe is safe, make this as a lazy lambda (run when needed in merge)
+            sub = ins_inc.compute_result(rhs) # when ensure observe is safe, make this as a lazy lambda (run when needed in merge)
             ins_inc.s.observe(res, sub)
     
     def observe(self, res, m): # privé à GT ?
@@ -49,6 +49,9 @@ class InstanceInc():
     def get_rhs(self):
         pass
     
+    def compute_result(self, over_result):
+        pass
+    
     def __repr__(self):
         pass
 
@@ -60,12 +63,16 @@ class PrimeInstanceInc(InstanceInc):
         self.rule_inc = rule_inc
         self.s = s
         self.t = t
-        self.rhs = None
+        self.rhs = rule_inc.rhs
+        self.result = None
     
     def get_rhs(self):
-        if self.rhs == None:
-            self.rhs = self.rule_inc.get_rhs()
-        return self.rhs
+        return self.rule_inc.rhs
+
+    def compute_result(self, over_result):
+        if self.result == None:
+            self.result = self.rule_inc.get_rhs(over_result)
+        return self.result
 
     def __repr__(self):
         return "PrimeInsInc : [" + " lhs : " + str(self.rule_inc.lhs) + " ]"
@@ -78,13 +85,18 @@ class CompInstanceInc(InstanceInc):
         self.f = f
         self.g = g
         self.t = g.t
-        self.rhs = None
+        self.rhs = f.get_rhs().compose(g.get_rhs())
+        self.result = None
     
     def get_rhs(self):
-        if self.rhs == None:
-            print("HELLO")
-            self.rhs = self.f.get_rhs().compose(self.g.get_rhs())
         return self.rhs
+    
+    def compute_result(self, over_result):
+        if self.result == None:
+            oi_result = self.g.compute_result(over_result)
+            ui_result = self.f.compute_result(oi_result.dom)
+            self.result = ui_result.compose(oi_result)
+        return self.result
     
     def __repr__(self):
         return "CompInsInc : [" + " lhs : " + str(self.rule_inc.lhs) + " ]"
