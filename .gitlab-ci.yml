@@ -23,8 +23,8 @@ pylint:
 test:
   stage: Test
   script:
+  - python3 test/graph.py
   - python3 test/gmap.py
   - python3 test/sequence.py
-#  - python3 test/graph.py
 #  - python3 test/sheaf.py
 #  - python3 test/open.py
