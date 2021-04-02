@@ -13,28 +13,28 @@ import time
 
 T, gp = Test.sierpinsky()
 t1 = time.time()
-gp = tuple(T.extend(gp))[0].object
+gp = T.extend(gp).object
 t2 = time.time()
 print("d1", t2 - t1)
-gp = tuple(T.extend(gp))[0].object
+gp = T.extend(gp).object
 t3 = time.time()
 print("d2", t3 - t2)
-gp = tuple(T.extend(gp))[0].object
+gp = T.extend(gp).object
 t4 = time.time()
 print("d3", t4 - t3)
-gp = tuple(T.extend(gp))[0].object
+gp = T.extend(gp).object
 t5 = time.time()
 print("d4", t5 - t4)
-gp = tuple(T.extend(gp))[0].object
+gp = T.extend(gp).object
 t6 = time.time()
 print("d5", t6 - t5)
-gp = tuple(T.extend(gp))[0].object
+gp = T.extend(gp).object
 t7 = time.time()
 print("d6", t7 - t6)
-gp = tuple(T.extend(gp))[0].object
+gp = T.extend(gp).object
 t8 = time.time()
 print("d7", t8 - t7)
-# gp = tuple(T.extend(gp))[0].object
+# gp = T.extend(gp).object
 # t9 = time.time()
 # print("d8", t9 - t8)
 # gp = tuple(T.extend(gp))[0].object
@@ -42,9 +42,9 @@ print("d7", t8 - t7)
 # print("d9", t10 - t9)
 # print("dtotal", t10-t1)
 
-import sys
-sys.exit()
-print()
+# import sys
+# sys.exit()
+# print()
 
 edge_x = []
 edge_y = []

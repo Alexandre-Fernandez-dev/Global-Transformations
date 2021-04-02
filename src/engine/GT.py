@@ -25,7 +25,7 @@ class GT:
             nonlocal depth, bigresult
             lm = []
             underincs = [] # change to list ?
-            for u_occ, get_u_ins, get_ins_inc in self.pfunctor.iter_under(ins, matches): # iter under
+            for u_occ, get_u_ins, get_ins_inc in self.pfunctor.iter_under(ins):# iter under
                 if u_occ in matches: # instance already encountered
                     u_ins = matches[u_occ]
                     ins_inc = get_ins_inc(u_ins)
@@ -46,7 +46,7 @@ class GT:
                 elif u_ins.new_result != None: # already visited by other close
                     lm += [u_ins]
             ins.closed = True
-            for s_occ, get_s_ins, get_ins_inc in self.pfunctor.iter_self_inclusions(ins, matches): # add siblings
+            for s_occ, get_s_ins, get_ins_inc in self.pfunctor.iter_self_inclusions(ins): # add siblings
                 if s_occ not in matches:
                     s_ins = get_s_ins()
                     ins_inc = get_ins_inc(s_ins)
@@ -58,7 +58,7 @@ class GT:
             nonlocal depth, bigresult
             top = True
             uppercone = []
-            for o_occ, get_o_ins, _ in self.pfunctor.pmatch_up(ins, matches):
+            for o_occ, get_o_ins, _ in self.pfunctor.pmatch_up(ins):
                 top = False
                 if o_occ in matches:
                     o_ins = matches[o_occ]
@@ -79,7 +79,7 @@ class GT:
                     lm, underincs = close(ins)
                     if len(lm) > 0:
                         ins.compute_result(underincs, cpt)
-                        r_new, _ = Result.multi_merge_2(lm, self.pfunctor.CD, matches)
+                        r_new, _ = Result.multi_merge_2(lm, self.pfunctor.CD)
                         if len(r_new) > 0:
                             bigresult = r_new[0]
                             r_new[0].c = cpt - 1

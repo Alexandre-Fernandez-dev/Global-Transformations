@@ -3,7 +3,7 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from src.engine.downward_resolv.PFunctor import FlatPFunctor, FamPFunctor, ExpPFunctor, FamExpPFunctor
+from src.engine.PFunctor import FlatPFunctor, FamPFunctor
 from src.data.Gmap import Premap, PremapO, PremapM
 import src.data.Sheaf as Sheaf
 
@@ -11,334 +11,11 @@ import math
 from src.data.DataStructure import Lazy
 from random import random
 
-def test_pmatching():
-    p0 = PremapO(2)
-    d0a = p0.add_dart()
-    d0b = p0.add_dart()
-    p0.sew(0,d0a,d0b)
-
-    p1 = PremapO(2)
-    d1a = p1.add_dart()
-    d1b = p1.add_dart()
-    d1c = p1.add_dart()
-    d1d = p1.add_dart()
-    d1e = p1.add_dart()
-    d1f = p1.add_dart()
-    p1.sew(0,d1a,d1b)
-    p1.sew(1,d1b,d1c)
-    p1.sew(0,d1c,d1d)
-    p1.sew(1,d1d,d1e)
-    p1.sew(0,d1e,d1f)
-    p1.sew(1,d1f,d1a)
-
-    p2 = PremapO(2)
-    d2a = p2.add_dart()
-    d2b = p2.add_dart()
-    d2c = p2.add_dart()
-    d2d = p2.add_dart()
-    p2.sew(0,d2a,d2b)
-    p2.sew(0,d2c,d2d)
-    p2.sew(2,d2a,d2c)
-    p2.sew(2,d2b,d2d)
-
-    print(p0)
-    print(p1)
-    print(p2)
-
-    idp0 = PremapM(p0,p0,[ d for d in p0 ])
-    idp1 = PremapM(p1,p1,[ d for d in p1 ])
-    idp2 = PremapM(p2,p2,[ d for d in p2 ])
-
-    for m in Premap.pattern_match(p0,p1):
-        print(m)
-        print("morph")
-        for mm in Premap.pattern_match(m,m):
-            print('  * ', mm)
-
-    print("-------")
-    h1 = PremapM(p0,p1,[0,1])
-    h2 = PremapM(p0,p2,[0,1])
-    print(Premap.multi_merge([h1],[h2]))
-
-    print("-------")
-    h1 = PremapM(p0,p1,[0,1])
-    h2 = PremapM(p0,p1,[0,1])
-    h3 = PremapM(p0,p1,[3,2])
-    h4 = PremapM(p0,p1,[3,2])
-    print(Premap.multi_merge([h1,h3],[h2,h4]))
-
-def gt():
-    import src.engine.downward_resolv.GT as GT_M
-    from GT_M import GT
-
-    fpf = FlatPFunctor.Maker(Premap, Premap)
-
-    l0 = PremapO(2)
-    l0d0 = l0.add_dart()
-    l0d1 = l0.add_dart()
-    l0.sew(0, l0d0, l0d1)
-
-    r0 = PremapO(2)
-    r0d0 = r0.add_dart()
-    r0d1 = r0.add_dart()
-    r0d2 = r0.add_dart()
-    r0d3 = r0.add_dart()
-    r0.sew(0, r0d0, r0d1)
-    r0.sew(1, r0d1, r0d2)
-    r0.sew(0, r0d2, r0d3)
-
-    g0 = fpf.add_rule(l0, r0)
-
-    l1 = PremapO(2)
-    l1d0 = l1.add_dart()
-    l1d1 = l1.add_dart()
-    l1.sew(0, l1d0, l1d1)
-    l1d2 = l1.add_dart()
-    l1d3 = l1.add_dart()
-    l1.sew(0, l1d2, l1d3)
-    l1.sew(2, l1d0, l1d2)
-    l1.sew(2, l1d1, l1d3)
-
-    r1 = PremapO(2)
-    r1d0 = r1.add_dart()
-    r1d1 = r1.add_dart()
-    r1d2 = r1.add_dart()
-    r1d3 = r1.add_dart()
-    r1.sew(0, r1d0, r1d1)
-    r1.sew(1, r1d1, r1d2)
-    r1.sew(0, r1d2, r1d3)
-    r1d4 = r1.add_dart()
-    r1d5 = r1.add_dart()
-    r1d6 = r1.add_dart()
-    r1d7 = r1.add_dart()
-    r1.sew(0, r1d4, r1d5)
-    r1.sew(1, r1d5, r1d6)
-    r1.sew(0, r1d6, r1d7)
-    r1.sew(2, r1d0, r1d4)
-    r1.sew(2, r1d1, r1d5)
-    r1.sew(2, r1d2, r1d6)
-    r1.sew(2, r1d3, r1d7)
-
-    g1 = fpf.add_rule(l1, r1)
-
-    l2 = PremapO(2)
-    l2d0 = l2.add_dart()
-    l2d1 = l2.add_dart()
-    l2.sew(0, l2d0, l2d1)
-    l2d2 = l2.add_dart()
-    l2d3 = l2.add_dart()
-    l2.sew(0, l2d2, l2d3)
-    l2.sew(1, l2d1, l2d2)
-    l2d4 = l2.add_dart()
-    l2d5 = l2.add_dart()
-    l2.sew(0, l2d4, l2d5)
-    l2.sew(1, l2d3, l2d4)
-    l2.sew(1, l2d5, l2d0)
-
-    r2 = PremapO(2)
-    r2d0 = r2.add_dart()
-    r2d1 = r2.add_dart()
-    r2.sew(0, r2d0, r2d1)
-    r2d2 = r2.add_dart()
-    r2d3 = r2.add_dart()
-    r2.sew(0, r2d2, r2d3)
-    r2.sew(1, r2d1, r2d2)
-    r2d4 = r2.add_dart()
-    r2d5 = r2.add_dart()
-    r2.sew(0, r2d4, r2d5)
-    r2.sew(1, r2d3, r2d4)
-    r2.sew(1, r2d5, r2d0)
-    r2d6 = r2.add_dart()
-    r2d7 = r2.add_dart()
-    r2.sew(0, r2d6, r2d7)
-    r2d8 = r2.add_dart()
-    r2d9 = r2.add_dart()
-    r2.sew(0, r2d8, r2d9)
-    r2.sew(1, r2d7, r2d8)
-    r2d10 = r2.add_dart()
-    r2d11 = r2.add_dart()
-    r2.sew(0, r2d10, r2d11)
-    r2.sew(1, r2d9, r2d10)
-    r2.sew(1, r2d11, r2d6)
-    r2d12 = r2.add_dart()
-    r2d13 = r2.add_dart()
-    r2.sew(0, r2d12, r2d13)
-    r2d14 = r2.add_dart()
-    r2d15 = r2.add_dart()
-    r2.sew(0, r2d14, r2d15)
-    r2.sew(1, r2d13, r2d14)
-    r2d16 = r2.add_dart()
-    r2d17 = r2.add_dart()
-    r2.sew(0, r2d16, r2d17)
-    r2.sew(1, r2d15, r2d16)
-    r2.sew(1, r2d17, r2d12)
-    r2d18 = r2.add_dart()
-    r2d19 = r2.add_dart()
-    r2.sew(0, r2d18, r2d19)
-    r2d20 = r2.add_dart()
-    r2d21 = r2.add_dart()
-    r2.sew(0, r2d20, r2d21)
-    r2.sew(1, r2d19, r2d20)
-    r2d22 = r2.add_dart()
-    r2d23 = r2.add_dart()
-    r2.sew(0, r2d22, r2d23)
-    r2.sew(1, r2d21, r2d22)
-    r2.sew(1, r2d23, r2d18)
-    r2.sew(2, r2d3, r2d18)
-    r2.sew(2, r2d2, r2d19)
-    r2.sew(2, r2d11, r2d20)
-    r2.sew(2, r2d10, r2d21)
-    r2.sew(2, r2d13, r2d22)
-    r2.sew(2, r2d12, r2d23)
-
-    g2 = fpf.add_rule(l2, r2)
-
-    incl01a = PremapM(l0, l1, [l1d0, l1d1])
-    incl01b = PremapM(l0, l1, [l1d2, l1d3])
-
-    incr01a = PremapM(r0, r1, [r1d0, r1d1, r1d2, r1d3])
-    incr01b = PremapM(r0, r1, [r1d4, r1d5, r1d6, r1d7])
-
-    inc01a = fpf.add_inclusion(g0, g1, incl01a, incr01a)
-    inc01b = fpf.add_inclusion(g0, g1, incl01b, incr01b)
-
-    incl02a = PremapM(l0, l2, [l2d0, l2d1])
-    incl02b = PremapM(l0, l2, [l2d2, l2d3])
-    incl02c = PremapM(l0, l2, [l2d4, l2d5])
-
-    incr02a = PremapM(r0, r2, [r2d0, r2d1, r2d6, r2d7])
-    incr02b = PremapM(r0, r2, [r2d8, r2d9, r2d14, r2d15])
-    incr02c = PremapM(r0, r2, [r2d16, r2d17, r2d4, r2d5])
-
-    inc02a = fpf.add_inclusion(g0, g2, incl02a, incr02a)
-    inc02b = fpf.add_inclusion(g0, g2, incl02b, incr02b)
-    inc02c = fpf.add_inclusion(g0, g2, incl02c, incr02c)
-
-    fl00 = PremapM(l0, l0, [l0d1, l0d0])
-    fr00 = PremapM(r0, r0, [r0d3, r0d2, r0d1, r0d0])
-
-    auto0 = fpf.add_inclusion(g0, g0, fl00, fr00)
-
-    f1l1 = PremapM(l1, l1, [l1d1, l1d0, l1d3, l1d2])
-    f1r1 = PremapM(r1, r1, [r1d3, r1d2, r1d1, r1d0, r1d7, r1d6, r1d5, r1d4])
-
-    autof11 = fpf.add_inclusion(g1, g1, f1l1, f1r1)
-
-    f2l1 = PremapM(l1, l1, [l1d2, l1d3, l1d0, l1d1])
-    f2r1 = PremapM(r1, r1, [r1d4, r1d5, r1d6, r1d7, r1d0, r1d1, r1d2, r1d3])
-
-    autof21 = fpf.add_inclusion(g1, g1, f2l1, f2r1)
-
-    f12l1 = f1l1.compose(f2l1)
-    f12r1 = f1r1.compose(f2r1)
-
-    autof121 = fpf.add_inclusion(g1, g1, f12l1, f12r1)
-
-    rl22a = PremapM(l2, l2, [l2d2, l2d3, l2d4, l2d5, l2d0, l2d1])
-    rr22a = PremapM(r2, r2, [r2d8, r2d9, r2d10, r2d11, r2d6, r2d7, r2d14, r2d15, r2d16, r2d17, r2d12, r2d13, r2d2, r2d3, r2d4, r2d5, r2d0, r2d1, r2d20, r2d21, r2d22, r2d23, r2d18, r2d19])
-
-    auto2ra = fpf.add_inclusion(g2, g2, rl22a, rr22a)
-
-    rl22b = rl22a.compose(rl22a)
-    rr22b = rr22a.compose(rr22a)
-
-    auto2rb = fpf.add_inclusion(g2, g2, rl22b, rr22b)
-
-    fl22 = PremapM(l2, l2, [l2d5, l2d4, l2d3, l2d2, l2d1, l2d0])
-    fr22 = PremapM(r2, r2, [r2d5, r2d4, r2d3, r2d2, r2d1, r2d0, r2d17, r2d16, r2d15, r2d14, r2d13, r2d12, r2d11, r2d10, r2d9, r2d8, r2d7, r2d6, r2d19, r2d18, r2d23, r2d22, r2d21, r2d20])
-
-    auto2f = fpf.add_inclusion(g2, g2, fl22, fr22)
-
-    rfl22a = fl22.compose(rl22a)
-    rfr22a = fr22.compose(rr22a)
-
-    auto2fra = fpf.add_inclusion(g2, g2, rfl22a, rfr22a)
-
-    rfl22b = rfl22a.compose(rl22a)
-    rfr22b = rfr22a.compose(rr22a)
-
-    auto2frb = fpf.add_inclusion(g2, g2, rfl22b, rfr22b)
-
-    f = fpf.get()
-
-    tri = PremapO(2)
-    trid0 = tri.add_dart()
-    trid1 = tri.add_dart()
-    tri.sew(1, trid0, trid1)
-    trid2 = tri.add_dart()
-    trid3 = tri.add_dart()
-    tri.sew(1, trid2, trid3)
-    tri.sew(0, trid1, trid2)
-    trid4 = tri.add_dart()
-    trid5 = tri.add_dart()
-    tri.sew(1, trid4, trid5)
-    tri.sew(0, trid3, trid4)
-    tri.sew(0, trid5, trid0)
-
-    T = GT(f)
-
-    res1 = tuple(T.extend(tri))[0].object
-    print("1", len(res1))
-    res2 = tuple(T.extend(res1))[0].object
-    print("2", len(res2))
-    res3 = tuple(T.extend(res2))[0].object
-    print("3", len(res3))
-    res4 = tuple(T.extend(res3))[0].object
-    print("4", len(res4))
-    res5 = tuple(T.extend(res4))[0].object
-    print("5", len(res5))
-    res6 = tuple(T.extend(res5))[0].object
-    print("6", len(res6))
-    print()
-    print(tri)
-    print()
-    print(res1)
-    print(len(res1))
-    print(len(list(res1.iter_icells(0))))
-    print(len(list(res1.iter_icells(1))))
-    print(len(list(res1.iter_icells(2))))
-    print()
-    print(res2)
-    print(len(res2))
-    print(len(list(res2.iter_icells(0))))
-    print(len(list(res2.iter_icells(1))))
-    print(len(list(res2.iter_icells(2))))
-    # for m in Premap.pattern_match(l1, res1):
-    #     print(m)
-
-    # print("sew triangles test")
-
-    # dsidedtri, lifttri, liftdside = Premap.multi_merge([incl02a], [incl01a])
-    # print(dsidedtri, liftdside)
-
-    # incprime = incl01b.compose(liftdside)
-    # print(incprime)
-
-    # # # C'est là les test de pattern match qui marchent pas !!
-    # doubletri, _, _, = Premap.multi_merge([incl02a], [incprime]) #deux triangles collés par alpha2
-    # print("DOUBLE TRI", doubletri)
-    # print(len(doubletri))
-    # print(len(list(doubletri.iter_icells(0))))
-    # print(len(list(doubletri.iter_icells(1))))
-    # print(len(list(doubletri.iter_icells(2))))
-    # print(list(doubletri.iter_icells(0)))
-
-    # for m in Premap.pattern_match(l0, doubletri):
-    #     print("=====")
-    #     print("match", m)
-    #     print("now matching up :")
-    #     for mp in Premap.pattern_match(incl01a, m):
-    #         print("  returned", mp)
-    # r = tuple(T.extend(doubletri))[0].object
-    # print(len(doubletri))
-
-    # print(len(r), r)
-
 class Test:
     @staticmethod
     def sheaf_nodes():
 
-        from src.engine.downward_resolv import GT
+        from src.engine import GT
 
         def restriction(f, q):
             ret = {}
@@ -727,7 +404,7 @@ class Test:
             3: (0.5, 0.5, 0.0)
             }
         wtri = CO(dsidedtri, p)
-        res1 = tuple(T.extend(wtri))[0].object
+        res1 = T.extend(wtri).object
         # print(len(res1.OC))
         # print(res1)
         tt = PremapO(2)
@@ -907,7 +584,13 @@ class Test:
 
         # print(len(r), r)
 
-    @staticmethod
+if __name__ == "__main__":
+    T, gp = Test.sheaf_nodes()
+    for i in range(0, 5):
+        gp = T.extend(gp).object
+
+# Here I keep old tests that needs to be adapted
+def old():
     def rivers():
         from src.engine.downward_resolv.GT import GT
 
@@ -1381,49 +1064,3 @@ class Test:
         T = GT(f)
 
         return T, trip
-
-        # g0 = fpf.add_fam_rule(l0, r0_)
-
-        # l_a = SequenceO(['a'])
-        # def er_a():
-        #     return (SequenceO(['a','a']), []) if random() <= 0.5  else (SequenceO(['a']), [])
-        # g_a = epf.add_exp_rule(l_a, er_a)
-
-        # l_aa = SequenceO(['a','a'])
-        # def er_aa(s1,s2):
-        #     ret = SequenceO(s1.s + s2.s)
-        #     return (ret, [ SequenceM(s1,ret,0) , SequenceM(s2,ret,len(s1.s)) ])
-        # g_aa = epf.add_exp_rule(l_aa, er_aa)
-
-        # l_a_aa_0 = SequenceM(l_a,l_aa,0)
-        # ir_a_aa_0 = 0
-        # g_a_aa_0 = epf.add_exp_inclusion(g_a, g_aa, l_a_aa_0, ir_a_aa_0)
-
-        # l_a_aa_1 = SequenceM(l_a,l_aa,1)
-        # ir_a_aa_1 = 1
-        # g_a_aa_1 = epf.add_exp_inclusion(g_a, g_aa, l_a_aa_1, ir_a_aa_1)
-
-        # epf = epf.get()
-
-        # T = GT(epf)
-
-        # sz = {}
-        # for i in range(0,100):
-        #     s = len(tuple(T.extend(SequenceO(['a','a','a'])))[0].object)
-        #     sz[s] = sz.setdefault(s,0) + 1
-        # print({s: 8*n/100 for (s,n) in sz.items() })
-        # print((tuple(T.extend(SequenceO(['a','a','a'])))[0].object))
-
-
-
-if __name__ == "__main__":
-    # test_merge()
-    # test_pmatching()
-    # test_pmatching2()
-    # test_pmatching()
-    # gt()
-    T, gp = Test.sheaf_nodes()
-    for i in range(0, 5):
-        gp = tuple(T.extend(gp))[0].object
-    # print(gp)
-    # Test.rivers()
