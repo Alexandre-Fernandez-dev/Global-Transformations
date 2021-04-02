@@ -85,7 +85,7 @@ class FlatPFunctor:
                 return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
             self.small_pred.add_node(g)
             l = []
-            for s, _, inc in self.G.in_edges(g, keys = True):
+            for s, _, _ in self.G.in_edges(g, keys = True):
                 r = f(s)
                 if r == []:
                     l.append(s)
@@ -291,13 +291,6 @@ class FamPFunctor:
                 small_rule = self.Rule(small_rule_fam, small_occ.dom)
                 get_s_ins = lambda : Instance(small_rule, len(self.small_pred.in_edges(small_rule_fam)), small_occ)
                 yield get_s_ins
-
-    def iter_under(self, ins):
-        for u_rule, _, u_inc in self.G.in_edges(ins.rule, keys = True):
-            u_occ = u_inc.lhs.compose(ins.occ)
-            get_u_ins = lambda : Instance(u_rule, len(self.small_pred.in_edges(u_rule)), u_occ)
-            get_ins_inc = lambda u_ins : PrimeInstanceInc(u_inc, u_ins, ins)
-            yield u_occ, get_u_ins, get_ins_inc
 
     def iter_under(self, ins):
         for u_rule_fam, _, u_inc_fam in self.G.in_edges(ins.rule.fam, keys=True):

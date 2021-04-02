@@ -44,7 +44,7 @@ class Instance():
 
 class InstanceInc():
     def get_lhs(self):
-        return self.rule_inc.lhs
+        pass
 
     def get_rhs(self):
         pass
@@ -65,6 +65,9 @@ class PrimeInstanceInc(InstanceInc):
         self.t = t
         self.rhs = rule_inc.rhs
         self.result = None
+    
+    def get_lhs(self):
+        return self.rule_inc.lhs
     
     def get_rhs(self):
         return self.rule_inc.rhs
@@ -88,6 +91,9 @@ class CompInstanceInc(InstanceInc):
         self.rhs = f.get_rhs().compose(g.get_rhs())
         self.result = None
     
+    def get_lhs(self):
+        return self.lhs
+    
     def get_rhs(self):
         return self.rhs
     
@@ -99,7 +105,7 @@ class CompInstanceInc(InstanceInc):
         return self.result
     
     def __repr__(self):
-        return "CompInsInc : [" + " lhs : " + str(self.rule_inc.lhs) + " ]"
+        return "CompInsInc : [" + " lhs : " + str(self.lhs) + " ]"
 
 class Result():
     def __init__(self, obj, is_rhs):

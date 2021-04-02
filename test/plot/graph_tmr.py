@@ -1,13 +1,11 @@
-import plotly.graph_objects as go
-import networkx as nx
-
 import os,sys,inspect
 current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
 parent_dir = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(0, parent_dir)
-import src.data.Sheaf as Sheaf
-#import tests.tests_sheaf as tests_sheaf
-from tests.tests_sheaf import Test
+import plotly.graph_objects as go
+import networkx as nx
+import data.Sheaf as Sheaf
+from test.sheaf import Test
 
 T, gp = Test.triangle_mesh_refinement()
 gp = T.extend(gp).object

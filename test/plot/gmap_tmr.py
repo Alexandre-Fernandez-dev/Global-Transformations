@@ -1,14 +1,14 @@
+import os,sys,inspect
+current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parent_dir = os.path.dirname(os.path.dirname(current_dir))
+sys.path.insert(0, parent_dir)
+
 import plotly.graph_objects as go
 import networkx as nx
 import numpy as np
+from test.gmap import Test
 
-import os,sys,inspect
-current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir) 
-import tests_gmap
-
-T, gp = tests_gmap.Test.sheaf_nodes()
+T, gp = Test.sheaf_nodes()
 
 for i in range(0, 4):
     gp = T.extend(gp).object

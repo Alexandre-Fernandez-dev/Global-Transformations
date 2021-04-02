@@ -3,14 +3,14 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
+from engine.GT import GT
+import engine.PFunctor as PFunctor
+from data.Graph import Graph
+from data.Sheaf import Parametrisation
+
 class Test:
     @staticmethod
     def triangle_mesh_refinement():
-        from src.engine.GT import GT
-        import src.engine.PFunctor as PFunctor
-        from src.data.Graph import Graph
-        from src.data.Sheaf import Parametrisation
-
         def restriction(f, q):
             ret = {}
             # TODO :genericity with element operator ?
@@ -333,10 +333,10 @@ class Test:
 
     @staticmethod
     def sierpinsky():
-        from src.engine.GT import GT
-        import src.engine.PFunctor as PFunctor
-        from src.data.Graph import Graph
-        from src.data.Sheaf import Parametrisation
+        from engine.GT import GT
+        import engine.PFunctor as PFunctor
+        from data.Graph import Graph
+        from data.Sheaf import Parametrisation
 
         def restriction(f, q):
             ret = {}
@@ -654,7 +654,7 @@ class Test:
         return T, gp 
 
 def sierpinsky():
-    import src.data.Graph as GraphModule
+    import data.Graph as GraphModule
     import networkx as nx
     import matplotlib.pyplot as plt
     T, s = Test.sierpinsky()

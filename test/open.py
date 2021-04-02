@@ -3,12 +3,12 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from src.data.Open import Open
-import src.data.Graph as GraphModule
-from src.data.Graph import *
+from data.Open import Open
+import data.Graph as GraphModule
+from data.Graph import *
 import matplotlib.pyplot as plt
-from src.engine.PFunctor import FlatPFunctor
-from src.engine.GT import GT
+from engine.PFunctor import FlatPFunctor
+from engine.GT import GT
 
 def divide_edges():
     OGraphO, OGraphM, OGraph = Open.get(Graph)
