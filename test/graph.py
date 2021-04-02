@@ -142,24 +142,24 @@ def triangular_mesh_refinement():
     T = GT(pfT)
 
     #plt.subplot(121)
-    options = {
-        'node_color': 'black',
-        'node_size': 20,
-        'width': 1,
-    }
+    # options = {
+    #     'node_color': 'black',
+    #     'node_size': 20,
+    #     'width': 1,
+    # }
 
-    nx.draw_kamada_kawai(g.g, **options)
-    plt.show()
+    # nx.draw_kamada_kawai(g.g, **options)
+    # plt.show()
     GraphModule.show = False
     for i in range(3):
-        GraphModule.show = True
+        # GraphModule.show = True
         print("------------------------------------------COMPUTE START", i)
         g_ = T.extend(g)
         g = g_.object
         print(len(g.nodes))
         print(len(g.edges))
-        nx.draw_kamada_kawai(g.g, **options)
-        plt.show()
+        # nx.draw_kamada_kawai(g.g, **options)
+        # plt.show()
 
 if __name__ == "__main__":
     triangular_mesh_refinement()

@@ -104,24 +104,22 @@ def divide_edges():
     print(len(g.g.nodes))
 
     #plt.subplot(121)
-    options = {
-        'node_color': 'black',
-        'node_size': 20,
-        'width': 1,
-    }
+    # options = {
+    #     'node_color': 'black',
+    #     'node_size': 20,
+    #     'width': 1,
+    # }
 
     GraphModule.show = False
-    nx.draw_kamada_kawai(g.g, **options)
-    plt.show()
-    print("drawed")
-    for i in range(0, 2):
+    # nx.draw_kamada_kawai(g.g, **options)
+    # plt.show()
+    for i in range(0, 3):
         #if i == 3:
-        GraphModule.show = True
+        # GraphModule.show = True
         g_ = T.extend(g)
         g = g_.object
-        # plt.subplot(121)
-        nx.draw_kamada_kawai(g.g, **options)
-        plt.show()
+        # nx.draw_kamada_kawai(g.g, **options)
+        # plt.show()
 
 if __name__ == "__main__":
     divide_edges()

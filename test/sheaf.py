@@ -658,23 +658,23 @@ def sierpinsky():
     import networkx as nx
     import matplotlib.pyplot as plt
     T, s = Test.sierpinsky()
-    options = {
-        'node_color': 'black',
-        'node_size': 20,
-        'width': 1,
-    }
+    # options = {
+    #     'node_color': 'black',
+    #     'node_size': 20,
+    #     'width': 1,
+    # }
     GraphModule.show = False
-    GraphModule.show = True
-    nx.draw_kamada_kawai(s.OC.g, **options)
-    plt.show()
+    # GraphModule.show = True
+    # nx.draw_kamada_kawai(s.OC.g, **options)
+    # plt.show()
 
     for i in range(0, 4):
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
         s = T.extend(s).object
         print(s)
         print(type(s))
-        nx.draw_kamada_kawai(s.OC.g, **options)
-        plt.show()
+        # nx.draw_kamada_kawai(s.OC.g, **options)
+        # plt.show()
 
 if __name__ == "__main__":
     sierpinsky()
