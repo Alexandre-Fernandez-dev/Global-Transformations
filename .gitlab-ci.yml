@@ -17,6 +17,6 @@ stages:
 pylint:
   stage: Static Analysis
   script:
-  - pylint -d C0301 data/*.py
-  - pylint -d C0301 engine/*.py
-  - pylint -d C0301 test/*.py
+  - pylint --disable=C0103 data/*.py
+  - pylint --disable=C0103 engine/*.py
+  - pylint --disable=C0103 test/*.py
