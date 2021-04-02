@@ -32,9 +32,8 @@ class Parametrisation:
                 if h.dom == h.cod and ET == self.ET:
                     # assert False # used in gmap
                     return MorphismClass(self, self, h)
-                else:
-                    return MorphismClass(ObjectClass(h.dom, ET), self, h)
-            elif isinstance(h, MorphismClass):
+                return MorphismClass(ObjectClass(h.dom, ET), self, h)
+            if isinstance(h, MorphismClass):
                 return h
 
         ObjectClass = type(C.__name__ + "__" + T['name'] + "O", (), {
@@ -116,7 +115,7 @@ class Parametrisation:
         #         yield MorphismClass(ObjectClass(p, restr), s, m)
 
         def Category_pattern_match(p, s):
-            if isinstance(p, MorphismClass) or isinstance(p, ObjectClass): #TODO clean conditions
+            if isinstance(p, (MorphismClass, ObjectClass)): #TODO clean conditions
                 if isinstance(p, MorphismClass):
                     matches = C.pattern_match(p.MC, s.MC)
                     p = p.cod
@@ -134,7 +133,7 @@ class Parametrisation:
                             break
                     if ok:
                         yield MorphismClass(p, s, m)
-            elif isinstance(p, C.TM()) or isinstance(p, C.TO()): #TODO clean conditions
+            elif isinstance(p, (C.TM(), C.TO())): #TODO clean conditions
                 # print("pattern_match_fam")
                 if isinstance(p, C.TM()):
                     matches = C.pattern_match(p, s.naked())

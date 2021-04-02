@@ -1,10 +1,10 @@
+import random
 from .DataStructure import DataStructure
 
 class Open:
 
     @staticmethod
     def get(C):
-        import random
         def object_init(self, LO):
             self.LO = LO
 
@@ -30,7 +30,7 @@ class Open:
                     if ins_inc.s.old_subresult != ins_inc.rhs.dom.LO[ins_inc.rhs.projL[i]]:
                         ri = None
                 r[i] = ri
-            fr = list(filter(lambda x : (x != None), r))
+            fr = list(filter(lambda x : (x is not None), r))
             if len(fr) == 0:
                 fr = self.LO
             rand = random.randrange(len(fr))

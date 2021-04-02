@@ -11,19 +11,18 @@ class Instance():
         self.new_subresult = None
         self.uppercone = []
     
-    def compute_result(self, underincs, cpt):
-        assert self.new_result == None
+    def compute_result(self, underincs):
+        assert self.new_result is None
         rhs = self.rule.get_rhs(underincs)
         res = Result(rhs, True)
-        res.c = cpt
         self.observe(res, None)
         for ins_inc in underincs:
             sub = ins_inc.compute_result(rhs) # when ensure observe is safe, make this as a lazy lambda (run when needed in merge)
             ins_inc.s.observe(res, sub)
     
     def observe(self, res, m): # privé à GT ?
-        assert m == None or m.cod == res.object
-        if self.new_result != None:
+        assert m is None or m.cod == res.object
+        if self.new_result is not None:
             if self.new_result == res:
                 assert self.new_subresult == m
                 return
@@ -73,7 +72,7 @@ class PrimeInstanceInc(InstanceInc):
         return self.rule_inc.rhs
 
     def compute_result(self, over_result):
-        if self.result == None:
+        if self.result is None:
             self.result = self.rule_inc.get_rhs(over_result)
         return self.result
 
@@ -98,7 +97,7 @@ class CompInstanceInc(InstanceInc):
         return self.rhs
     
     def compute_result(self, over_result):
-        if self.result == None:
+        if self.result is None:
             oi_result = self.g.compute_result(over_result)
             ui_result = self.f.compute_result(oi_result.dom)
             self.result = ui_result.compose(oi_result)
@@ -122,9 +121,9 @@ class Result():
         for ins in lm:
             l_new.append(ins.new_subresult)
             l_old.append(ins.old_subresult)
-            if res_old == None:
+            if res_old is None:
                 res_old = ins.old_result
-            if res_new == None:
+            if res_new is None:
                 res_new = ins.new_result
         return Result.multi_merge(l_old, l_new, res_old, res_new, CD)
     
@@ -156,16 +155,15 @@ class Result():
             res_new.obs_by = None
             res_new.object = None
             return [res], [res_old, res_new]
-        else:
-            obj, on_new = CD.multi_merge_2_in_1(l_old, l_new)
-            for ins in res_new.obs_by:
-                if ins.new_result != res_old:
-                    if ins.new_result == res_new:
-                        ins.observe(res_old, on_new if ins.new_subresult is None else ins.new_subresult.compose(on_new))
-                    elif ins.old_result == res_new:
-                        assert False
-                    else:
-                        assert False
-            res_new.obs_by = None
-            res_new.object = None
-            return [], [res_new]
+        obj, on_new = CD.multi_merge_2_in_1(l_old, l_new)
+        for ins in res_new.obs_by:
+            if ins.new_result != res_old:
+                if ins.new_result == res_new:
+                    ins.observe(res_old, on_new if ins.new_subresult is None else ins.new_subresult.compose(on_new))
+                elif ins.old_result == res_new:
+                    assert False
+                else:
+                    assert False
+        res_new.obs_by = None
+        res_new.object = None
+        return [], [res_new]

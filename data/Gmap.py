@@ -1,10 +1,6 @@
-import math
 from .DataStructure import DataStructure
-from itertools import chain
-import time
 
 class PremapO():
-
     class icells:
         def __init__(self):
             self.normalMap = [ ]
@@ -14,10 +10,9 @@ class PremapO():
             father = self.normalMap[k]
             if father == k:
                 return k
-            else:
-                root = self.find(father)
-                self.normalMap[k] = root
-                return root
+            root = self.find(father)
+            self.normalMap[k] = root
+            return root
 
         def union(self, key1, key2):
             r1 = self.find(key1)
@@ -49,8 +44,7 @@ class PremapO():
         for d in self:
             for i in range(0,self.Np1):
                 dd = self.__alpha[d][i]
-                if dd != None and p.__alpha[d][i] == None:
-                    # print(d, dd)
+                if dd is not None and p.__alpha[d][i] is None:
                     p.sew(i,d,dd)
         for d in p:
             for i in range(0, self.Np1):
@@ -68,7 +62,7 @@ class PremapO():
 
     def alpha(self,i,d):
         dd = self.__alpha[d][i]
-        return d if dd == None else dd
+        return d if dd is None else dd
 
     def sew(self,i,d,dd):
         # print(d, dd, self.__alpha[d][i], self.__alpha[dd][i])
@@ -112,7 +106,7 @@ class PremapO():
         return h.dom()
 
     def pattern(self):
-        if self.__pattern == None:
+        if self.__pattern is None:
             self.__pattern = []
             flag = [False]*self.D
             wl = [0]
@@ -121,9 +115,9 @@ class PremapO():
                 d = wl.pop()
                 for i in range(0,self.Np1):
                     dd = self.__alpha[d][i]
-                    if dd == None:
+                    if dd is None:
                         continue
-                    elif flag[dd]:
+                    if flag[dd]:
                         self.__pattern.append((True,d,i,dd))
                     else:
                         wl.insert(0, dd)
@@ -184,7 +178,7 @@ class PremapM:
         self.l = self.l.copy()
 
     def pattern(self):
-        if self.__pattern == None:
+        if self.__pattern is None:
             self.__pattern = []
             flag = [False]*self.cod.D
             wl = []
@@ -197,7 +191,7 @@ class PremapM:
                     dd = self.cod.alpha(i,d)
                     if dd == d:
                         continue
-                    elif flag[dd]:
+                    if flag[dd]:
                         self.__pattern.append((True,d,i,dd))
                     else:
                         wl.insert(0, dd)
@@ -259,9 +253,8 @@ class Premap(DataStructure):
                             if ctx.is_cursed(ldd):
                                 ok = False
                                 break
-                            else:
-                                ctx.l[dd] = ldd
-                                ctx.curse(ldd)
+                            ctx.l[dd] = ldd
+                            ctx.curse(ldd)
                     ctx.uncurse_all()
                     if ok:
                         yield PremapM(p,X,ctx.l)
@@ -271,43 +264,40 @@ class Premap(DataStructure):
             # print("in ", X.dom, X, X.cod)
             # WARNING: dom and cod of p are supposed connected
             if p.dom.D == 0:
-                # print("IF1")
                 return Premap.pattern_match(p.cod, X.cod)
-            else:
-                assert X.dom == p.dom
-                ctx = Premap.Ctx(X.cod, p.cod.D * [None])
-                for d, ld in enumerate(X.l):
-                    ctx.curse(ld)
-                    ctx.l[p.l[d]] = ld
-                ok = True
-                # print("pattern : ")
-                # print(p.pattern())
-                for (b,d,i,dd) in p.pattern():
-                    # print((b,d,i,dd))
-                    if b:
-                        ld = ctx.l[d]
-                        ldd = ctx.l[dd]
-                        # print(ldd)
-                        # print(X.cod.alpha(i,ld))
-                        if ldd != X.cod.alpha(i,ld):
-                            # print("failedif")
-                            ok = False
-                            break
-                    else:
-                        ld = ctx.l[d]
-                        ldd = X.cod.alpha(i,ld)
-                        if ctx.is_cursed(ldd):
-                            # print("failedelse")
-                            ok = False
-                            break
-                        else:
-                            ctx.l[dd] = ldd
-                            ctx.curse(ldd)
-                ctx.uncurse_all()
-                # print(ok)
-                # print("------------")
-                if ok:
-                    yield PremapM(p.cod,X.cod,ctx.l)
+            assert X.dom == p.dom
+            ctx = Premap.Ctx(X.cod, p.cod.D * [None])
+            for d, ld in enumerate(X.l):
+                ctx.curse(ld)
+                ctx.l[p.l[d]] = ld
+            ok = True
+            # print("pattern : ")
+            # print(p.pattern())
+            for (b,d,i,dd) in p.pattern():
+                # print((b,d,i,dd))
+                if b:
+                    ld = ctx.l[d]
+                    ldd = ctx.l[dd]
+                    # print(ldd)
+                    # print(X.cod.alpha(i,ld))
+                    if ldd != X.cod.alpha(i,ld):
+                        # print("failedif")
+                        ok = False
+                        break
+                else:
+                    ld = ctx.l[d]
+                    ldd = X.cod.alpha(i,ld)
+                    if ctx.is_cursed(ldd):
+                        # print("failedelse")
+                        ok = False
+                        break
+                    ctx.l[dd] = ldd
+                    ctx.curse(ldd)
+            ctx.uncurse_all()
+            # print(ok)
+            # print("------------")
+            if ok:
+                yield PremapM(p.cod,X.cod,ctx.l)
 
 
     @staticmethod
@@ -336,7 +326,7 @@ class Premap(DataStructure):
                 wl = [ (m1.l[d], m2.l[d]) ]
                 while len(wl) > 0:
                     (d1,d2) = wl.pop()
-                    if lr2[d2] == None:
+                    if lr2[d2] is None:
                         lr2[d2] = d1
                         for i in range(0, s.Np1):
                             dd1 = t1.alpha(i,d1)
@@ -346,7 +336,7 @@ class Premap(DataStructure):
                     elif lr2[d2] != d1:
                         raise Exception("multi_merge collapse")
         for d in t2:
-            if lr2[d] == None:
+            if lr2[d] is None:
                 dd = r.add_dart()
                 lr2[d] = dd
             else:
@@ -355,12 +345,11 @@ class Premap(DataStructure):
                 ad = t2.alpha(i,d)
                 if ad == d:
                     continue
-                elif lr2[ad] == None:
+                if lr2[ad] is None:
                     continue
-                elif r.alpha(i, dd) == lr2[ad]:
+                if r.alpha(i, dd) == lr2[ad]:
                     continue
-                else:
-                    r.sew(i,dd,lr2[ad])
+                r.sew(i,dd,lr2[ad])
         return r, PremapM(t1, r, lr1), PremapM(t2, r, lr2)
 
 
@@ -381,7 +370,7 @@ class Premap(DataStructure):
                 wl = [ (m1.l[d], m2.l[d]) ]
                 while len(wl) > 0:
                     (d1,d2) = wl.pop()
-                    if lr2[d2] == None:
+                    if lr2[d2] is None:
                         lr2[d2] = d1
                         for i in range(0, s.Np1):
                             dd1 = t1.alpha(i,d1)
@@ -391,7 +380,7 @@ class Premap(DataStructure):
                     elif lr2[d2] != d1:
                         raise Exception("multi_merge collapse")
         for d in t2:
-            if lr2[d] == None:
+            if lr2[d] is None:
                 dd = r.add_dart()
                 lr2[d] = dd
             else:
@@ -400,8 +389,7 @@ class Premap(DataStructure):
                 ad = t2.alpha(i,d)
                 if ad == d:
                     continue
-                elif lr2[ad] == None:
+                if lr2[ad] is None:
                     continue
-                else:
-                    r.sew(i,dd,lr2[ad])
+                r.sew(i,dd,lr2[ad])
         return r, PremapM(t2, r, lr2)

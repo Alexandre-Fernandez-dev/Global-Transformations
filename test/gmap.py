@@ -7,7 +7,6 @@ from engine.PFunctor import FlatPFunctor, FamPFunctor
 from data.Gmap import Premap, PremapO, PremapM
 import data.Sheaf as Sheaf
 import math
-from data.DataStructure import Lazy
 from random import random
 
 class Test:
