@@ -421,7 +421,7 @@ class GraphO():
                             dep.add_edge((i,j),(j,i), weight = 0.)
                             dep.add_edge((j,i),(i,j), weight = 0.)
 
-        ed = nx.algorithms.tree.branchings.Edmonds(dep, seed=1)
+        ed = nx.algorithms.tree.branchings.Edmonds(dep)
         B = ed.find_optimum('weight', 1, kind='min', style='arborescence')
         C = nx.algorithms.dag.topological_sort(B)
 
