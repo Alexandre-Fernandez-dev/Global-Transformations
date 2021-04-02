@@ -13,7 +13,6 @@ def D0L():
 
     l0 = SequenceO([])
     r0 = l0
-    raise Exception("BUG")
 
     g0 = pfTm.add_rule(l0,r0)
 

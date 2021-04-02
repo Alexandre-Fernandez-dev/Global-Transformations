@@ -5,4 +5,4 @@ __pycache__/
 .locals/
 **/.ipynb_checkpoints/
 *.pyc
-.old/
+old/
