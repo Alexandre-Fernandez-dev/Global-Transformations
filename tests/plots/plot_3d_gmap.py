@@ -11,7 +11,7 @@ import tests_gmap
 T, gp = tests_gmap.Test.sheaf_nodes()
 
 for i in range(0, 4):
-    gp = tuple(T.extend(gp))[0].object
+    gp = T.extend(gp).object
 
 nodescorres = {}
 nodes = []

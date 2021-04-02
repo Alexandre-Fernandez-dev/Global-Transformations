@@ -10,10 +10,10 @@ import src.data.Sheaf as Sheaf
 from tests.tests_sheaf import Test
 
 T, gp = Test.triangle_mesh_refinement()
-gp = tuple(T.extend(gp))[0].object
-gp = tuple(T.extend(gp))[0].object
-gp = tuple(T.extend(gp))[0].object
-gp = tuple(T.extend(gp))[0].object
+gp = T.extend(gp).object
+gp = T.extend(gp).object
+gp = T.extend(gp).object
+gp = T.extend(gp).object
 
 print()
 

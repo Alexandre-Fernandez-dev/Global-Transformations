@@ -108,7 +108,7 @@ class Result():
         self.obs_by = []
     
     @staticmethod
-    def multi_merge_2(lm, CD, m): # TODO remove this converter -> modify multi_merge
+    def multi_merge_2(lm, CD): # TODO remove this converter -> modify multi_merge
         l_new = []
         l_old = []
         res_old = None
@@ -120,10 +120,10 @@ class Result():
                 res_old = ins.old_result
             if res_new == None:
                 res_new = ins.new_result
-        return Result.multi_merge(l_old, l_new, res_old, res_new, CD, m)
+        return Result.multi_merge(l_old, l_new, res_old, res_new, CD)
     
     @staticmethod
-    def multi_merge(l_old, l_new, res_old, res_new, CD, m):
+    def multi_merge(l_old, l_new, res_old, res_new, CD):
         if len(l_old) == 0:
             return [], []
         if res_old.is_rhs:

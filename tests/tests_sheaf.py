@@ -6,8 +6,8 @@ sys.path.insert(0, parent_dir)
 class Test:
     @staticmethod
     def triangle_mesh_refinement():
-        from src.engine.downward_resolv.GT import GT
-        import src.engine.downward_resolv.PFunctor as PFunctor
+        from src.engine.GT import GT
+        import src.engine.PFunctor as PFunctor
         from src.data.Graph import Graph
         from src.data.Sheaf import Parametrisation
 
@@ -333,8 +333,8 @@ class Test:
 
     @staticmethod
     def sierpinsky():
-        from src.engine.downward_resolv.GT import GT
-        import src.engine.downward_resolv.PFunctor as PFunctor
+        from src.engine.GT import GT
+        import src.engine.PFunctor as PFunctor
         from src.data.Graph import Graph
         from src.data.Sheaf import Parametrisation
 
@@ -653,171 +653,7 @@ class Test:
 
         return T, gp 
 
-def test_graph_as_presheave():
-    from enum import Enum
-    from src.data.DataStructure import DataStructure
-
-    class GO(Enum):
-        V = 0
-        E = 1
-    
-    class GM(Enum):
-        iv = 0
-        s  = 1
-        t  = 2
-        ie = 3
-
-        def dom(self):
-            if self == GM.iv or self == GM.s or self == GM.t:
-                return GO.V
-            elif self == GM.ie:
-                return GO.E
-            else:
-                raise "ARG"
-        
-        def cod(self):
-            if self == GM.iv:
-                return GO.V
-            elif self == GM.s or self == GM.t or self == GM.ie:
-                return GO.E
-            else:
-                raise "ARG"
-        
-        def morphism_compose(self, h):
-            if self == GM.iv or self == GM.ie:
-                return h
-            elif h == GM.iv or h == GM.ie:
-                return self
-            else:
-                raise "ARG"
-
-    class G(DataStructure):
-        @staticmethod
-        def TO():
-            return GO
-    
-        @staticmethod
-        def TM():
-            return GM
-
-        @staticmethod
-        def pattern_match(p, t):
-            if isinstance(p, GO):
-                if p == GO.V and t == GO.V:
-                    yield GM.idv
-                elif p == GO.E and t == GO.E:
-                    yield GM.ide
-                elif p == GO.V and t == GO.E:
-                    for i in [GM.s, GM.t]:
-                        yield i
-            else:
-                if p == GM.idv or p == GM.ide:
-                    yield t
-                else (p == GM.t and t == GM.t) or (p == GM.s and t == GM.s):
-                    yield GM.ide
-
-        @staticmethod
-        def multi_merge(m1s, m2s):
-            return None
-
-        @staticmethod
-        def multi_merge_2_in_1(m1s, m2s):
-            return None
-        print(GV.s.cod())
-
-    from src.engine.downward_resolv.GT import GT
-    import src.engine.downward_resolv.PFunctor as PFunctor
-    from src.data.Graph import Graph
-    from src.data.Sheaf import Parametrisation
-
-    def restriction(f, q):
-        ret = {}
-        # TODO :genericity with element operator ?
-        for e in f.dom.nodes:
-            ret[e] = q[f.apply(e)]
-        for e in f.dom.edges:
-            ret[e] = q[f.apply(e)]
-        return ret
-
-    def amalgamation(f, p, g, q):
-        assert f.cod == g.cod
-        ret = {}
-        for e in f.dom.nodes():
-            ret[f.apply(e)] = p[e]
-
-        for e in g.dom.nodes():
-            if ret.get(g.apply(e)) == None:
-                ret[g.apply(e)] = q[e]
-            elif ret[g.apply(e)] != q[e]:
-                raise Exception("fail amalgamation")
-
-        for e in f.dom.edges:
-            ret[f.apply(e)] = p[e]
-
-        for e in g.dom.edges:
-            if ret.get(g.apply(e)) == None:
-                ret[g.apply(e)] = q[e]
-            elif ret[g.apply(e)] != q[e]:
-                raise Exception("fail amalgamation")
-
-        return ret
-
-    def amalgamation_2_in_1(ret, g, q):
-        for e in g.dom.nodes():
-            if ret.get(g.apply(e)) == None:
-                ret[g.apply(e)] = q[e]
-            elif ret[g.apply(e)] != q[e]:
-                raise Exception("fail amalgamation 2 in 1")
-
-        for e in g.dom.edges:
-            if ret.get(g.apply(e)) == None:
-                ret[g.apply(e)] = q[e]
-            elif ret[g.apply(e)] != q[e]:
-                raise Exception("fail amalgamation 2 in 1")
-
-    def amalgamation_quotient(f, p):
-        ret = {}
-        for e in f.dom.nodes():
-            ret[f.apply(e)] = p[e]
-        for e in f.dom.edges:
-            ret[f.apply(e)] = p[e]
-
-        return ret
-
-    def phash(p): # TODO WHY NOT NEEDED, REMOVE ?
-        r = 1
-        # r = 31 * len(p.items())
-        # for k, v in p.items():
-        #     r ^= 31 * hash(k)
-        #     r ^= 31 * hash(v)
-        return r
-
-    ParameterGraph = {
-        'name'                  : "ParGraph",
-        'parhash'               : phash,
-        'restriction'           : restriction,
-        'amalgamation'          : amalgamation,
-        'amalgamation_2_in_1'   : amalgamation_2_in_1,
-        'amalgamation_quotient' : amalgamation_quotient
-    }
-    CO, CM, C = Parametrisation.get(Graph, ParameterGraph)
-
-    pfm = PFunctor.FamPFunctor.Maker(C, C)
-
-    G = Graph.TO()
-    V = G.add_node()
-    E = G.add_node()
-    idV = G.add_edge(V, V)
-    idE = G.add_edge(E, E)
-    s = G.add_edge(V, E)
-    t = G.add_edge(V, E)
-
-    l1 = CO(G, {V: [s, t], E: [idE]})
-    r1 = CO(G, {V: [s, t], E: []})
-
-    return None
-
-def test_sierpinsky():
+def sierpinsky():
     import src.data.Graph as GraphModule
     import networkx as nx
     import matplotlib.pyplot as plt
@@ -834,12 +670,11 @@ def test_sierpinsky():
 
     for i in range(0, 4):
         print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
-        s = tuple(T.extend(s))[0].object
+        s = T.extend(s).object
         print(s)
         print(type(s))
         nx.draw_kamada_kawai(s.OC.g, **options)
         plt.show()
 
 if __name__ == "__main__":
-    # test_sierpinsky()
-    test_graph_as_presheave()
+    sierpinsky()
