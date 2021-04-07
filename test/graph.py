@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from data.Sequence import *
 from random import *
 
-def triangular_mesh_refinement():
+def triangular_mesh_refinement(show = False):
     from engine.PFunctor import FlatPFunctor
     from engine.GT import GT
     pfTm = FlatPFunctor.Maker(Graph, Graph)
@@ -141,25 +141,39 @@ def triangular_mesh_refinement():
     pfT = pfTm.get()
     T = GT(pfT)
 
-    #plt.subplot(121)
-    # options = {
-    #     'node_color': 'black',
-    #     'node_size': 20,
-    #     'width': 1,
-    # }
+    if show > 0:
+        options = {
+            'node_color': 'black',
+            'node_size': 20,
+            'width': 1,
+        }
+        # mng = plt.get_current_fig_manager()
+        # mng.full_screen_toggle()
+        nx.draw_kamada_kawai(g.g, **options)
+        plt.show()
 
-    # nx.draw_kamada_kawai(g.g, **options)
-    # plt.show()
-    GraphModule.show = False
-    for i in range(3):
-        # GraphModule.show = True
-        print("------------------------------------------COMPUTE START", i)
+    for i in range(6):
+        if show == 2:
+            GraphModule.show = True
         g_ = T.extend(g)
         g = g_.object
-        print(len(g.nodes))
-        print(len(g.edges))
-        # nx.draw_kamada_kawai(g.g, **options)
-        # plt.show()
+        print("i =", i+1)
+        print("nodes :", len(g.nodes))
+        print("edges :", len(g.edges))
+        if show > 0:
+            print("waiting for draw...")
+            # mng = plt.get_current_fig_manager()
+            # mng.full_screen_toggle()
+            nx.draw_kamada_kawai(g.g, **options)
+            plt.show()
 
 if __name__ == "__main__":
-    triangular_mesh_refinement()
+    show = 0
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--show":
+            show = 1
+        elif sys.argv[1] == "--showall":
+            show = 2
+        else:
+            print("Unknown argument :", "'"+sys.argv[1]+"'", "... Try '--show' or '--showall")
+    triangular_mesh_refinement(show)

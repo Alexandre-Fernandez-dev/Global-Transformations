@@ -653,28 +653,46 @@ class Test:
 
         return T, gp 
 
-def sierpinsky():
+def sierpinsky(show = 0):
     import data.Graph as GraphModule
     import networkx as nx
     import matplotlib.pyplot as plt
     T, s = Test.sierpinsky()
-    # options = {
-    #     'node_color': 'black',
-    #     'node_size': 20,
-    #     'width': 1,
-    # }
-    GraphModule.show = False
-    # GraphModule.show = True
-    # nx.draw_kamada_kawai(s.OC.g, **options)
-    # plt.show()
+
+    if show > 0:
+        options = {
+            'node_color': 'black',
+            'node_size': 20,
+            'width': 1,
+        }
+        # mng = plt.get_current_fig_manager()
+        # mng.full_screen_toggle()
+        nx.draw_kamada_kawai(s.OC.g, **options)
+        plt.show()
 
     for i in range(0, 4):
-        print("\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n")
+        if show == 2:
+            GraphModule.show = True
         s = T.extend(s).object
-        print(s)
-        print(type(s))
         # nx.draw_kamada_kawai(s.OC.g, **options)
         # plt.show()
+        print("i =", i+1)
+        print("nodes :", len(s.OC.g.nodes))
+        print("edges :", len(s.OC.g.edges))
+        if show > 0:
+            print("waiting for draw...")
+            # mng = plt.get_current_fig_manager()
+            # mng.full_screen_toggle()
+            nx.draw_kamada_kawai(s.OC.g, **options)
+            plt.show()
 
 if __name__ == "__main__":
-    sierpinsky()
+    show = 0
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--show":
+            show = 1
+        elif sys.argv[1] == "--showall":
+            show = 2
+        else:
+            print("Unknown argument :", "'"+sys.argv[1]+"'", "... Try '--show' or '--showall")
+    sierpinsky(show)

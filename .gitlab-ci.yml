@@ -25,7 +25,8 @@ test:
   script:
   - python3 test/gmap.py
   - python3 test/sequence.py
-# /!\ other tests doesn't pass on gitlab because of a bug with networkx
   - python3 test/graph.py
-#  - python3 test/sheaf.py
-#  - python3 test/open.py
+  - python3 test/sheaf.py
+  - python3 test/open.py
+
+# /!\ other tests doesn't pass on gitlab because of a bug with networkx

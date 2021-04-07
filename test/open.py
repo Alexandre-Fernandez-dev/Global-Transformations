@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from engine.PFunctor import FlatPFunctor
 from engine.GT import GT
 
-def divide_edges():
+def divide_edges(show = 0):
     OGraphO, OGraphM, OGraph = Open.get(Graph)
     epf = FlatPFunctor.Maker(Graph, OGraph)
     
@@ -105,7 +105,7 @@ def divide_edges():
     e32 = g.add_edge(n3,n2)
     e31 = g.add_edge(n3,n1)
     e13 = g.add_edge(n1,n3)
-    print(len(g.g.nodes))
+    # print(len(g.g.nodes))
 
     #plt.subplot(121)
     options = {
@@ -125,7 +125,7 @@ def divide_edges():
         nx.draw_kamada_kawai(g.g, **options)
         plt.show()
 
-def divide_edges_add_node():
+def divide_edges_add_node(show = False):
     OGraphO, OGraphM, OGraph = Open.get(Graph)
     epf = FlatPFunctor.Maker(Graph, OGraph)
     
@@ -355,7 +355,7 @@ def divide_edges_add_node():
     l12_2p = l12_1p.compose(l22)
     r12_2p = r12_1p.compose(r22)
     i12_2p = epf.add_inclusion(g1, g2, l12_2p, r12_2p)
-    print(r12_2p.projL)
+    # print(r12_2p.projL)
 
     pfT = epf.get()
     T = GT(pfT)
@@ -373,7 +373,7 @@ def divide_edges_add_node():
     e32 = g.add_edge(n4,n3)
     e23 = g.add_edge(n4,n1)
     e32 = g.add_edge(n1,n4)
-    print(len(g.g.nodes))
+    # print(len(g.g.nodes))
 
     options = {
         'node_color': 'black',
@@ -392,7 +392,7 @@ def divide_edges_add_node():
         nx.draw_kamada_kawai(g.g, **options)
         plt.show()
 
-def divide_tri():
+def divide_tri(show = False):
     OGraphO, OGraphM, OGraph = Open.get(Graph)
     epf = FlatPFunctor.Maker(Graph, OGraph)
     
@@ -630,35 +630,42 @@ def divide_tri():
     
     # print(len(g.g.nodes))
 
-    options = {
-        'node_color': 'black',
-        'node_size': 20,
-        'width': 1,
-    }
-
-    print("i =", 0)
-    print("nodes :", len(g.nodes))
-    print("edges :", len(g.edges))
-    GraphModule.show = False
-    # mng = plt.get_current_fig_manager()
-    # mng.full_screen_toggle()
-    nx.draw_kamada_kawai(g.g, **options)
-    plt.show()
-    for i in range(0, 6):
-        #if i == 3:
-        GraphModule.show = True
-        g_ = T.extend(g)
-        g = g_.object.LO[0]
-        print("i =", i+1)
-        print("nodes :", len(g.nodes))
-        print("edges :", len(g.edges))
-        print("waiting for draw...")
+    # print("i =", 0)
+    # print("nodes :", len(g.nodes))
+    # print("edges :", len(g.edges))
+    if show > 0:
+        options = {
+            'node_color': 'black',
+            'node_size': 20,
+            'width': 1,
+        }
         # mng = plt.get_current_fig_manager()
         # mng.full_screen_toggle()
         nx.draw_kamada_kawai(g.g, **options)
         plt.show()
 
+    for i in range(0, 6):
+        if show == 2:
+            GraphModule.show = True
+        g_ = T.extend(g)
+        g = g_.object.LO[0]
+        print("i =", i+1)
+        print("nodes :", len(g.nodes))
+        print("edges :", len(g.edges))
+        if show > 0:
+            print("waiting for draw...")
+            # mng = plt.get_current_fig_manager()
+            # mng.full_screen_toggle()
+            nx.draw_kamada_kawai(g.g, **options)
+            plt.show()
+
 if __name__ == "__main__":
-    # divide_edges()
-    # divide_edges_add_node()
-    divide_tri()
+    show = 0
+    if len(sys.argv) > 1:
+        if sys.argv[1] == "--show":
+            show = 1
+        elif sys.argv[1] == "--showall":
+            show = 2
+        else:
+            print("Unknown argument :", "'"+sys.argv[1]+"'", "... Try '--show' or '--showall")
+    divide_tri(show)

@@ -53,6 +53,7 @@ def D0L():
     T = GT(pfT)
     for i in range(0, 3):
         s = T.extend(s).object
+        print("i =", i+1)
         print(s)
 
 if __name__ == "__main__":

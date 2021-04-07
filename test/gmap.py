@@ -586,3 +586,5 @@ if __name__ == "__main__":
     T, gp = Test.sheaf_nodes()
     for i in range(0, 5):
         gp = T.extend(gp).object
+        print("i =", i+1)
+        print("darts :", len(gp.OC))
