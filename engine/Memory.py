@@ -10,21 +10,31 @@ class Instance():
         self.new_result = None
         self.new_subresult = None
         self.uppercone = []
+        self.underincs = []
     
-    def compute_result(self, underincs):
-        assert self.new_result is None
-        rhs = self.rule.get_rhs(underincs)
+    def compute_result(self):
+        if hasattr(self.rule.rhs, 'eval'):
+            # assert self.new_result is None
+            rhs = self.rule.rhs.eval(self.underincs)
+        else:
+            rhs = self.rule.rhs
         res = Result(rhs, True)
-        self.observe(res, None)
-        for ins_inc in underincs:
-            sub = ins_inc.compute_result(rhs) # when ensure observe is safe, make this as a lazy lambda (run when needed in merge)
-            ins_inc.s.observe(res, sub)
+        self.observe(res, None) # effet de bord
+        for ins_inc in self.underincs: # return span ?
+            sub = ins_inc.compute_result() # when ensure observe is safe, make this as a lazy lambda (run when needed in merge)
+            ins_inc.s.observe(res, sub) # effet de bord
+        return res
     
     def observe(self, res, m): # privé à GT ?
-        assert m is None or m.cod == res.object
+        # assert m is None or m.cod == res.object
         if self.new_result is not None:
+            # ons, ins = self.new_subresult
+            # om, im = m
+            # print(ons.ev[ins])
+            # print(om.ev[im])
+            # assert ons.ev[ins].dom == om.ev[im].dom
             if self.new_result == res:
-                assert self.new_subresult == m
+                # assert self.new_subresult == m
                 return
             self.old_result = self.new_result
             self.old_subresult = self.new_subresult
@@ -48,7 +58,7 @@ class InstanceInc():
     def get_rhs(self):
         pass
     
-    def compute_result(self, over_result):
+    def get_result(self):
         pass
     
     def __repr__(self):
@@ -62,7 +72,6 @@ class PrimeInstanceInc(InstanceInc):
         self.rule_inc = rule_inc
         self.s = s
         self.t = t
-        self.rhs = rule_inc.rhs
         self.result = None
     
     def get_lhs(self):
@@ -70,11 +79,13 @@ class PrimeInstanceInc(InstanceInc):
     
     def get_rhs(self):
         return self.rule_inc.rhs
-
-    def compute_result(self, over_result):
-        if self.result is None:
-            self.result = self.rule_inc.get_rhs(over_result)
-        return self.result
+    
+    def compute_result(self):
+        if hasattr(self.rule_inc.rhs, 'eval'):
+            assert self.result == None
+            self.result = self.rule_inc.rhs.eval(self.t.new_result.object)
+            return self.result
+        return self.rule_inc.rhs
 
     def __repr__(self):
         return "PrimeInsInc : [" + " lhs : " + str(self.rule_inc.lhs) + " ]"
@@ -82,26 +93,39 @@ class PrimeInstanceInc(InstanceInc):
 class CompInstanceInc(InstanceInc):
     def __init__(self, f, g):
         assert f.t == g.s
-        self.lhs = f.get_lhs().compose(g.get_lhs())
+        self.lhs = f.get_lhs().compose(g.get_lhs()) # lazy ?
         self.s = f.s
         self.f = f
         self.g = g
         self.t = g.t
-        self.rhs = f.get_rhs().compose(g.get_rhs())
         self.result = None
+        self.rhs = None
     
     def get_lhs(self):
         return self.lhs
     
     def get_rhs(self):
+        if self.rhs == None: 
+            self.rhs = self.f.get_rhs().compose(self.g.get_rhs())
         return self.rhs
     
-    def compute_result(self, over_result):
-        if self.result is None:
-            oi_result = self.g.compute_result(over_result)
-            ui_result = self.f.compute_result(oi_result.dom)
-            self.result = ui_result.compose(oi_result)
-        return self.result
+    def compute_result(self):
+        # assert self.rhs == None
+        if hasattr(self.rhs, 'eval'):
+            return self.rhs.eval(self.t.new_result.object)
+        else:
+            return self.rhs
+        # # if self.result is None:
+        # assert self.result is None
+        # print(over_result)
+        # oi_result = self.g.compute_result(over_result)
+        # ui_result = self.f.compute_result(oi_result.dom)
+        # # self.result = ui_result.compose(oi_result)
+        # comp = ui_result.compose(oi_result)
+        # # comp.name = "(" + ui_result.name + " ; " + oi_result.name + ")"
+        # self.result = comp
+        # return comp
+        # return self.result
     
     def __repr__(self):
         return "CompInsInc : [" + " lhs : " + str(self.lhs) + " ]"
@@ -136,6 +160,7 @@ class Result():
             obj, on_old, on_new = CD.multi_merge(l_old, l_new)
             res = Result(obj, False)
             for ins in res_old.obs_by:
+                # print(type(ins.new_result.object), type(ins.old_result.object), type(res_old.object))
                 if ins.new_result == res_old:
                     ins.observe(res, on_old if ins.new_subresult is None else ins.new_subresult.compose(on_old))
                 elif ins.old_result == res_old:
@@ -154,7 +179,7 @@ class Result():
                         assert False
             res_new.obs_by = None
             res_new.object = None
-            return [res], [res_old, res_new]
+            return res
         obj, on_new = CD.multi_merge_2_in_1(l_old, l_new)
         for ins in res_new.obs_by:
             if ins.new_result != res_old:
@@ -166,4 +191,4 @@ class Result():
                     assert False
         res_new.obs_by = None
         res_new.object = None
-        return [], [res_new]
+        return res_old

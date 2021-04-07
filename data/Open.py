@@ -1,5 +1,11 @@
 import random
 from .DataStructure import DataStructure
+import random
+import sys
+
+seed = random.randrange(sys.maxsize) # = 862933594082592502 #
+# print(" SEEEEEEEEED ", seed)
+random.seed(seed)
 
 class Open:
 
@@ -23,18 +29,41 @@ class Open:
             return r
         
         def object_eval(self, underincs): # efficacity vs intersection method ??
-            r = self.LO.copy()
-            for i in range(0, len(r)):
-                ri = r[i]
+            r = [ ]
+            print("CHOOSE ")
+            for i in range(0, len(self.LO)):
+                print("CHOICE ", i)
+                keep = True
                 for ins_inc in underincs:
-                    if ins_inc.s.old_subresult != ins_inc.rhs.dom.LO[ins_inc.rhs.projL[i]]:
-                        ri = None
-                r[i] = ri
-            fr = list(filter(lambda x : (x is not None), r))
-            if len(fr) == 0:
-                fr = self.LO
-            rand = random.randrange(len(fr))
-            return fr[rand]
+                    # print(type(ins_inc.s.new_subresult))
+                    # print(ins_inc)
+                    ins_rhs = ins_inc.get_rhs()
+                    if ins_inc.s.new_subresult is not None:
+                        if isinstance(ins_inc.s.new_subresult, MorphismeInterne):
+                            om, index = ins_inc.s.new_subresult
+                            # print()
+                            # print(om.projL[index])
+                            # print(ins_rhs)
+                            # print(ins_rhs.projL[i])
+                            if om.projL[index] != ins_rhs.projL[i]:
+                                keep = False
+                                # print("False")
+                        else:
+                            assert isinstance(ins_inc.s.new_subresult, C.TM())
+                        #if ins_inc.s.new_subresult != None:
+                        # print(ins_inc.s.new_subresult.dom, ins_inc.rhs.dom.LO[ins_inc.rhs.projL[i]])
+                            if ins_inc.s.new_subresult.dom != ins_rhs.dom.LO[ins_rhs.projL[i]]:
+                                keep = False
+                if keep:
+                    r.append(i)
+            print(r)
+            if len(r) == 0:
+                raise "CORRELATIONS ???"
+            #     rand = random.randrange
+            # else:
+            rand = random.randrange(len(r))
+            print(" CHOOSEN : ", rand, self.LO[r[rand]])
+            return (self, r[rand])
 
         ObjectClass = type("O" + C.__name__ + "O", (), {
             '__init__'     : object_init,
@@ -45,8 +74,6 @@ class Open:
         })
 
         def morphism_init(self, s, t, projL, ev):
-            assert isinstance(s, ObjectClass)
-            assert isinstance(t, ObjectClass)
             # assert len(projL) == len(t.LO)
             # assert len(ev) == len(projL)
             self.s = s
@@ -56,14 +83,16 @@ class Open:
             hash(self)
 
         def morphism_compose(self, h):
+            # TODO 
             c_projL = []
             c_ev = []
             for i in range(0, len(h.projL)):
                 c_projL.append(self.projL[h.projL[i]])
                 comp_e = self.ev[h.projL[i]].compose(h.ev[i])
+                # comp_e.name = "(" + self.ev[h.projL[i]].name + " ; " + h.ev[i].name + ")"
                 c_ev.append(comp_e)
-                assert comp_e.dom() == self.s.LO[self.projL[h.projL[i]]]
-            return MorphismClass(self.s, h.t, self.MC.compose(h.MC))
+                assert comp_e.dom == self.s.LO[self.projL[h.projL[i]]]
+            return MorphismClass(self.s, h.t, c_projL, c_ev)
 
         def morphism_eq(self, other):
             if not isinstance(other, MorphismClass):
@@ -78,13 +107,33 @@ class Open:
                 r ^= 31 * hash(i)
             return r
         
+        class MorphismeInterne:
+            def __init__(self, m, i):
+                self.m = m
+                self.i = i
+                self.t = (m, i)
+            
+            def __iter__(self):
+                return self.t.__iter__()
+
+            def compose(self, h):
+                if isinstance(h, MorphismeInterne):
+                    return MorphismeInterne(self.m.compose(h.m), h.i)
+                    #self.m.ev[self.i].compose(h.m.ev[h.i])
+                elif isinstance(h, C.TM()):
+                    print("lol")
+                    print(self.m.ev[self.i])
+                    print(h)
+                    return self.m.ev[self.i].compose(h)
+                else:
+                    print(type(h))
+                    assert False
+                # raise "ERREUR"
+
         def morphism_eval(self, over_rhs):
-            i = -1
-            for j in range(0, len(self.t.LO)): #TODO efficient reverse map LO : rhs -> id
-                if self.t.LO[j] == over_rhs:
-                    i = j
-                    break
-            return self.ev[i]
+            print("morphism_eval")
+            _, i = over_rhs
+            return MorphismeInterne(self, i)
 
         def morphism_dom(self):
             return self.s
@@ -116,9 +165,39 @@ class Open:
             raise "Not implemented"
 
         def Category_multi_merge(m1s, m2s):
+            print("MULTI MERGE")
+            for i in m1s:
+                print(i)
+            print("...")
+            for i in m2s:
+                print(i)
+            for i in range(len(m1s)):
+                if isinstance(m1s[i], MorphismeInterne):
+                    om, j = m1s[i]
+                    m1s[i] = om.ev[j]
+                else:
+                    assert isinstance(m1s[i], C.TM())
+            for i in range(len(m2s)):
+                if isinstance(m2s[i], MorphismeInterne):
+                    om, j = m2s[i]
+                    m2s[i] = om.ev[j]
+                else:
+                    assert isinstance(m2s[i], C.TM())
             return C.multi_merge(m1s, m2s)
 
         def Category_multi_merge_2_in_1(m1s, m2s):
+            for i in range(len(m1s)):
+                if isinstance(m1s[i], MorphismeInterne):
+                    om, j = m1s[i]
+                    m1s[i] = om.ev[j]
+                else:
+                    assert isinstance(m1s[i], C.TM())
+            for i in range(len(m2s)):
+                if isinstance(m2s[i], MorphismeInterne):
+                    om, j = m2s[i]
+                    m2s[i] = om.ev[j]
+                else:
+                    assert isinstance(m2s[i], C.TM())
             return C.multi_merge_2_in_1(m1s, m2s)
 
         CategoryClass = type("O" + C.__name__, (DataStructure,), {

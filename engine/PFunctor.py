@@ -8,9 +8,7 @@ class FlatPFunctor:
             self.rhs = rhs
             self.self_inclusions = set()
         
-        def get_rhs(self, underincs):
-            if hasattr(self.rhs, 'eval'):
-                return self.rhs.eval(underincs)
+        def get_rhs(self):
             return self.rhs
 
         def __eq__(self, other):
@@ -35,9 +33,7 @@ class FlatPFunctor:
             self.lhs = lhs
             self.rhs = rhs
 
-        def get_rhs(self, over_rhs):
-            if hasattr(self.rhs, 'eval'):
-                return self.rhs.eval(over_rhs)
+        def get_rhs(self):
             return self.rhs
 
         def __eq__(self, other):
@@ -65,6 +61,7 @@ class FlatPFunctor:
         def add_inclusion(self, g_a, g_b, l, r):
             inc = FlatPFunctor.Inclusion(g_a, g_b, l, r)
             if g_a == g_b:
+                assert l.dom == g_a.lhs
                 g_a.self_inclusions.add(inc)
             else:
                 self.G.add_edge(g_a, g_b, key = inc)
@@ -131,7 +128,7 @@ class FlatPFunctor:
         for inc in rule.iter_self_inclusions():
             s_occ = inc.lhs.compose(ins.occ)
             get_s_ins = lambda : Instance(rule, len(self.small_pred.in_edges(rule)), s_occ)
-            get_ins_inc = lambda u_ins : PrimeInstanceInc(inc, u_ins, inc)
+            get_ins_inc = lambda u_ins : PrimeInstanceInc(inc, u_ins, ins)
             yield s_occ, get_s_ins, get_ins_inc
 
 class FamPFunctor:
