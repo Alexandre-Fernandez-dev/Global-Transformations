@@ -10,7 +10,7 @@ before_script:
 
 # different stages in the pipeline
 stages:
-  - Static Analysis
+  # - Static Analysis
   - Test
 
 #defines the job in Static Analysis
@@ -26,6 +26,6 @@ test:
   - python3 test/gmap.py
   - python3 test/sequence.py
 # /!\ other tests doesn't pass on gitlab because of a bug with networkx
-#  - python3 test/graph.py
+  - python3 test/graph.py
 #  - python3 test/sheaf.py
 #  - python3 test/open.py
