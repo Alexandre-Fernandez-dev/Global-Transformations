@@ -10,8 +10,8 @@ before_script:
 
 # different stages in the pipeline
 stages:
-  # - Static Analysis
   - Test
+  # - Static Analysis
 
 #defines the job in Static Analysis
 pylint:
