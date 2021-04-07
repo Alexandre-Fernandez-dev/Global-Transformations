@@ -12,8 +12,8 @@ A rewriting system can be defined over the following structures :
 To install the required modules :
 ```pip install -r requirements.txt```
 
-The tests in `test` can be run with the following arguments
+The tests in `test` can be run with the following arguments :
 - `--show`    : show each step of computation
 - `--showall` : show also each intermediary step
 
-For the plots in `test\plot` see details in `test\plot\README.md`
+Read the details in `test\plot\README.md` to see the plots in `test\plot` 
