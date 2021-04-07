@@ -611,24 +611,24 @@ def divide_tri():
     # edged_n = [ edged.add_node() for _ in range(0, 3) ]
     # edged_e = [ edged.add_edge(edged_n[i], edged_n[(i + 1) % 3]) for i in range(0, 3) ]
 
-    print("g0")
-    for i in g0.self_inclusions:
-        print(i.lhs)
-    print("g1")
-    for i in g1.self_inclusions:
-        print(i.lhs)
-    print("g2")
-    for i in g2.self_inclusions:
-        print(i.lhs)
+    # print("g0")
+    # for i in g0.self_inclusions:
+    #     print(i.lhs)
+    # print("g1")
+    # for i in g1.self_inclusions:
+    #     print(i.lhs)
+    # print("g2")
+    # for i in g2.self_inclusions:
+    #     print(i.lhs)
 
     pfT = epf.get()
     T = GT(pfT)
 
     #carré
     # g = GraphO()
-    g = tri2.g
+    g = tri4.g
     
-    print(len(g.g.nodes))
+    # print(len(g.g.nodes))
 
     options = {
         'node_color': 'black',
@@ -636,14 +636,25 @@ def divide_tri():
         'width': 1,
     }
 
+    print("i =", 0)
+    print("nodes :", len(g.nodes))
+    print("edges :", len(g.edges))
     GraphModule.show = False
+    # mng = plt.get_current_fig_manager()
+    # mng.full_screen_toggle()
     nx.draw_kamada_kawai(g.g, **options)
     plt.show()
-    for i in range(0, 3):
+    for i in range(0, 6):
         #if i == 3:
-        GraphModule.show = True
+        # GraphModule.show = True
         g_ = T.extend(g)
-        g = g_.object
+        g = g_.object.LO[g_.object.i]
+        print("i =", i+1)
+        print("nodes :", len(g.nodes))
+        print("edges :", len(g.edges))
+        print("waiting for draw...")
+        # mng = plt.get_current_fig_manager()
+        # mng.full_screen_toggle()
         nx.draw_kamada_kawai(g.g, **options)
         plt.show()
 
