@@ -11,12 +11,11 @@ class Open:
 
     @staticmethod
     def get(C):
-        def object_init(self, LO, i = None):
+        def object_init(self, LO):
             self.LO = LO
-            self.i = i
 
         def object_repr(self):
-            return "OO < " + str(self.LO) + " c: " + str(self.i) + " >"
+            return "OO < " + str(self.LO) + " c: " + " >"
 
         def object_eq(self, other):
             if not isinstance(other, ObjectClass):
@@ -30,21 +29,22 @@ class Open:
             return r
 
         def object_eval(self, incsl, incsr): # efficacity vs intersection method ??
+            lo = len(incsl[0].cod.LO)
+            oldi = 0 if lo == 0 else random.randrange(lo)
             r = [ ]
             for i in range(0, len(self.LO)):
                 keep = True
                 for j in range(0, len(incsl)):
                     incl = incsl[j]
                     incr = incsr[j]
-                    assert incl.cod.i is not None
-                    if incl.projL[incl.cod.i] != incr.projL[i]:
+                    if incl.projL[oldi] != incr.projL[i]:
                         keep = False
                 if keep:
                     r.append(i)
             if len(r) == 0:
-                raise "CORRELATIONS ???"
+                raise "CORRELATIONS !!!"
             rand = random.randrange(len(r))
-            return ObjectClass(self.LO, r[rand])
+            return oldi, r[rand]
 
         ObjectClass = type("O" + C.__name__ + "O", (), {
             '__init__'     : object_init,
@@ -102,7 +102,6 @@ class Open:
             'dom'       : property(morphism_dom),
             'cod'       : property(morphism_cod),
             '__repr__'  : morphism_repr,
-#            'eval'      : morphism_eval
         })
 
         def Category_TO():
@@ -117,42 +116,19 @@ class Open:
         def Category_multi_merge(m1s, m2s):
             old = m1s[0].cod
             new = m2s[0].cod
-            m1sc = []
-            m2sc = []
+            oi, ni = new.eval(m1s, m2s)
 
-            eold = old.eval([], [])
-            m1sp = []
-            for i in range(len(m1s)):
-                m1sc.append(m1s[i].ev[eold.i])
-                # information not stored in m1s because not merge has happened : 
-                m1sp.append(MorphismClass(m1s[i].s, eold, m1s[i].projL, m1s[i].ev)) 
-                # m1s[i].t = eold # this should not work, it modifies rule morphisms right ?
-                # m1s[i].val = "aaaah"
-
-            enew = new.eval(m1sp, m2s)
-            for i in range(len(m2s)):
-                m2sc.append(m2s[i].ev[enew.i])
-
-            r, m_old, m_new = C.multi_merge(m1sc, m2sc)
-            ro = ObjectClass([r], 0)
-            return ro, MorphismClass(old, ro, [eold.i], [m_old]), MorphismClass(enew, ro, [enew.i], [m_new])
+            r, m_old, m_new = C.multi_merge([m1.ev[oi] for m1 in m1s], [m2.ev[ni] for m2 in m2s])
+            ro = ObjectClass([r])
+            return ro, MorphismClass(old, ro, [oi], [m_old]), MorphismClass(new, ro, [ni], [m_new])
 
         def Category_multi_merge_2_in_1(m1s, m2s):
-            old = m1s[0].cod
             new = m2s[0].cod
-            m1sc = []
-            m2sc = []
+            oi, ni = new.eval(m1s, m2s)
 
-            for i in range(len(m1s)):
-                m1sc.append(m1s[i].ev[old.i])
-
-            enew = new.eval(m1s, m2s)
-            for i in range(len(m2s)):
-                m2sc.append(m2s[i].ev[enew.i])
-
-            r, m_new = C.multi_merge_2_in_1(m1sc, m2sc)
-            ro = ObjectClass([r], 0)
-            return ro, MorphismClass(enew, ro, [enew.i], [m_new])
+            r, m_new = C.multi_merge_2_in_1([m1.ev[oi] for m1 in m1s], [m2.ev[ni] for m2 in m2s])
+            ro = ObjectClass([r])
+            return ro, MorphismClass(new, ro, [ni], [m_new])
 
         CategoryClass = type("O" + C.__name__, (DataStructure,), {
             'TO'                  : Category_TO,

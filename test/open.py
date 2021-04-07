@@ -646,9 +646,9 @@ def divide_tri():
     plt.show()
     for i in range(0, 6):
         #if i == 3:
-        # GraphModule.show = True
+        GraphModule.show = True
         g_ = T.extend(g)
-        g = g_.object.LO[g_.object.i]
+        g = g_.object.LO[0]
         print("i =", i+1)
         print("nodes :", len(g.nodes))
         print("edges :", len(g.edges))
