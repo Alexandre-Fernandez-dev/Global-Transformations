@@ -45,7 +45,7 @@ class GT:
                 if not u_ins.closed:
                     acclm, accui = close(u_ins)
                     lm += acclm
-                    for ui in accui.keys():
+                    for ui in accui:
                         underincs[ui] = accui[ui].compose(ins_inc.get_rhs())
                     # print("   edit lm acc")#, [ i.occ for i in acc_lm ])
                 elif not u_ins.auto and u_ins in uins_bigresult.keys(): # already visited by other close
