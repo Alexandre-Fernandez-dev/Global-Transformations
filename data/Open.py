@@ -1,9 +1,8 @@
 import random
-from .DataStructure import DataStructure
-import random
 import sys
+from .DataStructure import DataStructure
 
-seed = 1431403523709400149 # random.randrange(sys.maxsize) # = 862933594082592502 #
+seed = random.randrange(sys.maxsize) # = 862933594082592502 #
 print(" SEEEEEEEEED ", seed)
 random.seed(seed)
 

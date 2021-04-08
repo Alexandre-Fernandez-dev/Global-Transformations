@@ -10,23 +10,37 @@ before_script:
 
 # different stages in the pipeline
 stages:
+  - Static Analysis
   - Test
-  # - Static Analysis
 
-# #defines the job in Static Analysis
-# pylint:
-#   stage: Static Analysis
-#   script:
-#   - pylint --disable=C0103,C0114,C0115,C0116,C0123,C0200,C0301,C0303,R0801,R0912,R0914,R1702,R0201,R0902,R0915,R1710,R1721,R0903,W0212,W0603,W0622,W0102,W0511,W0640 data/*.py
-#   - pylint --disable=C0103,C0114,C0115,C0116,C0123,C0200,C0301,C0303,R0801,R0912,R0914,R1702,R0201,R0902,R0915,R1710,R1721,R0903,W0212,W0603,W0622,W0102,W0511,W0640 engine/*.py
+#defines the job in Static Analysis
+pylint:
+  stage: Static Analysis
+  script:
+  - pylint --disable=C0103,C0114,C0115,C0116,C0123,C0200,C0301,C0303,R0801,R0912,R0914,R1702,R0201,R0902,R0915,R1710,R1721,R0903,W0212,W0603,W0622,W0102,W0511,W0640 data/*.py
+  - pylint --disable=C0103,C0114,C0115,C0116,C0123,C0200,C0301,C0303,R0801,R0912,R0914,R1702,R0201,R0902,R0915,R1710,R1721,R0903,W0212,W0603,W0622,W0102,W0511,W0640 engine/*.py
 
-test:
+test-sequence:
+  stage: Test
+  script:
+  - python3 test/sequence.py
+
+test-gmap:
   stage: Test
   script:
   - python3 test/gmap.py
-  - python3 test/sequence.py
-  - python3 test/graph.py
-  - python3 test/sheaf.py
-  - python3 test/open.py
 
-# /!\ other tests doesn't pass on gitlab because of a bug with networkx
+test-graph:
+  stage: Test
+  script:
+  - python3 test/graph.py
+
+test-sheaf:
+  stage: Test
+  script:
+  - python3 test/sheaf.py
+
+test-open:
+  stage: Test
+  script:
+  - python3 test/open.py

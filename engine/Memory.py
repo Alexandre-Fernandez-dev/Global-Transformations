@@ -66,18 +66,17 @@ class CompInstanceInc(InstanceInc):
         self.lhs = None
         self.s = f.s
         self.f = f
-        assert isinstance(g, InstanceInc)
         self.g = g
         self.t = g.t
         self.rhs = None
     
     def get_lhs(self):
-        if self.lhs == None:
+        if self.lhs is None:
             self.lhs = self.f.get_lhs().compose(self.g.get_lhs())
         return self.lhs
     
     def get_rhs(self):
-        if self.rhs == None: 
+        if self.rhs is None: 
             self.rhs = self.f.get_rhs().compose(self.g.get_rhs())
         return self.rhs
     
