@@ -3,16 +3,15 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from data.Sheaf import Parametrisation
-import data.Graph as GraphModule
-from data.Graph import *
 import matplotlib.pyplot as plt
-from data.Sequence import *
-from random import *
+import networkx as nx
+import src.data.Graph as GraphModule
+from src.data.Sheaf import Parametrisation
+from src.data.Graph import Graph, GraphO, GraphM
+from src.engine.PFunctor import FlatPFunctor
+from src.engine.GT import GT
 
 def triangular_mesh_refinement(show = False):
-    from engine.PFunctor import FlatPFunctor
-    from engine.GT import GT
     pfTm = FlatPFunctor.Maker(Graph, Graph)
 
     l0 = GraphO()
@@ -155,8 +154,7 @@ def triangular_mesh_refinement(show = False):
     for i in range(6):
         if show == 2:
             GraphModule.show = True
-        g_ = T.extend(g)
-        g = g_.object
+        g = T.extend(g)
         print("i =", i+1)
         print("nodes :", len(g.nodes))
         print("edges :", len(g.edges))

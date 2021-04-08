@@ -3,12 +3,13 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from data.Open import Open
-import data.Graph as GraphModule
-from data.Graph import *
+import networkx as nx
 import matplotlib.pyplot as plt
-from engine.PFunctor import FlatPFunctor
-from engine.GT import GT
+from src.data.Open import Open
+from src.data.Graph import Graph, GraphO, GraphM
+import src.data.Graph as GraphModule
+from src.engine.PFunctor import FlatPFunctor
+from src.engine.GT import GT
 
 def divide_edges(show = 0):
     OGraphO, OGraphM, OGraph = Open.get(Graph)
@@ -648,7 +649,7 @@ def divide_tri(show = False):
         if show == 2:
             GraphModule.show = True
         g_ = T.extend(g)
-        g = g_.object.LO[0]
+        g = g_.LO[0]
         print("i =", i+1)
         print("nodes :", len(g.nodes))
         print("edges :", len(g.edges))

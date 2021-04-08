@@ -9,7 +9,9 @@ class GT:
 
     def extend(self, X):
         matches = {}
+        rhs = True
         bigresult = None
+        uins_bigresult = {}
         fifo = []
 
         def add_instance(ins):
@@ -18,8 +20,8 @@ class GT:
             ins.auto = False
         
         def close(ins):
-            nonlocal bigresult
             lm = []
+            underincs = {}
             # print("close", ins)
             for s_occ, get_s_ins, get_ins_inc in self.pfunctor.iter_self_inclusions(ins): # add siblings
                 assert s_occ not in matches
@@ -39,18 +41,21 @@ class GT:
                     add_instance(u_ins)
                     if self.pfunctor.is_small(u_ins):
                         fifo.insert(0, u_ins)
-                u_ins.observe(ins.new_result, ins_inc if ins.new_subresult is None else ins_inc.compose(ins.new_subresult))
+                underincs[u_ins] = ins_inc.get_rhs()
                 if not u_ins.closed:
-                    lm += close(u_ins)
+                    acclm, accui = close(u_ins)
+                    lm += acclm
+                    for ui in accui.keys():
+                        underincs[ui] = accui[ui].compose(ins_inc.get_rhs())
                     # print("   edit lm acc")#, [ i.occ for i in acc_lm ])
-                elif not u_ins.auto and u_ins.old_result is not None: # already visited by other close
+                elif not u_ins.auto and u_ins in uins_bigresult.keys(): # already visited by other close
                     lm += [u_ins]
                     # print("   edit lm init", u_ins.occ)
             ins.closed = True
-            return lm
+            return lm, underincs
         
         def star(ins):
-            nonlocal bigresult
+            nonlocal bigresult, uins_bigresult, rhs
             top = True
             uppercone = []
             for o_occ, get_o_ins, _ in self.pfunctor.pmatch_up(ins):
@@ -69,14 +74,14 @@ class GT:
             ins.stared = True
             if top:
                 if not ins.auto:
-                    res = Result(ins.rule.rhs, True)
-                    ins.observe(res, None)
-                    lm = close(ins)
+                    lm, underincs = close(ins)
                     if len(lm) > 0:
-                        bigresult = Result.multi_merge_2(lm, self.pfunctor.CD)
+                        bigresult, acc_uins_big_result = Result.multi_merge_2(lm, underincs, uins_bigresult, self.pfunctor.CD, not rhs)
+                        uins_bigresult.update(acc_uins_big_result)
+                        rhs = False
                     elif bigresult is None:
-                        bigresult = ins.new_result
-                        # print("FIRST RESULT :", bigresult)
+                        bigresult = ins.rule.rhs
+                        uins_bigresult = underincs
             return uppercone
 
         for get_s_ins in self.pfunctor.next_small(X):
@@ -93,6 +98,8 @@ class GT:
             for dep_ins in small_ins.uppercone:
                 if dep_ins.decrNbDep():
                     del matches[dep_ins.occ]
+                    if dep_ins in uins_bigresult.keys():
+                        del uins_bigresult[dep_ins]
             del matches[small_ins.occ]
 
         return bigresult

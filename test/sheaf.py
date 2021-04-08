@@ -3,10 +3,13 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from engine.GT import GT
-import engine.PFunctor as PFunctor
-from data.Graph import Graph
-from data.Sheaf import Parametrisation
+import networkx as nx
+import matplotlib.pyplot as plt
+import src.engine.PFunctor as PFunctor
+import src.data.Graph as GraphModule
+from src.data.Graph import Graph
+from src.data.Sheaf import Parametrisation
+from src.engine.GT import GT
 
 class Test:
     @staticmethod
@@ -333,11 +336,6 @@ class Test:
 
     @staticmethod
     def sierpinsky():
-        from engine.GT import GT
-        import engine.PFunctor as PFunctor
-        from data.Graph import Graph
-        from data.Sheaf import Parametrisation
-
         def restriction(f, q):
             ret = {}
             # TODO :genericity with element operator ?
@@ -654,9 +652,6 @@ class Test:
         return T, gp 
 
 def sierpinsky(show = 0):
-    import data.Graph as GraphModule
-    import networkx as nx
-    import matplotlib.pyplot as plt
     T, s = Test.sierpinsky()
 
     if show > 0:
@@ -673,7 +668,7 @@ def sierpinsky(show = 0):
     for i in range(0, 4):
         if show == 2:
             GraphModule.show = True
-        s = T.extend(s).object
+        s = T.extend(s)
         # nx.draw_kamada_kawai(s.OC.g, **options)
         # plt.show()
         print("i =", i+1)

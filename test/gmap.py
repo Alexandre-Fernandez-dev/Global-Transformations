@@ -3,17 +3,16 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from engine.PFunctor import FlatPFunctor, FamPFunctor
-from data.Gmap import Premap, PremapO, PremapM
-import data.Sheaf as Sheaf
 import math
 from random import random
+from src.engine import GT
+from src.engine.PFunctor import FlatPFunctor, FamPFunctor
+from src.data.Gmap import Premap, PremapO, PremapM
+import src.data.Sheaf as Sheaf
 
 class Test:
     @staticmethod
     def sheaf_nodes():
-
-        from engine import GT
 
         def restriction(f, q):
             ret = {}
@@ -402,7 +401,7 @@ class Test:
             3: (0.5, 0.5, 0.0)
             }
         wtri = CO(dsidedtri, p)
-        res1 = T.extend(wtri).object
+        res1 = T.extend(wtri)
         # print(len(res1.OC))
         # print(res1)
         tt = PremapO(2)
@@ -584,7 +583,7 @@ class Test:
 
 if __name__ == "__main__":
     T, gp = Test.sheaf_nodes()
-    for i in range(0, 5):
-        gp = T.extend(gp).object
+    for i in range(0, 4):
+        gp = T.extend(gp)
         print("i =", i+1)
         print("darts :", len(gp.OC))

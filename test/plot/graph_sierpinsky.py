@@ -3,34 +3,33 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(os.path.dirname(current_dir))
 sys.path.insert(0, parent_dir)
 
+import time
 import plotly.graph_objects as go
 import networkx as nx
-import data.Sheaf as Sheaf
+import src.data.Sheaf as Sheaf
 from test.sheaf import Test
-
-import time
 
 T, gp = Test.sierpinsky()
 t1 = time.time()
-gp = T.extend(gp).object
+gp = T.extend(gp)
 t2 = time.time()
 print("d1", t2 - t1)
-gp = T.extend(gp).object
+gp = T.extend(gp)
 t3 = time.time()
 print("d2", t3 - t2)
-gp = T.extend(gp).object
+gp = T.extend(gp)
 t4 = time.time()
 print("d3", t4 - t3)
-gp = T.extend(gp).object
+gp = T.extend(gp)
 t5 = time.time()
 print("d4", t5 - t4)
-gp = T.extend(gp).object
+gp = T.extend(gp)
 t6 = time.time()
 print("d5", t6 - t5)
-gp = T.extend(gp).object
+gp = T.extend(gp)
 t7 = time.time()
 print("d6", t7 - t6)
-gp = T.extend(gp).object
+gp = T.extend(gp)
 t8 = time.time()
 print("d7", t8 - t7)
 # gp = T.extend(gp).object
