@@ -62,15 +62,18 @@ class PrimeInstanceInc(InstanceInc):
 
 class CompInstanceInc(InstanceInc):
     def __init__(self, f, g):
-        assert f.t == g.s
-        self.lhs = f.get_lhs().compose(g.get_lhs()) # lazy ?
+        # assert f.t == g.s
+        self.lhs = None
         self.s = f.s
         self.f = f
+        assert isinstance(g, InstanceInc)
         self.g = g
         self.t = g.t
         self.rhs = None
     
     def get_lhs(self):
+        if self.lhs == None:
+            self.lhs = self.f.get_lhs().compose(self.g.get_lhs())
         return self.lhs
     
     def get_rhs(self):
@@ -81,6 +84,21 @@ class CompInstanceInc(InstanceInc):
     def __repr__(self):
         return "CompInsInc : [" + " lhs : " + str(self.lhs) + " ]"
 
+class ColimInc(InstanceInc):
+    def __init__(self, rhs, s, t):
+        self.rhs = rhs
+        self.s = s
+        self.t = t
+
+    def get_lhs(self):
+        raise "Not implemented"
+    
+    def get_rhs(self):
+        return self.rhs
+    
+    def __repr__(self):
+        return "ColimInc : [" + " rhs : " + str(self.rhs) + " ]"
+
 class Result():
     def __init__(self, obj, is_rhs):
         self.object = obj
@@ -88,27 +106,28 @@ class Result():
         self.obs_by = []
     
     @staticmethod
-    def multi_merge_2(lm, CD): # TODO remove this converter -> modify multi_merge
+    def multi_merge_2(lm, CD):
+        # CONVERTER
         l_new = []
         l_old = []
         res_old = None
         res_new = None
         for ins in lm:
-            l_new.append(ins.new_subresult)
-            l_old.append(ins.old_subresult)
+            l_new.append(ins.new_subresult.get_rhs())
+            l_old.append(ins.old_subresult.get_rhs())
             if res_old is None:
                 res_old = ins.old_result
             if res_new is None:
                 res_new = ins.new_result
-        return Result.multi_merge(l_old, l_new, res_old, res_new, CD)
-    
-    @staticmethod
-    def multi_merge(l_old, l_new, res_old, res_new, CD):
+
+        # END CONVERTER
         if len(l_old) == 0:
             return [], []
         if res_old.is_rhs:
             assert res_new.is_rhs
             obj, on_old, on_new = CD.multi_merge(l_old, l_new)
+            on_old = ColimInc(on_old, res_old, obj)
+            on_new = ColimInc(on_new, res_old, obj)
             res = Result(obj, False)
             for ins in res_old.obs_by:
                 if ins.new_result == res_old:
@@ -131,6 +150,7 @@ class Result():
             res_new.object = None
             return res
         obj, on_new = CD.multi_merge_2_in_1(l_old, l_new)
+        on_new = ColimInc(on_new, res_new, obj)
         for ins in res_new.obs_by:
             if ins.new_result != res_old:
                 if ins.new_result == res_new:

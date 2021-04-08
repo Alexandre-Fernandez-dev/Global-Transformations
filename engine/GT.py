@@ -39,8 +39,7 @@ class GT:
                     add_instance(u_ins)
                     if self.pfunctor.is_small(u_ins):
                         fifo.insert(0, u_ins)
-                # TODO here we compose actual rhs morphisms, we could compute only lazy rule inclusions compositions as they are not all needed
-                u_ins.observe(ins.new_result, ins_inc.get_rhs() if ins.new_subresult == None else ins_inc.get_rhs().compose(ins.new_subresult))
+                u_ins.observe(ins.new_result, ins_inc if ins.new_subresult == None else ins_inc.compose(ins.new_subresult))
                 if not u_ins.closed:
                     lm += close(u_ins)
                     # print("   edit lm acc")#, [ i.occ for i in acc_lm ])
