@@ -20,7 +20,6 @@ class GT:
         def close(ins):
             nonlocal bigresult
             lm = []
-            underincs = []
             # print("close", ins)
             for s_occ, get_s_ins, get_ins_inc in self.pfunctor.iter_self_inclusions(ins): # add siblings
                 assert s_occ not in matches
@@ -29,7 +28,6 @@ class GT:
                 add_instance(s_ins)
                 s_ins.auto = True
                 s_ins.closed = True
-                # underincs.append(ins_inc) # added to fix bug -> not fixed remove if not necessary
             for u_occ, get_u_ins, get_ins_inc in self.pfunctor.iter_under(ins):# iter under
                 if u_occ in matches: # instance already encountered
                     u_ins = matches[u_occ]
@@ -41,18 +39,16 @@ class GT:
                     add_instance(u_ins)
                     if self.pfunctor.is_small(u_ins):
                         fifo.insert(0, u_ins)
-                underincs.append(ins_inc)
+                # TODO here we compose actual rhs morphisms, we could compute only lazy rule inclusions compositions as they are not all needed
+                u_ins.observe(ins.new_result, ins_inc.get_rhs() if ins.new_subresult == None else ins_inc.get_rhs().compose(ins.new_subresult))
                 if not u_ins.closed:
-                    acc_lm, acc_ui = close(u_ins)
-                    for ii in acc_ui:
-                        underincs.append(ii.compose(ins_inc))
-                    lm += acc_lm
+                    lm += close(u_ins)
                     # print("   edit lm acc")#, [ i.occ for i in acc_lm ])
-                elif not u_ins.auto and u_ins.new_result is not None: # already visited by other close
+                elif not u_ins.auto and u_ins.old_result is not None: # already visited by other close
                     lm += [u_ins]
                     # print("   edit lm init", u_ins.occ)
             ins.closed = True
-            return lm, underincs
+            return lm
         
         def star(ins):
             nonlocal bigresult
@@ -74,11 +70,9 @@ class GT:
             ins.stared = True
             if top:
                 if not ins.auto:
-                    lm, underincs = close(ins)
                     res = Result(ins.rule.rhs, True)
                     ins.observe(res, None)
-                    for ins_inc in underincs:
-                        ins_inc.s.observe(res, ins_inc.get_rhs())
+                    lm = close(ins)
                     if len(lm) > 0:
                         bigresult = Result.multi_merge_2(lm, self.pfunctor.CD)
                     elif bigresult is None:

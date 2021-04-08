@@ -3,8 +3,8 @@ from .DataStructure import DataStructure
 import random
 import sys
 
-seed = random.randrange(sys.maxsize) # = 862933594082592502 #
-# print(" SEEEEEEEEED ", seed)
+seed = 1431403523709400149 # random.randrange(sys.maxsize) # = 862933594082592502 #
+print(" SEEEEEEEEED ", seed)
 random.seed(seed)
 
 class Open:
