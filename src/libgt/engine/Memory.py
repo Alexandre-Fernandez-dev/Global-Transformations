@@ -4,15 +4,13 @@ class Instance():
         self.closed = False
         self.rule = rule
         self.nb_dep = rule.cunder
-        self.istop = False
-        # print("init nbdep", self.nb_dep)
         self.occ = occ          # C[rule.lhs, X]
         self.overins = []
     
-    def decrNbDep(self): # privé à GT ?
+    def decrNbDep(self):
         self.nb_dep -= 1
         if self.nb_dep <= 0:
-            return True # should remove ins
+            return True
         return False
 
     def __repr__(self):
@@ -47,8 +45,7 @@ class PrimeInstanceInc(InstanceInc):
 class Result():
     @staticmethod
     def multi_merge_2(lm, uins_rhs, uins_col, CD, in_place):
-        # TODO remove
-        # CONVERTER
+        # TODO REMOVE CONVERTER
         uins_res = {}
         l_rhs = []
         l_col = []
@@ -58,7 +55,7 @@ class Result():
             l_rhs.append(uins_rhs[ins])
             l_col.append(uins_col[ins])
             if res_rhs is None:
-                res_rhs = uins_rhs[ins].cod #ins.rhs_result
+                res_rhs = uins_rhs[ins].cod
             if res_col is None:
                 res_col = uins_col[ins].cod
 
@@ -69,15 +66,14 @@ class Result():
             obj, on_col, on_rhs = CD.multi_merge(l_col, l_rhs)
             res = obj
             for ins in uins_col.keys():
-                #TODO identity None
-                uins_res[ins] = on_col if uins_col[ins] is None else uins_col[ins].compose(on_col)
+                uins_res[ins] = uins_col[ins].compose(on_col)
             res_col.obs_by = None
             res_col.object = None
         else:
             res = res_col
             obj, on_rhs = CD.multi_merge_2_in_1(l_col, l_rhs)
         for ins in uins_rhs.keys():
-            uins_res[ins] = on_rhs if uins_rhs[ins] is None else uins_rhs[ins].compose(on_rhs)
+            uins_res[ins] = uins_rhs[ins].compose(on_rhs)
         res_rhs.obs_by = None
         res_rhs.object = None
         return res, uins_res

@@ -52,11 +52,13 @@ class FlatPFunctor:
         def __init__(self, CS, CD):
             self.CS = CS
             self.CD = CD
+            self.smalls = set()
             self.G = nx.MultiDiGraph()
 
         def add_rule(self, l, r):
             rule = FlatPFunctor.Rule(l, r)
             self.G.add_node(rule)
+            self.smalls.add(rule)
             return rule
 
         def add_inclusion(self, g_a, g_b, l, r):
@@ -67,42 +69,21 @@ class FlatPFunctor:
             else:
                 g_b.cunder += 1
                 self.G.add_edge(g_a, g_b, key = inc)
+                if g_b in self.smalls:
+                    self.smalls.remove(g_b)
             return (g_a, g_b, inc)
 
         def get(self):
-            return FlatPFunctor(self.CS, self.CD, self.G)
+            return FlatPFunctor(self.CS, self.CD, self.smalls, self.G)
         
-    def __init__(self, CS, CD, G):
+    def __init__(self, CS, CD, smalls, G):
         self.CS = CS
         self.CD = CD
         self.G = G
-        self.smalls = set()
-        self.small_pred = nx.MultiDiGraph()
-        # replace by union find like datastructure or set ?
-        def f(g): # TODO replace by smaller function that only computes nb_small
-            if g in self.small_pred.nodes():
-                return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
-            self.small_pred.add_node(g)
-            l = []
-            for s, _, _ in self.G.in_edges(g, keys = True):
-                r = f(s)
-                if r == []:
-                    l.append(s)
-                else:
-                    l = l + [ sp for sp in r ]
-            if l == []:
-                self.smalls.add(g)
-            for s in l:
-                self.small_pred.add_edge(s, g, None)
-            return l
-        for g in self.G.nodes:
-            f(g)
+        self.smalls = smalls
     
     def is_small(self, ins): # could be a bool in ins
         return ins.rule in self.smalls
-
-    def nb_small(self, ins): # could be a bool in ins
-        return len(self.small_pred.in_edges(ins.rule))
 
     def next_small(self, X):
         for small_rule in self.smalls:
@@ -185,11 +166,13 @@ class FamPFunctor:
         def __init__(self, CS, CD):
             self.CS = CS
             self.CD = CD
+            self.smalls = set()
             self.G = nx.MultiDiGraph()
 
         def add_fam_rule(self, l, r):
             rule = FamPFunctor.FamRule(l, r)
             self.G.add_node(rule)
+            self.smalls.add(rule)
             return rule
 
         def add_fam_inclusion(self, g_a, g_b, l, r):
@@ -199,35 +182,18 @@ class FamPFunctor:
             else:
                 g_b.cunder += 1
                 self.G.add_edge(g_a, g_b, key = inc)
+                if g_b in self.smalls:
+                    self.smalls.remove(g_b)
             return (g_a, g_b, inc)
 
         def get(self):
-            return FamPFunctor(self.CS, self.CD, self.G)
+            return FamPFunctor(self.CS, self.CD, self.smalls, self.G)
 
-    def __init__(self, CS, CD, G):
+    def __init__(self, CS, CD, smalls, G):
         self.CS = CS
         self.CD = CD
         self.G = G
-        self.smalls = set()
-        self.small_pred = nx.MultiDiGraph()
-        def f(g):
-            if g in self.small_pred.nodes():
-                return [ r for _, _, r in self.small_pred.in_edges(g, keys = True) ]
-            self.small_pred.add_node(g)
-            l = []
-            for s, _, inc in self.G.in_edges(g, keys = True):
-                r = f(s)
-                if r == []:
-                    l.append(inc)
-                else:
-                    l = l + [ incp.compose(inc) for incp in r ]
-            if l == []:
-                self.smalls.add(g)
-            for inc in l:
-                self.small_pred.add_edge(inc.g_a, g, inc)
-            return l
-        for g in self.G.nodes:
-            f(g)
+        self.smalls = smalls
 
     #TODO rewrite
     class Rule:
@@ -282,9 +248,6 @@ class FamPFunctor:
 
     def is_small(self, ins): # could be a bool in ins
         return ins.rule.fam in self.smalls
-
-    def nb_small(self, ins):
-        return len(self.small_pred.in_edges(ins.rule.fam))
 
     def next_small(self, X):
         for small_rule_fam in self.smalls:

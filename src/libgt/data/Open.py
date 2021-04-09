@@ -1,10 +1,9 @@
 import random
-import sys
 from .DataStructure import DataStructure
 
-seed = 862933594082592502#= random.randrange(sys.maxsize)
-print(" SEEEEEEEEED ", seed)
-random.seed(seed)
+# seed = 862933594082592502#= random.randrange(sys.maxsize)
+# print(" SEEEEEEEEED ", seed)
+# random.seed(seed)
 
 class Open:
 

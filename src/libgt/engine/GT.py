@@ -13,6 +13,13 @@ class GT:
         bigresult = None
         uins_bigresult = {}
         fifo = []
+        
+        class Identity(): # TODO given by datastructure ?
+            def __init__(self):
+                pass
+
+            def compose(self, h):
+                return h
 
         def add_instance(ins):
             assert ins.occ not in matches
@@ -22,7 +29,6 @@ class GT:
         def close(ins):
             lm = []
             underincs = {}
-            # print("close", ins)
             for s_occ, get_s_ins, get_ins_inc in self.pfunctor.iter_self_inclusions(ins): # add siblings
                 assert s_occ not in matches
                 s_ins = get_s_ins()
@@ -31,7 +37,7 @@ class GT:
                 s_ins.auto = True
                 s_ins.closed = True
                 s_ins.overins = ins.overins
-                underincs[s_ins] = ins_inc.get_rhs() # necessary ? added for equiv underincs matches
+                underincs[s_ins] = ins_inc.get_rhs() # TODO not necessary, added for equiv underincs matches
             for u_occ, get_u_ins, get_ins_inc in self.pfunctor.iter_under(ins):# iter under
                 if u_occ in matches: # instance already encountered
                     u_ins = matches[u_occ]
@@ -71,7 +77,7 @@ class GT:
             if top:
                 if not ins.auto:
                     lm, underincs = close(ins)
-                    underincs[ins] = None # not necessary, added for equiv underincs matches
+                    underincs[ins] = Identity() # TODO not necessary, added for equiv underincs matches
                     if len(lm) > 0:
                         bigresult, acc_uins_big_result = Result.multi_merge_2(lm, underincs, uins_bigresult, self.pfunctor.CD, not rhs)
                         uins_bigresult.update(acc_uins_big_result)
@@ -86,19 +92,18 @@ class GT:
             fifo.insert(0, s_ins)
             break
             
+        # clear memory over an treated instance
         def mem_cl(ins):
-            # print("before ", ins.nb_dep)
             if ins.decrNbDep():
                 del matches[ins.occ]
                 del uins_bigresult[ins]
                 for oi in ins.overins:
                     mem_cl(oi)
-            # print("after ", ins.nb_dep)
 
         while len(fifo) > 0:
             small_ins = fifo.pop()
             star(small_ins)
             mem_cl(small_ins)
-            print(len(matches), len(uins_bigresult))
+            # print(len(matches), len(uins_bigresult))
 
         return bigresult
