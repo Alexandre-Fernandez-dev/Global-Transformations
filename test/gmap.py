@@ -5,10 +5,10 @@ sys.path.insert(0, parent_dir)
 
 import math
 from random import random
-from src.engine import GT
-from src.engine.PFunctor import FlatPFunctor, FamPFunctor
-from src.data.Gmap import Premap, PremapO, PremapM
-import src.data.Sheaf as Sheaf
+from src.libgt.engine import GT
+from src.libgt.engine.PFunctor import FlatPFunctor, FamPFunctor
+from src.libgt.data.Gmap import Premap, PremapO, PremapM
+import src.libgt.data.Sheaf as Sheaf
 
 class Test:
     @staticmethod

@@ -6,6 +6,7 @@ class FlatPFunctor:
         def __init__(self, lhs, rhs):
             self.lhs = lhs
             self.rhs = rhs
+            self.cunder = 0
             self.self_inclusions = set()
         
         def get_rhs(self):
@@ -64,6 +65,7 @@ class FlatPFunctor:
                 assert l.dom == g_a.lhs
                 g_a.self_inclusions.add(inc)
             else:
+                g_b.cunder += 1
                 self.G.add_edge(g_a, g_b, key = inc)
             return (g_a, g_b, inc)
 
@@ -106,20 +108,20 @@ class FlatPFunctor:
         for small_rule in self.smalls:
             for small_match in self.CS.pattern_match(small_rule.lhs, X):
                 small_match.clean()
-                get_s_ins = lambda : Instance(small_rule, len(self.small_pred.in_edges(small_rule)), small_match)
+                get_s_ins = lambda : Instance(small_rule, small_match)
                 yield get_s_ins
     
     def iter_under(self, ins):
         for u_rule, _, u_inc in self.G.in_edges(ins.rule, keys = True):
             u_occ = u_inc.lhs.compose(ins.occ)
-            get_u_ins = lambda : Instance(u_rule, len(self.small_pred.in_edges(u_rule)), u_occ)
+            get_u_ins = lambda : Instance(u_rule, u_occ)
             get_ins_inc = lambda u_ins : PrimeInstanceInc(u_inc, u_ins, ins)
             yield u_occ, get_u_ins, get_ins_inc
     
     def pmatch_up(self, ins):
         for _, o_rule, o_inc in self.G.out_edges(ins.rule, keys = True):
             for o_occ in self.CS.pattern_match(o_inc.lhs, ins.occ):
-                get_o_ins = lambda : Instance(o_rule, len(self.small_pred.in_edges(o_rule)), o_occ)
+                get_o_ins = lambda : Instance(o_rule, o_occ)
                 get_ins_inc = lambda o_ins : PrimeInstanceInc(o_inc, ins, o_ins)
                 yield o_occ, get_o_ins, get_ins_inc
     
@@ -127,7 +129,7 @@ class FlatPFunctor:
         rule = ins.rule
         for inc in rule.iter_self_inclusions():
             s_occ = inc.lhs.compose(ins.occ)
-            get_s_ins = lambda : Instance(rule, len(self.small_pred.in_edges(rule)), s_occ)
+            get_s_ins = lambda : Instance(rule, s_occ)
             get_ins_inc = lambda u_ins : PrimeInstanceInc(inc, u_ins, ins)
             yield s_occ, get_s_ins, get_ins_inc
 
@@ -136,6 +138,7 @@ class FamPFunctor:
         def __init__(self, lhs, rhs):
             self.lhs = lhs
             self.rhs = rhs
+            self.cunder = 0
             self.self_fam_inclusions = set()
 
         def __eq__(self, other):
@@ -194,6 +197,7 @@ class FamPFunctor:
             if g_a == g_b:
                 g_a.self_fam_inclusions.add(inc)
             else:
+                g_b.cunder += 1
                 self.G.add_edge(g_a, g_b, key = inc)
             return (g_a, g_b, inc)
 
@@ -230,6 +234,7 @@ class FamPFunctor:
         def __init__(self, fam_rule, lp):
             assert fam_rule.lhs == lp.naked()
             self.fam = fam_rule
+            self.cunder = fam_rule.cunder
             self.lhs = lp
             self.rhs = fam_rule.rhs(lp)
         
@@ -286,7 +291,7 @@ class FamPFunctor:
             for small_occ in self.CS.pattern_match(small_rule_fam.lhs, X):
                 small_occ.clean()
                 small_rule = self.Rule(small_rule_fam, small_occ.dom)
-                get_s_ins = lambda : Instance(small_rule, len(self.small_pred.in_edges(small_rule_fam)), small_occ)
+                get_s_ins = lambda : Instance(small_rule, small_occ)
                 yield get_s_ins
 
     def iter_under(self, ins):
@@ -295,7 +300,7 @@ class FamPFunctor:
             u_occ = u_inc_lhs.compose(ins.occ)
             def get_u_ins():
                 u_rule = self.Rule(u_rule_fam, u_inc_lhs.dom)
-                return Instance(u_rule, len(self.small_pred.in_edges(u_rule_fam)), u_occ)
+                return Instance(u_rule, u_occ)
             def get_ins_inc(u_ins):
                 u_inc = self.Inclusion(u_inc_fam, u_ins.rule, ins.rule, u_inc_lhs)
                 return PrimeInstanceInc(u_inc, u_ins, ins)
@@ -306,7 +311,7 @@ class FamPFunctor:
             for o_occ in self.CS.pattern_match(o_inc_fam.lhs, ins.occ):
                 def get_o_ins():
                     o_rule = self.Rule(o_rule_fam, o_occ.dom)
-                    return Instance(o_rule, len(self.small_pred.in_edges(o_rule_fam)), o_occ)
+                    return Instance(o_rule, o_occ)
                 def get_ins_inc(o_ins):
                     o_inc_lhs = o_ins.rule.lhs.restrict(o_inc_fam.lhs)
                     o_inc = self.Inclusion(o_inc_fam, ins.rule, o_ins.rule, o_inc_lhs)
@@ -319,7 +324,7 @@ class FamPFunctor:
             s_occ = s_inc_lhs.compose(ins.occ)
             def get_s_ins():
                 s_rule = self.Rule(ins.rule.fam, s_occ.dom)
-                return Instance(s_rule, len(self.small_pred.in_edges(ins.rule.fam)), s_occ)
+                return Instance(s_rule, s_occ)
             def get_ins_inc(s_ins):
                 s_inc = self.Inclusion(s_inc_fam, s_ins.rule, ins.rule, s_inc_lhs)
                 return PrimeInstanceInc(s_inc, s_ins, ins)

@@ -6,7 +6,7 @@ sys.path.insert(0, parent_dir)
 import time
 import plotly.graph_objects as go
 import networkx as nx
-import src.data.Sheaf as Sheaf
+import src.libgt.data.Sheaf as Sheaf
 from test.sheaf import Test
 
 T, gp = Test.sierpinsky()

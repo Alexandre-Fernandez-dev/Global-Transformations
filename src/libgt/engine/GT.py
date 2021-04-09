@@ -30,6 +30,8 @@ class GT:
                 add_instance(s_ins)
                 s_ins.auto = True
                 s_ins.closed = True
+                s_ins.overins = ins.overins
+                underincs[s_ins] = ins_inc.get_rhs() # necessary ? added for equiv underincs matches
             for u_occ, get_u_ins, get_ins_inc in self.pfunctor.iter_under(ins):# iter under
                 if u_occ in matches: # instance already encountered
                     u_ins = matches[u_occ]
@@ -47,17 +49,14 @@ class GT:
                     lm += acclm
                     for ui in accui:
                         underincs[ui] = accui[ui].compose(ins_inc.get_rhs())
-                    # print("   edit lm acc")#, [ i.occ for i in acc_lm ])
                 elif not u_ins.auto and u_ins in uins_bigresult.keys(): # already visited by other close
                     lm += [u_ins]
-                    # print("   edit lm init", u_ins.occ)
             ins.closed = True
             return lm, underincs
         
         def star(ins):
             nonlocal bigresult, uins_bigresult, rhs
             top = True
-            uppercone = []
             for o_occ, get_o_ins, _ in self.pfunctor.pmatch_up(ins):
                 top = False
                 if o_occ in matches:
@@ -65,16 +64,14 @@ class GT:
                 else:
                     o_ins = get_o_ins()
                     add_instance(o_ins)
-                uppercone.append(o_ins)
-                if not o_ins.stared:
-                    uppercone += star(o_ins)
-                else:
-                    uppercone += o_ins.uppercone
-            ins.uppercone = uppercone
+                ins.overins.append(o_ins)
+                if not o_ins.stared and not o_ins.auto:
+                    star(o_ins)
             ins.stared = True
             if top:
                 if not ins.auto:
                     lm, underincs = close(ins)
+                    underincs[ins] = None # not necessary, added for equiv underincs matches
                     if len(lm) > 0:
                         bigresult, acc_uins_big_result = Result.multi_merge_2(lm, underincs, uins_bigresult, self.pfunctor.CD, not rhs)
                         uins_bigresult.update(acc_uins_big_result)
@@ -82,24 +79,26 @@ class GT:
                     elif bigresult is None:
                         bigresult = ins.rule.rhs
                         uins_bigresult = underincs
-            return uppercone
 
         for get_s_ins in self.pfunctor.next_small(X):
             s_ins = get_s_ins()
             add_instance(s_ins)
             fifo.insert(0, s_ins)
             break
+            
+        def mem_cl(ins):
+            # print("before ", ins.nb_dep)
+            if ins.decrNbDep():
+                del matches[ins.occ]
+                del uins_bigresult[ins]
+                for oi in ins.overins:
+                    mem_cl(oi)
+            # print("after ", ins.nb_dep)
 
         while len(fifo) > 0:
             small_ins = fifo.pop()
-            # print("new small ins: ", small_ins)
             star(small_ins)
-            # print("exit star")
-            for dep_ins in small_ins.uppercone:
-                if dep_ins.decrNbDep():
-                    del matches[dep_ins.occ]
-                    if dep_ins in uins_bigresult.keys():
-                        del uins_bigresult[dep_ins]
-            del matches[small_ins.occ]
+            mem_cl(small_ins)
+            print(len(matches), len(uins_bigresult))
 
         return bigresult

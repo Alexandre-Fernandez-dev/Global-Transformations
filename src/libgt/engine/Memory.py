@@ -1,15 +1,17 @@
 class Instance():
-    def __init__(self, rule, nb_dep, occ): # privé à GT
+    def __init__(self, rule, occ): # privé à GT
         self.stared = False
         self.closed = False
         self.rule = rule
-        self.nb_dep = nb_dep
+        self.nb_dep = rule.cunder
+        self.istop = False
+        # print("init nbdep", self.nb_dep)
         self.occ = occ          # C[rule.lhs, X]
-        self.uppercone = []
+        self.overins = []
     
     def decrNbDep(self): # privé à GT ?
         self.nb_dep -= 1
-        if self.nb_dep == 0:
+        if self.nb_dep <= 0:
             return True # should remove ins
         return False
 

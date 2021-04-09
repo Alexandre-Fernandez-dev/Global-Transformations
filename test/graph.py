@@ -5,11 +5,11 @@ sys.path.insert(0, parent_dir)
 
 import matplotlib.pyplot as plt
 import networkx as nx
-import src.data.Graph as GraphModule
-from src.data.Sheaf import Parametrisation
-from src.data.Graph import Graph, GraphO, GraphM
-from src.engine.PFunctor import FlatPFunctor
-from src.engine.GT import GT
+import src.libgt.data.Graph as GraphModule
+from src.libgt.data.Sheaf import Parametrisation
+from src.libgt.data.Graph import Graph, GraphO, GraphM
+from src.libgt.engine.PFunctor import FlatPFunctor
+from src.libgt.engine.GT import GT
 
 def triangular_mesh_refinement(show = False):
     pfTm = FlatPFunctor.Maker(Graph, Graph)

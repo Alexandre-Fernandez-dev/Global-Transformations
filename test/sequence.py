@@ -3,10 +3,10 @@ current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentfra
 parent_dir = os.path.dirname(current_dir)
 sys.path.insert(0, parent_dir) 
 
-from src.data.Sequence import Sequence, SequenceO, SequenceM, NkSeqO, NkSeqM
-from src.data.Sequence import Sequence, SequenceM, SequenceO
-from src.engine.PFunctor import FlatPFunctor
-from src.engine.GT import GT
+from src.libgt.data.Sequence import Sequence, SequenceO, SequenceM, NkSeqO, NkSeqM
+from src.libgt.data.Sequence import Sequence, SequenceM, SequenceO
+from src.libgt.engine.PFunctor import FlatPFunctor
+from src.libgt.engine.GT import GT
 
 def D0L():
     pfTm = FlatPFunctor.Maker(Sequence, Sequence)

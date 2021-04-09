@@ -5,11 +5,11 @@ sys.path.insert(0, parent_dir)
 
 import networkx as nx
 import matplotlib.pyplot as plt
-import src.engine.PFunctor as PFunctor
-import src.data.Graph as GraphModule
-from src.data.Graph import Graph
-from src.data.Sheaf import Parametrisation
-from src.engine.GT import GT
+import src.libgt.engine.PFunctor as PFunctor
+import src.libgt.data.Graph as GraphModule
+from src.libgt.data.Graph import Graph
+from src.libgt.data.Sheaf import Parametrisation
+from src.libgt.engine.GT import GT
 
 class Test:
     @staticmethod

@@ -5,11 +5,11 @@ sys.path.insert(0, parent_dir)
 
 import networkx as nx
 import matplotlib.pyplot as plt
-from src.data.Open import Open
-from src.data.Graph import Graph, GraphO, GraphM
-import src.data.Graph as GraphModule
-from src.engine.PFunctor import FlatPFunctor
-from src.engine.GT import GT
+from src.libgt.data.Open import Open
+from src.libgt.data.Graph import Graph, GraphO, GraphM
+import src.libgt.data.Graph as GraphModule
+from src.libgt.engine.PFunctor import FlatPFunctor
+from src.libgt.engine.GT import GT
 
 def divide_edges(show = 0):
     OGraphO, OGraphM, OGraph = Open.get(Graph)
