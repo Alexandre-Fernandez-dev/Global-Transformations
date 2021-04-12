@@ -8,8 +8,9 @@ import matplotlib.pyplot as plt
 from src.libgt.data.Open import Open
 from src.libgt.data.Graph import Graph, GraphO, GraphM
 import src.libgt.data.Graph as GraphModule
-from src.libgt.engine.PFunctor import FlatPFunctor
+from src.libgt.engine.PFunctor import FlatPFunctor, FamPFunctor
 from src.libgt.engine.GT import GT
+from src.libgt.data.Sheaf import Parametrisation
 
 def divide_edges(show = 0):
     OGraphO, OGraphM, OGraph = Open.get(Graph)
@@ -659,6 +660,189 @@ def divide_tri(show = False):
             # mng.full_screen_toggle()
             nx.draw_kamada_kawai(g.g, **options)
             plt.show()
+    
+class Test:
+    @staticmethod
+    def sierpinsky():
+        def restriction(f, q):
+            ret = {}
+            for e in f.dom.nodes:
+                ret[e] = q[f.apply(e)]
+            return ret
+
+        def amalgamation(f, p, g, q):
+            assert f.cod == g.cod
+            ret = {}
+            for e in f.dom.nodes():
+                ret[f.apply(e)] = p[e]
+
+            for e in g.dom.nodes():
+                if ret.get(g.apply(e)) == None:
+                    ret[g.apply(e)] = q[e]
+                elif ret[g.apply(e)] != q[e]:
+                    raise Exception("fail amalgamation")
+
+            return ret
+
+        def amalgamation_2_in_1(ret, g, q):
+            for e in g.dom.nodes():
+                if ret.get(g.apply(e)) == None:
+                    ret[g.apply(e)] = q[e]
+                elif ret[g.apply(e)] != q[e]:
+                    raise Exception("fail amalgamation 2 in 1")
+
+        def amalgamation_quotient(f, p):
+            ret = {}
+            for e in f.dom.nodes():
+                ret[f.apply(e)] = p[e]
+            return ret
+
+        def phash(p): # TODO WHY NOT NEEDED, REMOVE ?
+            r = 1
+            return r
+
+        ParameterGraph = {
+            'name'                  : "ParGraph",
+            'parhash'               : phash,
+            'restriction'           : restriction,
+            'amalgamation'          : amalgamation,
+            'amalgamation_2_in_1'   : amalgamation_2_in_1,
+            'amalgamation_quotient' : amalgamation_quotient
+        }
+        CO, CM, C = Parametrisation.get(Graph, ParameterGraph)
+        COO, CMO, C_O = Open.get(C)
+
+        pfm = FamPFunctor.Maker(C, C_O)
+
+        l0 = Graph.TO()()
+        l0n0 = l0.add_node()
+        r0 = lambda x : COO([ x ])
+
+        g0 = pfm.add_fam_rule(l0, r0)
+
+        l1 = Graph.TO()()
+        l1n0 = l1.add_node()
+        l1n1 = l1.add_node()
+        l1e0 = l1.add_edge(l1n0, l1n1)
+        r1 = Graph.TO()()
+        r1n0 = r1.add_node()
+        r1n1 = r1.add_node()
+        r1n2 = r1.add_node()
+        r1e01 = r1.add_edge(r1n0, r1n1)
+        r1e12 = r1.add_edge(r1n2, r1n1)
+        def r1_(x):
+            assert x.OC == l1
+            p = {r1n0: x.ET[l1n0],
+                r1n1: ((x.ET[l1n0][0]+x.ET[l1n1][0])/2, (x.ET[l1n0][1]+x.ET[l1n1][1])/2, (x.ET[l1n0][2]+x.ET[l1n1][2])/2),
+                r1n2: x.ET[l1n1],
+            }
+            r1p = CO(r1, p)
+            return COO([ x, r1p ])
+
+        g1 = pfm.add_fam_rule(l1, r1_)
+
+        l2 = Graph.TO()()
+        l2n0 = l2.add_node()
+        l2n1 = l2.add_node()
+        l2n2 = l2.add_node()
+        l2e01 = l2.add_edge(l2n0, l2n1)
+        l2e12 = l2.add_edge(l2n2, l2n1)
+        l2e20 = l2.add_edge(l2n2, l2n0)
+        r2 = Graph.TO()()
+        r2n0  = r2.add_node()
+        r2n01 = r2.add_node()
+        r2n1  = r2.add_node()
+        r2n12 = r2.add_node()
+        r2n2  = r2.add_node()
+        r2n20 = r2.add_node()
+        r2e001 = r2.add_edge(r2n0, r2n01)
+        r2e011 = r2.add_edge(r2n1, r2n01)
+        r2e112 = r2.add_edge(r2n1, r2n12)
+        r2e122 = r2.add_edge(r2n2, r2n12)
+        r2e220 = r2.add_edge(r2n2, r2n20)
+        r2e200 = r2.add_edge(r2n0, r2n20)
+        r2e2012 = r2.add_edge(r2n20, r2n12)
+        r2e1201 = r2.add_edge(r2n12, r2n01)
+        r2e0120 = r2.add_edge(r2n01, r2n20)
+        def r2_(x):
+            assert x.OC == l2
+            p = {r2n0: x.ET[l2n0],
+                r2n01: ((x.ET[l2n0][0]+x.ET[l2n1][0])/2, (x.ET[l2n0][1]+x.ET[l2n1][1])/2, (x.ET[l2n0][2]+x.ET[l2n1][2])/2),
+                r2n1: x.ET[l2n1],
+                r2n12: ((x.ET[l2n1][0]+x.ET[l2n2][0])/2, (x.ET[l2n1][1]+x.ET[l2n2][1])/2, (x.ET[l2n1][2]+x.ET[l2n2][2])/2),
+                r2n2: x.ET[l2n2],
+                r2n20: ((x.ET[l2n2][0]+x.ET[l2n0][0])/2, (x.ET[l2n2][1]+x.ET[l2n0][1])/2, (x.ET[l2n2][2]+x.ET[l2n0][2])/2),
+            }
+            r2p = CO(r2, p)
+            return COO([ x, r2p ])
+
+        g2 = pfm.add_fam_rule(l2, r2_)
+
+        lhs010 = Graph.TM()(l0, l1, {l0n0: l1n0})
+
+        lhs011 = Graph.TM()(l0, l1, {l0n0: l1n1})
+
+        def rhs010(lps, lpo, rs, ro):
+            r010 = CM(rs.LO[0], ro.LO[0], lhs010)
+            gmp = Graph.TM()(rs.LO[0].OC, ro.LO[1].OC, {l0n0: r1n0})
+            r010p = CM(rs.LO[0], ro.LO[1], gmp)
+            return CMO(rs, ro, [0, 0], [r010, r010p])
+
+        def rhs011(lps, lpo, rs, ro):
+            r011 = CM(rs.LO[0], ro.LO[0], lhs011)
+            gmp = Graph.TM()(rs.LO[0].OC, ro.LO[1].OC, {l0n0: r1n2})
+            r011p = CM(rs.LO[0], ro.LO[1], gmp)
+            return CMO(rs, ro, [0, 0], [r011, r011p])
+
+        pfm.add_fam_inclusion(g0, g1, lhs010, rhs010)
+
+        pfm.add_fam_inclusion(g0, g1, lhs011, rhs011)
+
+        lhs120 = Graph.TM()(l1, l2, {l1n0: l2n0, l1n1: l2n1, l1e0: l2e01})
+
+        lhs121 = Graph.TM()(l1, l2, {l1n0: l2n2, l1n1: l2n1, l1e0: l2e12})
+
+        lhs122 = Graph.TM()(l1, l2, {l1n0: l2n2, l1n1: l2n0, l1e0: l2e20})
+
+        def rhs120(lps, lpo, rs, ro):
+            r120 = CM(rs.LO[0], ro.LO[0], lhs120)
+            gmp = Graph.TM()(rs.LO[1].OC, ro.LO[1].OC, {r1n0: r2n0, r1n1: r2n01, r1n2: r2n1, r1e01: r2e001, r1e12: r2e011})
+            r120p = CM(rs.LO[1], ro.LO[1], gmp)
+            return CMO(rs, ro, [0, 1], [r120, r120p])
+
+        def rhs121(lps, lpo, rs, ro):
+            r121 = CM(rs.LO[0], ro.LO[0], lhs121)
+            gmp = Graph.TM()(rs.LO[1].OC, ro.LO[1].OC, {r1n0: r2n2, r1n1: r2n12, r1n2: r2n1, r1e01: r2e112, r1e12: r2e122})
+            r121p = CM(rs.LO[1], ro.LO[1], gmp)
+            return CMO(rs, ro, [0, 1], [r121, r121p])
+
+        def rhs122(lps, lpo, rs, ro):
+            r122 = CM(rs.LO[0], ro.LO[0], lhs122)
+            gmp = Graph.TM()(rs.LO[1].OC, ro.LO[1].OC, {r1n0: r2n2, r1n1: r2n20, r1n2: r2n0, r1e01: r2e220, r1e12: r2e200})
+            r122p = CM(rs.LO[1], ro.LO[1], gmp)
+            return CMO(rs, ro, [0, 1], [r122, r122p])
+
+        pfm.add_fam_inclusion(g1, g2, lhs120, rhs120)
+
+        pfm.add_fam_inclusion(g1, g2, lhs121, rhs121)
+
+        pfm.add_fam_inclusion(g1, g2, lhs122, rhs122)
+
+        pf = pfm.get()
+
+        T = GT(pf)
+
+        g = Graph.TO()()
+        n1 = g.add_node()
+        n2 = g.add_node()
+        n3 = g.add_node()
+        e12 = g.add_edge(n1,n2)
+        e23 = g.add_edge(n3,n2)
+        e31 = g.add_edge(n3,n1)
+        p = {n1: (0.0, 0.0, 1.41*1.73/2), n2: (-0.5, 0.5, 0.0), n3 : (0.5, -0.5, 0.0)}
+        gp = CO(g, p)
+
+        return T, gp 
 
 if __name__ == "__main__":
     show = 0
