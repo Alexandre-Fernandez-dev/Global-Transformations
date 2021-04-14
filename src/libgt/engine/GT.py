@@ -54,10 +54,6 @@ class GT:
                     acclm, accui = close(u_ins)
                     lm += acclm
                     for ui in accui:
-                        # print("accui[ui]")
-                        # print(accui[ui])
-                        # print("ins_inc.get_rhs()")
-                        # print(ins_inc.get_rhs())
                         underincs[ui] = accui[ui].compose(ins_inc.get_rhs())
                 elif not u_ins.auto and u_ins in uins_bigresult.keys(): # already visited by other close
                     lm += [u_ins]

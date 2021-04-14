@@ -46,8 +46,6 @@ class Parametrisation:
         })
 
         def morphism_init(self, s, t, MC):
-            # print("type")
-            # print(ObjectClass.__name__)
             assert isinstance(MC, C.TM())
             assert isinstance(s, ObjectClass)
             assert isinstance(t, ObjectClass)
@@ -103,17 +101,6 @@ class Parametrisation:
         def Category_TM():
             return MorphismClass
 
-        # def Category_pattern_match_fam(p, s): #TODO remove when everything fixed
-        #     if isinstance(p, C.TM()):
-        #         matches = C.pattern_match(p, s.naked())
-        #         p = p.cod
-        #         s = s.cod
-        #     else:
-        #         matches = C.pattern_match(p, s.naked())
-        #     for m in matches:
-        #         restr = T['restriction'](m, s.ET)
-        #         yield MorphismClass(ObjectClass(p, restr), s, m)
-
         def Category_pattern_match(p, s):
             if isinstance(p, (MorphismClass, ObjectClass)): #TODO clean conditions
                 if isinstance(p, MorphismClass):
@@ -134,7 +121,6 @@ class Parametrisation:
                     if ok:
                         yield MorphismClass(p, s, m)
             elif isinstance(p, (C.TM(), C.TO())): #TODO clean conditions
-                # print("pattern_match_fam")
                 if isinstance(p, C.TM()):
                     matches = C.pattern_match(p, s.naked())
                     p = p.cod
@@ -170,7 +156,6 @@ class Parametrisation:
         CategoryClass = type(C.__name__ + "__" + T['name'], (DataStructure,), {
             'TO'                  : Category_TO,
             'TM'                  : Category_TM,
-            # 'pattern_match_fam'   : Category_pattern_match_fam,
             'pattern_match'       : Category_pattern_match,
             'multi_merge'         : Category_multi_merge,
             'multi_merge_2_in_1'  : Category_multi_merge_2_in_1,

@@ -14,15 +14,13 @@ gp = T.extend(gp)
 gp = T.extend(gp)
 gp = T.extend(gp)
 
-print()
-
 edge_x = []
 edge_y = []
 edge_z = []
 
 for n0, n1 in gp.OC.g.edges():
-    x0, y0, z0 = gp.ET[n0]#G.nodes[edge[0]]['pos']
-    x1, y1, z1 = gp.ET[n1]#G.nodes[edge[1]]['pos']
+    x0, y0, z0 = gp.ET[n0]
+    x1, y1, z1 = gp.ET[n1]
     edge_x.append(x0)
     edge_x.append(x1)
     edge_x.append(None)
@@ -43,7 +41,7 @@ node_x = []
 node_y = []
 node_z = []
 for node in gp.OC.g.nodes():
-    x, y, z = gp.ET[node]#G.nodes[node]['pos']
+    x, y, z = gp.ET[node]
     node_x.append(x)
     node_y.append(y)
     node_z.append(z)
@@ -84,11 +82,6 @@ fig = go.FigureWidget(data=[edge_trace, node_trace],
                 showlegend=False,
                 hovermode='closest',
                 margin=dict(b=20,l=5,r=5,t=40),
-                #annotations=[ dict(
-                #    text="Python code: <a href='https://plot.ly/ipython-notebooks/network-graphs/'> https://plot.ly/ipython-notebooks/network-graphs/</a>",
-                #    showarrow=False,
-                #    xref="paper", yref="paper",
-                #    x=0.005, y=-0.002 ) ],
                 xaxis=dict(showgrid=False, zeroline=False, showticklabels=False),
                 yaxis=dict(showgrid=False, zeroline=False, showticklabels=False))
                 )

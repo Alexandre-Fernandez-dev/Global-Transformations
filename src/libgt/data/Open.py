@@ -64,11 +64,6 @@ class Open:
             c_projL = []
             c_ev = []
             for i in range(0, len(h.projL)):
-                # print(i)
-                # print(h.projL)
-                # print(self.projL)
-                # print(h.projL[i])
-                # print(self.projL[h.projL[i]])
                 c_projL.append(self.projL[h.projL[i]])
                 comp_e = self.ev[h.projL[i]].compose(h.ev[i])
                 c_ev.append(comp_e)

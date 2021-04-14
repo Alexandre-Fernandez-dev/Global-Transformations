@@ -59,15 +59,6 @@ class Test:
                 elif ret[g.apply(e)] != q[e]:
                     raise Exception("fail amalgamation 2 in 1")
 
-        def amalgamation_quotient(f, p):
-            ret = {}
-            for e in f.dom.nodes():
-                ret[f.apply(e)] = p[e]
-            for e in f.dom.edges:
-                ret[f.apply(e)] = p[e]
-
-            return ret
-
         def phash(p): # TODO WHY NOT NEEDED, REMOVE ?
             r = 1
             # r = 31 * len(p.items())
@@ -82,7 +73,6 @@ class Test:
             'restriction'           : restriction,
             'amalgamation'          : amalgamation,
             'amalgamation_2_in_1'   : amalgamation_2_in_1,
-            'amalgamation_quotient' : amalgamation_quotient
         }
         CO, CM, C = Parametrisation.get(Graph, ParameterGraph)
 
@@ -375,21 +365,6 @@ class Test:
                 elif ret[g.apply(e)] != q[e]:
                     raise Exception("fail amalgamation 2 in 1")
 
-            # for e in g.dom.edges:
-            #     if ret.get(g.apply(e)) == None:
-            #         ret[g.apply(e)] = q[e]
-            #     elif ret[g.apply(e)] != q[e]:
-            #         raise Exception("fail amalgamation 2 in 1")
-
-        def amalgamation_quotient(f, p):
-            ret = {}
-            for e in f.dom.nodes():
-                ret[f.apply(e)] = p[e]
-            # for e in f.dom.edges:
-            #     ret[f.apply(e)] = p[e]
-
-            return ret
-
         def phash(p): # TODO WHY NOT NEEDED, REMOVE ?
             r = 1
             # r = 31 * len(p.items())
@@ -404,7 +379,6 @@ class Test:
             'restriction'           : restriction,
             'amalgamation'          : amalgamation,
             'amalgamation_2_in_1'   : amalgamation_2_in_1,
-            'amalgamation_quotient' : amalgamation_quotient
         }
         CO, CM, C = Parametrisation.get(Graph, ParameterGraph)
 

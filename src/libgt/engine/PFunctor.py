@@ -205,8 +205,6 @@ class FamPFunctor:
             self.rhs = fam_rule.rhs(lp)
         
         def get_rhs(self, underincs):
-            if hasattr(self.rhs, 'eval'):
-                return self.rhs.eval(underincs)
             return self.rhs
 
         def __eq__(self, other):
@@ -231,8 +229,6 @@ class FamPFunctor:
             self.rhs = fam_inc.rhs(g_a.lhs, g_b.lhs, g_a.rhs, g_b.rhs)
 
         def get_rhs(self, over_rhs):
-            if hasattr(self.rhs, 'eval'):
-                return self.rhs.eval(over_rhs)
             return self.rhs
 
         def __eq__(self, other):

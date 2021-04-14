@@ -11,6 +11,7 @@ import src.libgt.data.Graph as GraphModule
 from src.libgt.engine.PFunctor import FlatPFunctor, FamPFunctor
 from src.libgt.engine.GT import GT
 from src.libgt.data.Sheaf import Parametrisation
+from src.libgt.data.Gmap import Premap, PremapO, PremapM
 
 def divide_edges(show = 0):
     OGraphO, OGraphM, OGraph = Open.get(Graph)
@@ -691,12 +692,6 @@ class Test:
                 elif ret[g.apply(e)] != q[e]:
                     raise Exception("fail amalgamation 2 in 1")
 
-        def amalgamation_quotient(f, p):
-            ret = {}
-            for e in f.dom.nodes():
-                ret[f.apply(e)] = p[e]
-            return ret
-
         def phash(p): # TODO WHY NOT NEEDED, REMOVE ?
             r = 1
             return r
@@ -707,7 +702,6 @@ class Test:
             'restriction'           : restriction,
             'amalgamation'          : amalgamation,
             'amalgamation_2_in_1'   : amalgamation_2_in_1,
-            'amalgamation_quotient' : amalgamation_quotient
         }
         CO, CM, C = Parametrisation.get(Graph, ParameterGraph)
         COO, CMO, C_O = Open.get(C)
@@ -843,6 +837,623 @@ class Test:
         gp = CO(g, p)
 
         return T, gp 
+        
+    @staticmethod
+    def rivers():
+
+        def restriction(f, q):
+            ret = {}
+            # print(f)
+            # print("f.dom", f.dom)
+            # print("f.cod", f.cod)
+            # print()
+            # print(q)
+            for n in f.dom.iter_icells(0):
+                ret[n] = q[f.cod.get_icell(0, f.apply(n))]
+            for e in f.dom.iter_icells(1):
+                # print(e)
+                te  = f.dom.get_icell(2, e)
+                tep  = f.dom.get_icell(2, f.dom.alpha(2, e))
+                # print(e, te)
+                # print(e, tep)
+                ret[e, te]   = q[ f.cod.get_icell(1, f.apply(e)),
+                                  f.cod.get_icell(2, f.apply(te)) ]
+                ret[e, tep]  = q[ f.cod.get_icell(1, f.apply(e)),
+                                  f.cod.get_icell(2, f.apply(tep)) ]
+            return ret
+
+        def amalgamation(f, p, g, q):
+            assert f.cod == g.cod
+            ret = {}
+            for n in f.dom.iter_icells(0):
+                # print(p)
+                # print(n)
+                ret[f.cod.get_icell(0, f.apply(n))] = p[n]
+
+            for n in g.dom.iter_icells(0):
+                gn = g.cod.get_icell(0, g.apply(n))
+                if gn not in ret:
+                    ret[gn] = q[n]
+                elif ret[gn] != q[n]:
+                    raise Exception("fail amalgamation")
+            
+            for e in f.dom.iter_icells(1):
+                te  = f.dom.get_icell(2, e)
+                tep  = f.dom.get_icell(2, f.dom.alpha(2, e))
+                ret[ f.cod.get_icell(1, f.apply(e)),
+                     f.cod.get_icell(2, f.apply(te)) ] = p[e, te]
+                ret[ f.cod.get_icell(1, f.apply(e)),
+                     f.cod.get_icell(2, f.apply(tep)) ] = p[e, tep]
+            
+            for e in g.dom.iter_icells(1):
+                te  = g.dom.get_icell(2, e)
+                ke = (g.cod.get_icell(1, g.apply(e)), g.cod.get_icell(2, g.apply(te)))
+                if ke not in ret:
+                    ret[ke] = q[e, te]
+                elif ret[ke] != q[e, te]:
+                    raise Exception("fail amalgamation")
+                tep = g.dom.get_icell(2, g.dom.alpha(2, e))
+                kep = (g.cod.get_icell(1, g.apply(e)), g.cod.get_icell(2, g.apply(tep)))
+                if kep not in ret:
+                    ret[kep] = q[e, tep]
+                elif ret[kep] != q[e, tep]:
+                    raise Exception("fail amalgamation")
+            
+
+            return ret
+
+        def amalgamation_2_in_1(ret, g, q):
+            for n in g.dom.iter_icells(0):
+                gn = g.cod.get_icell(0, g.apply(n))
+                if gn not in ret:
+                    ret[gn] = q[n]
+                elif ret[gn] != q[n]:
+                    raise Exception("fail amalgamation 2 in 1")
+
+            for e in g.dom.iter_icells(1):
+                te  = g.dom.get_icell(2, e)
+                ke = (g.cod.get_icell(1, g.apply(e)), g.cod.get_icell(2, g.apply(te)))
+                if ke not in ret:
+                    ret[ke] = q[e, te]
+                elif ret[ke] != q[e, te]:
+                    raise Exception("fail amalgamation")
+                tep = g.dom.get_icell(2, g.dom.alpha(2, e))
+                kep = (g.cod.get_icell(1, g.apply(e)), g.cod.get_icell(2, g.apply(tep)))
+                if kep not in ret:
+                    ret[kep] = q[e, tep]
+                elif ret[kep] != q[e, tep]:
+                    raise Exception("fail amalgamation")
+
+        def phash(p): # TODO WHY NOT NEEDED, REMOVE ?
+            r = 1
+            return r
+
+        ParNodesGmap = {
+            'name'                  : "ParNodeGmap",
+            'parhash'               : phash,
+            'restriction'           : restriction,
+            'amalgamation'          : amalgamation,
+            'amalgamation_2_in_1'   : amalgamation_2_in_1
+        }
+
+        CO, CM, C = Parametrisation.get(Premap, ParNodesGmap)
+        COO, CMO, C_O = Open.get(C)
+
+        fpf = FamPFunctor.Maker(C, C_O)
+
+        l0 = PremapO(2)
+        l0d0 = l0.add_dart()
+        l0d1 = l0.add_dart()
+        l0.sew(0, l0d0, l0d1)
+        l0d2 = l0.add_dart()
+        l0d3 = l0.add_dart()
+        l0.sew(0, l0d2, l0d3)
+        l0.sew(2, l0d0, l0d2)
+        l0.sew(2, l0d1, l0d3)
+
+        r0 = PremapO(2)
+        r0d0 = r0.add_dart()
+        r0d1 = r0.add_dart()
+        r0d2 = r0.add_dart()
+        r0d3 = r0.add_dart()
+        r0.sew(0, r0d0, r0d1)
+        r0.sew(0, r0d2, r0d3)
+        r0d4 = r0.add_dart()
+        r0d5 = r0.add_dart()
+        r0d6 = r0.add_dart()
+        r0d7 = r0.add_dart()
+        r0.sew(0, r0d4, r0d5)
+        r0.sew(0, r0d6, r0d7)
+        r0.sew(2, r0d0, r0d4)
+        r0.sew(2, r0d1, r0d5)
+        r0.sew(2, r0d2, r0d6)
+        r0.sew(2, r0d3, r0d7)
+
+        def R0(x):
+            # print(x.ET)
+            p1 = {r0d0: x.ET[l0d0],
+                 r0d1: ((x.ET[l1d0][0] + x.ET[l1d1][0])/2, (x.ET[l1d0][1] + x.ET[l1d1][1])/2, (x.ET[l1d0][2] + x.ET[l1d1][2])/2),
+                 r0d2: ((x.ET[l1d0][0] + x.ET[l1d1][0])/2, (x.ET[l1d0][1] + x.ET[l1d1][1])/2, (x.ET[l1d0][2] + x.ET[l1d1][2])/2),
+                 r0d3: x.ET[l0d1],
+                 (r0d0, r0d0) : x.ET[l0d0, l0d0],
+                 (r0d0, r0d4) : x.ET[l0d0, l0d2],
+                 (r0d2, r0d2) : 0,
+                 (r0d2, r0d6) : 0
+                }
+            p2 = {r0d0: x.ET[l0d0],
+                 r0d1: ((x.ET[l1d0][0] + x.ET[l1d1][0])/2, (x.ET[l1d0][1] + x.ET[l1d1][1])/2, (x.ET[l1d0][2] + x.ET[l1d1][2])/2),
+                 r0d2: ((x.ET[l1d0][0] + x.ET[l1d1][0])/2, (x.ET[l1d0][1] + x.ET[l1d1][1])/2, (x.ET[l1d0][2] + x.ET[l1d1][2])/2),
+                 r0d3: x.ET[l0d1],
+                 (r0d0, r0d0) : 0,
+                 (r0d0, r0d4) : 0,
+                 (r0d2, r0d2) : x.ET[l0d0, l0d0],
+                 (r0d2, r0d6) : x.ET[l0d0, l0d2]
+                }
+            r0p1 = CO(r0, p1)
+            r0p2 = CO(r0, p2)
+            return COO([r0p1, r0p2])
+
+        g0 = fpf.add_fam_rule(l0, R0)
+        
+        l00_0 = PremapM(l0, l0, [l0d1, l0d0, l0d3, l0d2])
+        r00_0 = PremapM(r0, r0, [r0d3, r0d2, r0d1, r0d0, r0d7, r0d6, r0d5, r0d4])
+
+        def R00_0(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[1], ro.LO[0], r00_0)
+            gm1 = CM(rs.LO[0], ro.LO[1], r00_0)
+            return CMO(rs, ro, [1, 0], [gm0, gm1])
+        
+        fpf.add_fam_inclusion(g0, g0, l00_0, R00_0)
+        
+        l00_1 = PremapM(l0, l0, [l0d2, l0d3, l0d0, l0d1])
+        r00_1 = PremapM(r0, r0, [r0d4, r0d5, r0d6, r0d7, r0d0, r0d1, r0d2, r0d3])
+
+        def R00_1(lps, lpo, rs, ro): # should not be applied on edges decorated with different colors
+            gm0 = CM(rs.LO[0], ro.LO[0], r00_1)
+            gm1 = CM(rs.LO[1], ro.LO[1], r00_1)
+            return CMO(rs, ro, [0, 1], [gm0, gm1])
+
+        fpf.add_fam_inclusion(g0, g0, l00_1, R00_1)
+        
+        l00_2 = l00_0.compose(l00_1)
+        r00_2 = r00_0.compose(r00_1)
+
+        def R00_2(lps, lpo, rs, ro): #same
+            gm0 = CM(rs.LO[1], ro.LO[0], r00_2)
+            gm1 = CM(rs.LO[0], ro.LO[1], r00_2)
+            return CMO(rs, ro, [1, 0], [gm0, gm1])
+
+        fpf.add_fam_inclusion(g0, g0, l00_2, R00_2)
+
+        l1 = PremapO(2)
+        l1d0 = l1.add_dart()
+        l1d1 = l1.add_dart()
+        l1.sew(0, l1d0, l1d1)
+        l1d2 = l1.add_dart()
+        l1d3 = l1.add_dart()
+        l1.sew(0, l1d2, l1d3)
+        l1.sew(1, l1d1, l1d2)
+        l1d4 = l1.add_dart()
+        l1d5 = l1.add_dart()
+        l1.sew(0, l1d4, l1d5)
+        l1.sew(1, l1d3, l1d4)
+        l1.sew(1, l1d0, l1d5)
+        l1d6 = l1.add_dart()
+        l1d7 = l1.add_dart()
+        l1.sew(0, l1d6, l1d7)
+        l1d8 = l1.add_dart()
+        l1d9 = l1.add_dart()
+        l1.sew(0, l1d8, l1d9)
+        l1d10 = l1.add_dart()
+        l1d11 = l1.add_dart()
+        l1.sew(0, l1d10, l1d11)
+        l1.sew(2, l1d0, l1d6)
+        l1.sew(2, l1d1, l1d7)
+        l1.sew(2, l1d2, l1d8)
+        l1.sew(2, l1d3, l1d9)
+        l1.sew(2, l1d4, l1d10)
+        l1.sew(2, l1d5, l1d11)
+
+        r1 = PremapO(2)
+        r1d0 = r1.add_dart()
+        r1d1 = r1.add_dart()
+        r1.sew(0, r1d0, r1d1)
+        r1d2 = r1.add_dart()
+        r1d3 = r1.add_dart()
+        r1.sew(0, r1d2, r1d3)
+        r1.sew(1, r1d1, r1d2)
+        r1d4 = r1.add_dart()
+        r1d5 = r1.add_dart()
+        r1.sew(0, r1d4, r1d5)
+        r1.sew(1, r1d3, r1d4)
+        r1.sew(1, r1d0, r1d5)
+        r1d6 = r1.add_dart()
+        r1d7 = r1.add_dart()
+        r1.sew(0, r1d6, r1d7)
+        r1d8 = r1.add_dart()
+        r1d9 = r1.add_dart()
+        r1.sew(0, r1d8, r1d9)
+        r1d10 = r1.add_dart()
+        r1d11 = r1.add_dart()
+        r1.sew(0, r1d10, r1d11)
+        r1.sew(2, r1d0, r1d6)
+        r1.sew(2, r1d1, r1d7)
+        r1.sew(2, r1d2, r1d8)
+        r1.sew(2, r1d3, r1d9)
+        r1.sew(2, r1d4, r1d10)
+        r1.sew(2, r1d5, r1d11)
+
+        r1d12 = r1.add_dart()
+        r1d13 = r1.add_dart()
+        r1.sew(0, r1d12, r1d13)
+        r1d14 = r1.add_dart()
+        r1d15 = r1.add_dart()
+        r1.sew(0, r1d14, r1d15)
+        r1.sew(1, r1d13, r1d14)
+        r1d16 = r1.add_dart()
+        r1d17 = r1.add_dart()
+        r1.sew(0, r1d16, r1d17)
+        r1.sew(1, r1d15, r1d16)
+        r1.sew(1, r1d12, r1d17)
+        r1d18 = r1.add_dart()
+        r1d19 = r1.add_dart()
+        r1.sew(0, r1d18, r1d19)
+        r1d20 = r1.add_dart()
+        r1d21 = r1.add_dart()
+        r1.sew(0, r1d20, r1d21)
+        r1d22 = r1.add_dart()
+        r1d23 = r1.add_dart()
+        r1.sew(0, r1d22, r1d23)
+        r1.sew(2, r1d12, r1d18)
+        r1.sew(2, r1d13, r1d19)
+        r1.sew(2, r1d14, r1d20)
+        r1.sew(2, r1d15, r1d21)
+        r1.sew(2, r1d16, r1d22)
+        r1.sew(2, r1d17, r1d23)
+
+        r1d24 = r1.add_dart()
+        r1d25 = r1.add_dart()
+        r1.sew(0, r1d24, r1d25)
+        r1d26 = r1.add_dart()
+        r1d27 = r1.add_dart()
+        r1.sew(0, r1d26, r1d27)
+        r1.sew(1, r1d25, r1d26)
+        r1d28 = r1.add_dart()
+        r1d29 = r1.add_dart()
+        r1.sew(0, r1d28, r1d29)
+        r1.sew(1, r1d27, r1d28)
+        r1.sew(1, r1d24, r1d29)
+        r1d30 = r1.add_dart()
+        r1d31 = r1.add_dart()
+        r1.sew(0, r1d30, r1d31)
+        r1d32 = r1.add_dart()
+        r1d33 = r1.add_dart()
+        r1.sew(0, r1d32, r1d33)
+        r1d34 = r1.add_dart()
+        r1d35 = r1.add_dart()
+        r1.sew(0, r1d34, r1d35)
+        r1.sew(2, r1d24, r1d30)
+        r1.sew(2, r1d25, r1d31)
+        r1.sew(2, r1d26, r1d32)
+        r1.sew(2, r1d27, r1d33)
+        r1.sew(2, r1d28, r1d34)
+        r1.sew(2, r1d29, r1d35)
+
+        r1.sew(1, r1d8, r1d23)
+        r1.sew(1, r1d9, r1d30)
+        r1.sew(1, r1d22, r1d31)
+
+        r1.sew(2, r1d2, r1d8)
+        r1.sew(2, r1d3, r1d9)
+        r1.sew(2, r1d16, r1d22)
+        r1.sew(2, r1d17, r1d23)
+        r1.sew(2, r1d24, r1d30)
+        r1.sew(2, r1d25, r1d31)
+
+        def R1(x):
+            pn = { r1d0 : x.ET[l1d0],
+                   r1d1 : ((x.ET[l1d0][0] + x.ET[l1d1][0])/2, (x.ET[l1d0][1] + x.ET[l1d1][1])/2, (x.ET[l1d0][2] + x.ET[l1d1][2])/2),
+                   r1d13: x.ET[l1d1],
+                   r1d15: ((x.ET[l1d1][0] + x.ET[l1d3][0])/2, (x.ET[l1d1][1] + x.ET[l1d3][1])/2, (x.ET[l1d1][2] + x.ET[l1d3][2])/2),
+                   r1d27: x.ET[l1d3],
+                   r1d3 : ((x.ET[l1d3][0] + x.ET[l1d0][0])/2, (x.ET[l1d3][1] + x.ET[l1d0][1])/2, (x.ET[l1d3][2] + x.ET[l1d0][2])/2)
+                  }
+            d = lambda a, b, c, d, e, f, g, h, i, j, k, l, m, n, o, p, q, r : {
+                (r1d0, r1d0)   : a,
+                (r1d0, r1d6)   : b,
+                (r1d12, r1d12) : c,
+                (r1d12, r1d18) : d,
+                (r1d14, r1d12) : e,
+                (r1d14, r1d20) : f,
+                (r1d26, r1d24) : g,
+                (r1d26, r1d32) : h,
+                (r1d28, r1d24) : i,
+                (r1d28, r1d34) : j,
+                (r1d4, r1d0)   : k,
+                (r1d4, r1d10)  : l,
+                (r1d2, r1d0)   : m,
+                (r1d2, r1d8)   : n,
+                (r1d16, r1d12) : o,
+                (r1d16, r1d8)  : p,
+                (r1d24, r1d24) : q,
+                (r1d24, r1d8)  : r
+                }
+            pc = lambda cb, cd, cf, ch, cj, cl : d(-cb, cb, -cd, cd, -cf, cf, -ch, ch, -cj, cj, -cl, cl, cb + cl, -(cb + cl), cd + cf, -(cd + cf), ch + cj, -(ch + cj))
+            # print(">>>> Results par")
+            R000 = CO(r1, pc(x.ET[l1d0, l1d6], 0, x.ET[l1d2, l1d8], 0, x.ET[l1d4, l1d10], 0))
+            R000.ET.update(pn)
+            # print(R000.ET)
+            R100 = CO(r1, pc(0, x.ET[l1d0, l1d6], x.ET[l1d2, l1d8], 0, x.ET[l1d4, l1d10], 0))
+            R100.ET.update(pn)
+            # print(R100.ET)
+            R010 = CO(r1, pc(x.ET[l1d0, l1d6], 0, 0, x.ET[l1d2, l1d8], x.ET[l1d4, l1d10], 0))
+            R010.ET.update(pn)
+            # print(R010.ET)
+            R110 = CO(r1, pc(0, x.ET[l1d0, l1d6], 0, x.ET[l1d2, l1d8], x.ET[l1d4, l1d10], 0))
+            R110.ET.update(pn)
+            # print(R110.ET)
+            R001 = CO(r1, pc(x.ET[l1d0, l1d6], 0, x.ET[l1d2, l1d8], 0, 0, x.ET[l1d4, l1d10]))
+            R001.ET.update(pn)
+            # print(R001.ET)
+            R101 = CO(r1, pc(0, x.ET[l1d0, l1d6], x.ET[l1d2, l1d8], 0, 0, x.ET[l1d4, l1d10]))
+            R101.ET.update(pn)
+            # print(R101.ET)
+            R011 = CO(r1, pc(x.ET[l1d0, l1d6], 0, 0, x.ET[l1d2, l1d8], 0, x.ET[l1d4, l1d10]))
+            R011.ET.update(pn)
+            # print(R011.ET)
+            R111 = CO(r1, pc(0, x.ET[l1d0, l1d6], 0, x.ET[l1d2, l1d8], 0, x.ET[l1d4, l1d10]))
+            R111.ET.update(pn)
+            # print(R111.ET)
+            # import sys
+            # sys.exit()
+            return COO([R000, R100, R010, R110, R001, R101, R011, R111])
+
+        g1 = fpf.add_fam_rule(l1, R1)
+
+        l11_r0 = PremapM(l1, l1, [ l1d2, l1d3, l1d4, l1d5, l1d0, l1d1, l1d8, l1d9, l1d10, l1d11, l1d6, l1d7 ])
+        r11_r0 = PremapM(r1, r1, [ r1d14, r1d15, r1d16, r1d17, r1d12, r1d13, r1d20, r1d21, r1d22, r1d23, r1d18, r1d19, r1d26, r1d27, r1d28, r1d29, r1d24, r1d25, r1d32, r1d33, r1d34, r1d35, r1d30, r1d31, r1d2, r1d3, r1d4, r1d5, r1d0, r1d1, r1d8, r1d9, r1d10, r1d11, r1d6, r1d7 ])
+
+        def R11_r0(lps, lpo, rs, ro): #sould not be called on a lot of colored triangles
+            gm0 = CM(rs.LO[0], ro.LO[0], r11_r0)
+            gm1 = CM(rs.LO[4], ro.LO[1], r11_r0)
+            gm2 = CM(rs.LO[1], ro.LO[2], r11_r0)
+            gm3 = CM(rs.LO[5], ro.LO[3], r11_r0)
+            gm4 = CM(rs.LO[2], ro.LO[4], r11_r0)
+            gm5 = CM(rs.LO[6], ro.LO[5], r11_r0)
+            gm6 = CM(rs.LO[3], ro.LO[6], r11_r0)
+            gm7 = CM(rs.LO[7], ro.LO[7], r11_r0)
+            return CMO(rs, ro, [0, 4, 1, 5, 2, 6, 3, 7], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g1, g1, l11_r0, R11_r0)
+        
+        l11_r1 = l11_r0.compose(l11_r0)
+        r11_r1 = r11_r0.compose(r11_r0)
+
+        def R11_r1(lps, lpo, rs, ro): #same
+            gm0 = CM(rs.LO[0], ro.LO[0], r11_r0)
+            gm1 = CM(rs.LO[2], ro.LO[1], r11_r0)
+            gm2 = CM(rs.LO[4], ro.LO[2], r11_r0)
+            gm3 = CM(rs.LO[6], ro.LO[3], r11_r0)
+            gm4 = CM(rs.LO[1], ro.LO[4], r11_r0)
+            gm5 = CM(rs.LO[3], ro.LO[5], r11_r0)
+            gm6 = CM(rs.LO[5], ro.LO[6], r11_r0)
+            gm7 = CM(rs.LO[7], ro.LO[7], r11_r0)
+            return CMO(rs, ro, [0, 2, 4, 6, 1, 3, 5, 7], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g1, g1, l11_r1, R11_r1)
+
+
+        l01_0 = PremapM(l0, l1, [l1d0, l1d1, l1d6, l1d7])
+        r01_0 = PremapM(r0, r1, [r1d0, r1d1, r1d12, r1d13, r1d6, r1d7, r1d18, r1d19])
+
+        def R01_0(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[0], ro.LO[0], r01_0)
+            gm1 = CM(rs.LO[1], ro.LO[1], r01_0)
+            gm2 = CM(rs.LO[0], ro.LO[2], r01_0)
+            gm3 = CM(rs.LO[1], ro.LO[3], r01_0)
+            gm4 = CM(rs.LO[0], ro.LO[4], r01_0)
+            gm5 = CM(rs.LO[1], ro.LO[5], r01_0)
+            gm6 = CM(rs.LO[0], ro.LO[6], r01_0)
+            gm7 = CM(rs.LO[1], ro.LO[7], r01_0)
+            return CMO(rs, ro, [0, 1, 0, 1, 0, 1, 0, 1], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_0, R01_0)
+        
+        l01_0f0 = l00_0.compose(l01_0)
+        r01_0f0 = r00_0.compose(r01_0)
+
+        def R01_0f0(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[1], ro.LO[0], r01_0f0)
+            gm1 = CM(rs.LO[0], ro.LO[1], r01_0f0)
+            gm2 = CM(rs.LO[1], ro.LO[2], r01_0f0)
+            gm3 = CM(rs.LO[0], ro.LO[3], r01_0f0)
+            gm4 = CM(rs.LO[1], ro.LO[4], r01_0f0)
+            gm5 = CM(rs.LO[0], ro.LO[5], r01_0f0)
+            gm6 = CM(rs.LO[1], ro.LO[6], r01_0f0)
+            gm7 = CM(rs.LO[0], ro.LO[7], r01_0f0)
+            return CMO(rs, ro, [1, 0, 1, 0, 1, 0, 1, 0], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_0f0, R01_0f0)
+
+        l01_0f1 = l00_1.compose(l01_0)
+        r01_0f1 = r00_1.compose(r01_0)
+
+        def R01_0f1(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[0], ro.LO[0], r01_0f1)
+            gm1 = CM(rs.LO[1], ro.LO[1], r01_0f1)
+            gm2 = CM(rs.LO[0], ro.LO[2], r01_0f1)
+            gm3 = CM(rs.LO[1], ro.LO[3], r01_0f1)
+            gm4 = CM(rs.LO[0], ro.LO[4], r01_0f1)
+            gm5 = CM(rs.LO[1], ro.LO[5], r01_0f1)
+            gm6 = CM(rs.LO[0], ro.LO[6], r01_0f1)
+            gm7 = CM(rs.LO[1], ro.LO[7], r01_0f1)
+            return CMO(rs, ro, [0, 1, 0, 1, 0, 1, 0, 1], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_0f1, R01_0f1)
+        
+        l01_0f2 = l00_2.compose(l01_0)
+        r01_0f2 = r00_2.compose(r01_0)
+
+        def R01_0f2(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[1], ro.LO[0], r01_0f2)
+            gm1 = CM(rs.LO[0], ro.LO[1], r01_0f2)
+            gm2 = CM(rs.LO[1], ro.LO[2], r01_0f2)
+            gm3 = CM(rs.LO[0], ro.LO[3], r01_0f2)
+            gm4 = CM(rs.LO[1], ro.LO[4], r01_0f2)
+            gm5 = CM(rs.LO[0], ro.LO[5], r01_0f2)
+            gm6 = CM(rs.LO[1], ro.LO[6], r01_0f2)
+            gm7 = CM(rs.LO[0], ro.LO[7], r01_0f2)
+            return CMO(rs, ro, [1, 0, 1, 0, 1, 0, 1, 0], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_0f2, R01_0f2)
+
+        l01_1 = PremapM(l0, l1, [l1d2, l1d3, l1d8, l1d9])
+        r01_1 = PremapM(r0, r1, [r1d14, r1d15, r1d26, r1d27, r1d20, r1d21, r1d32, r1d33])
+
+
+        def R01_1(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[0], ro.LO[0], r01_1)
+            gm1 = CM(rs.LO[0], ro.LO[1], r01_1)
+            gm2 = CM(rs.LO[1], ro.LO[2], r01_1)
+            gm3 = CM(rs.LO[1], ro.LO[3], r01_1)
+            gm4 = CM(rs.LO[0], ro.LO[4], r01_1)
+            gm5 = CM(rs.LO[0], ro.LO[5], r01_1)
+            gm6 = CM(rs.LO[1], ro.LO[6], r01_1)
+            gm7 = CM(rs.LO[1], ro.LO[7], r01_1)
+            return CMO(rs, ro, [0, 0, 1, 1, 0, 0, 1, 1], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_1, R01_1)
+
+        l01_1f0 = l00_0.compose(l01_1)
+        r01_1f0 = r00_0.compose(r01_1)
+
+        def R01_1f0(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[1], ro.LO[0], r01_1f0)
+            gm1 = CM(rs.LO[1], ro.LO[1], r01_1f0)
+            gm2 = CM(rs.LO[0], ro.LO[2], r01_1f0)
+            gm3 = CM(rs.LO[0], ro.LO[3], r01_1f0)
+            gm4 = CM(rs.LO[1], ro.LO[4], r01_1f0)
+            gm5 = CM(rs.LO[1], ro.LO[5], r01_1f0)
+            gm6 = CM(rs.LO[0], ro.LO[6], r01_1f0)
+            gm7 = CM(rs.LO[0], ro.LO[7], r01_1f0)
+            return CMO(rs, ro, [1, 1, 0, 0, 1, 1, 0, 0], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_1f0, R01_1f0)
+
+        l01_1f1 = l00_1.compose(l01_1)
+        r01_1f1 = r00_1.compose(r01_1)
+
+        def R01_1f1(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[0], ro.LO[0], r01_1f1)
+            gm1 = CM(rs.LO[0], ro.LO[1], r01_1f1)
+            gm2 = CM(rs.LO[1], ro.LO[2], r01_1f1)
+            gm3 = CM(rs.LO[1], ro.LO[3], r01_1f1)
+            gm4 = CM(rs.LO[0], ro.LO[4], r01_1f1)
+            gm5 = CM(rs.LO[0], ro.LO[5], r01_1f1)
+            gm6 = CM(rs.LO[1], ro.LO[6], r01_1f1)
+            gm7 = CM(rs.LO[1], ro.LO[7], r01_1f1)
+            return CMO(rs, ro, [0, 0, 1, 1, 0, 0, 1, 1], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_1f1, R01_1f1)
+
+        l01_1f2 = l00_2.compose(l01_1)
+        r01_1f2 = r00_2.compose(r01_1)
+
+        def R01_1f2(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[1], ro.LO[0], r01_1f2)
+            gm1 = CM(rs.LO[1], ro.LO[1], r01_1f2)
+            gm2 = CM(rs.LO[0], ro.LO[2], r01_1f2)
+            gm3 = CM(rs.LO[0], ro.LO[3], r01_1f2)
+            gm4 = CM(rs.LO[1], ro.LO[4], r01_1f2)
+            gm5 = CM(rs.LO[1], ro.LO[5], r01_1f2)
+            gm6 = CM(rs.LO[0], ro.LO[6], r01_1f2)
+            gm7 = CM(rs.LO[0], ro.LO[7], r01_1f2)
+            return CMO(rs, ro, [1, 1, 0, 0, 1, 1, 0, 0], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_1f2, R01_1f2)
+
+
+        l01_2 = PremapM(l0, l1, [l1d4, l1d5, l1d10, l1d11])
+        r01_2 = PremapM(r0, r1, [r1d28, r1d29, r1d4, r1d5, r1d34, r1d35, r1d10, r1d11])
+
+        def R01_2(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[0], ro.LO[0], r01_2)
+            gm1 = CM(rs.LO[0], ro.LO[1], r01_2)
+            gm2 = CM(rs.LO[0], ro.LO[2], r01_2)
+            gm3 = CM(rs.LO[0], ro.LO[3], r01_2)
+            gm4 = CM(rs.LO[1], ro.LO[4], r01_2)
+            gm5 = CM(rs.LO[1], ro.LO[5], r01_2)
+            gm6 = CM(rs.LO[1], ro.LO[6], r01_2)
+            gm7 = CM(rs.LO[1], ro.LO[7], r01_2)
+            return CMO(rs, ro, [0, 0, 0, 0, 1, 1, 1, 1], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_2, R01_2)
+        
+        l01_2f0 = l00_0.compose(l01_2)
+        r01_2f0 = r00_0.compose(r01_2)
+
+        def R01_2f0(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[1], ro.LO[0], r01_2f0)
+            gm1 = CM(rs.LO[1], ro.LO[1], r01_2f0)
+            gm2 = CM(rs.LO[1], ro.LO[2], r01_2f0)
+            gm3 = CM(rs.LO[1], ro.LO[3], r01_2f0)
+            gm4 = CM(rs.LO[0], ro.LO[4], r01_2f0)
+            gm5 = CM(rs.LO[0], ro.LO[5], r01_2f0)
+            gm6 = CM(rs.LO[0], ro.LO[6], r01_2f0)
+            gm7 = CM(rs.LO[0], ro.LO[7], r01_2f0)
+            return CMO(rs, ro, [1, 1, 1, 1, 0, 0, 0, 0], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_2f0, R01_2f0)
+
+        l01_2f1 = l00_1.compose(l01_2)
+        r01_2f1 = r00_1.compose(r01_2)
+
+        def R01_2f1(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[0], ro.LO[0], r01_2f1)
+            gm1 = CM(rs.LO[0], ro.LO[1], r01_2f1)
+            gm2 = CM(rs.LO[0], ro.LO[2], r01_2f1)
+            gm3 = CM(rs.LO[0], ro.LO[3], r01_2f1)
+            gm4 = CM(rs.LO[1], ro.LO[4], r01_2f1)
+            gm5 = CM(rs.LO[1], ro.LO[5], r01_2f1)
+            gm6 = CM(rs.LO[1], ro.LO[6], r01_2f1)
+            gm7 = CM(rs.LO[1], ro.LO[7], r01_2f1)
+            return CMO(rs, ro, [0, 0, 0, 0, 1, 1, 1, 1], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_2f1, R01_2f1)
+
+        l01_2f2 = l00_2.compose(l01_2)
+        r01_2f2 = r00_2.compose(r01_2)
+
+        def R01_2f2(lps, lpo, rs, ro):
+            gm0 = CM(rs.LO[1], ro.LO[0], r01_2f2)
+            gm1 = CM(rs.LO[1], ro.LO[1], r01_2f2)
+            gm2 = CM(rs.LO[1], ro.LO[2], r01_2f2)
+            gm3 = CM(rs.LO[1], ro.LO[3], r01_2f2)
+            gm4 = CM(rs.LO[0], ro.LO[4], r01_2f2)
+            gm5 = CM(rs.LO[0], ro.LO[5], r01_2f2)
+            gm6 = CM(rs.LO[0], ro.LO[6], r01_2f2)
+            gm7 = CM(rs.LO[0], ro.LO[7], r01_2f2)
+            return CMO(rs, ro, [1, 1, 1, 1, 0, 0, 0, 0], [gm0, gm1, gm2, gm3, gm4, gm5, gm6, gm7])
+
+        fpf.add_fam_inclusion(g0, g1, l01_2f2, R01_2f2)
+
+        p = {l1d0 : (0.5, 1.73/2, 0.0),
+             l1d1: (1.0, 0.0, 0.0),
+             l1d3: (0.0, 0.0, 0.0),
+             (l1d0, l1d0)   : 1,
+             (l1d0, l1d6)   : -1,
+             (l1d2, l1d0)   : -1,
+             (l1d2, l1d8)   : 1,
+             (l1d4, l1d0)   : 0,
+             (l1d4, l1d10)  : 0
+            }
+        gp = CO(l1, p)
+
+        f = fpf.get()
+
+        T = GT(f)
+
+        return T, gp
 
 if __name__ == "__main__":
     show = 0
