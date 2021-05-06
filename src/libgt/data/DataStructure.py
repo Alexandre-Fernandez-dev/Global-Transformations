@@ -4,31 +4,17 @@ class DataStructure:
 
     Methods
     -------
-    TO()
+    TO() : Type
         returns the type of the objects
 
-    TM()
+    TM() : Type
         returns the type of the inclusions / morphisms
     
-    pattern_match(p, g)
-        returns a Generator to iterate on the inclusions of the pattern p in g
+    pattern_match(p, g) : Iterator[TM()]
+        returns an Iterator over the inclusions of the pattern p in g
     
-    quotient(m1, m2)
-        given two inclusions m1, m2 between the same objects dom and cod
-        compute an object r and a morphism cod--lift--> r such that
-        r is a the quotient of cod along the equivalence relation m1 ~ m2
-            --m1-->
-        dom         cod
-            --m2-->
-        
-        compute the object r and the morphism lift (might not be an inclusion)
-        cod --lift--> r
-        such that lift . m1 = lift . m2
-        
-        and is optimal (ie. is a coequalizer)
-    
-    merge(m1, m2)
-        given two inclusions m1, m2 from the same object as follows:
+    multi_merge(m1, m2) : TO(), TM(), TM()
+        a span is two inclusions m1, m2 from the same object as follows:
         
         m1.dom --m2--> m2.cod
         |
@@ -37,10 +23,10 @@ class DataStructure:
         v
         m1.cod
 
-        compute the object r and the two inclusions m1p, p2p such that
+        the pushout computes the object r and the two inclusions m1p, p2p such that
         the following diagram commutes
 
-        m1.dom --m2--> m2generator.cod
+        m1.dom --m2--> m2.cod
         |              |
         m1            m1p
         |              |
@@ -49,8 +35,13 @@ class DataStructure:
 
         and is optimal (ie. is a pushout)
 
-    merge2_in_1(m1, m2)
-        do the merge operation in place in m1
+        this functions computes the same kind of operation for a list of n such spans,
+            from n source objects to 2 destination objects
+
+        see generalizedPushout in article(ref) for more details
+
+    multi_merge2_in_1(m1, m2)
+        do the multi_merge operation in place into the desination object of the m1's
 
     """
 

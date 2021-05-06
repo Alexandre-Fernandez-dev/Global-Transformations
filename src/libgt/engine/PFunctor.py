@@ -1,8 +1,70 @@
 import networkx as nx
-from .Memory import Instance, PrimeInstanceInc
+from .Memory import Instance, InstanceInc
 
 class FlatPFunctor:
+    """
+    A class to represent the partial functor of the local rules (lhs: C => rhs: D) 
+
+    Classes
+    ----------
+    Rule : Type
+        Type of the rules
+    Inclusion : Type
+        Type of inclusions between rules
+    Maker : Type
+        Class to construct a FlatPFunctor
+
+    Attributes
+    ----------
+    CS : Datastructure
+        Source datastructure
+    CD : Datastructure
+        Destination datastructure
+    smalls : Set[Rule]
+        Set of minimal rules
+    G : networkx.MultiDiGraph[Rule, Inclusion]
+        Graph of rules with rule inclusions
+
+    Methods
+    ----------
+    is_small(ins) : bool
+        Check if an instance corresponds to a minimal rule
+    next_small(X) : Iterator[Callable[[],[Instance]]
+        Iterate over matches of a small rules in X
+    iter_under(ins) : Iterator[CS.TM(), Callable[[],[Instance], Callable[[Instance],[InstanceInc]]
+        Iterate over sub-instances under an instance
+    pmatch_up(ins) : Iterator[CS.TM(), Callable[[],[Instance], Callable[[Instance],[InstanceInc]]
+        Iterate over super-instances over an instance
+    iter_self_inclusions(ins) : Iterator[CS.TM(), Callable[[],[Instance], Callable[[Instance],[InstanceInc]]
+        Iterate over symetric instances of an instance
+    """
+
     class Rule:
+        """
+        Represents a rule
+        
+        lhs => rhs
+
+        Attributes
+        ----------
+        lhs : CS.TO()
+            Left hand side object
+        rhs : CD.TO()
+            Right hand side object
+        cunder : int
+            Count the rules directly under this rule in the graph of rules
+        self_inclusions : List[Inclusion]
+            List of automorphisms of the rule
+
+        Methods
+        ----------
+        get_rhs() : CD.TO()
+            Get the right hand side of the rule
+        
+        iter_self_inclusions() : Generator[Inclusion]
+            Iterate over automorphisms of the rule
+        """
+        
         def __init__(self, lhs, rhs):
             self.lhs = lhs
             self.rhs = rhs
@@ -23,11 +85,34 @@ class FlatPFunctor:
         def __repr__(self):
             return str(self.lhs) + " => " + str(self.rhs)
 
+        #iterate
         def iter_self_inclusions(self):
             for i in self.self_inclusions:
                 yield i
 
     class Inclusion:
+        """
+        Represents an inclusion of rules
+        
+        g_a => g_b
+
+        Attributes
+        ----------
+        g_a : Rule
+            Source rule
+        g_b : Rule
+            Destination rule
+        lhs : CS.TM()
+            Inclusion of g_a.lhs in g_b.lhs
+        rhs : CD.TM()
+            Inclusion of g_a.rhs in g_b.rhs
+
+        Methods
+        ----------
+        get_rhs() : CD.TM()
+            Get the right hand side of the inclusion
+        """
+
         def __init__(self, g_a, g_b, lhs, rhs):
             self.g_a = g_a
             self.g_b = g_b
@@ -49,6 +134,30 @@ class FlatPFunctor:
             return str(self.lhs) + ' => ...' #+ str(self.rhs)
 
     class Maker():
+        """
+        Maker class for a FlatPFunctor
+
+        Attributes
+        ----------
+        CS : Datastructure
+            Source datastructure
+        CD : Datastructure
+            Destination datastructure
+        smalls : Set[Rule]
+            Set of minimal rules
+        G : networkx.MultiDiGraph[Rule, Inclusion]
+            Graph of rules with rule inclusions
+
+        Methods
+        ----------
+        add_rule(l, r) : Rule
+            Insert new rule
+        add_inclusion(g_a, g_b, l, r) : (Rule, Rule, Inclusion)
+            Insert new rule inclusion
+        get() : FlatPFunctor
+            Get the generated FlatPFunctor
+        """
+
         def __init__(self, CS, CD):
             self.CS = CS
             self.CD = CD
@@ -96,14 +205,14 @@ class FlatPFunctor:
         for u_rule, _, u_inc in self.G.in_edges(ins.rule, keys = True):
             u_occ = u_inc.lhs.compose(ins.occ)
             get_u_ins = lambda : Instance(u_rule, u_occ)
-            get_ins_inc = lambda u_ins : PrimeInstanceInc(u_inc, u_ins, ins)
+            get_ins_inc = lambda u_ins : InstanceInc(u_inc, u_ins, ins)
             yield u_occ, get_u_ins, get_ins_inc
     
     def pmatch_up(self, ins):
         for _, o_rule, o_inc in self.G.out_edges(ins.rule, keys = True):
             for o_occ in self.CS.pattern_match(o_inc.lhs, ins.occ):
                 get_o_ins = lambda : Instance(o_rule, o_occ)
-                get_ins_inc = lambda o_ins : PrimeInstanceInc(o_inc, ins, o_ins)
+                get_ins_inc = lambda o_ins : InstanceInc(o_inc, ins, o_ins)
                 yield o_occ, get_o_ins, get_ins_inc
     
     def iter_self_inclusions(self, ins):
@@ -111,11 +220,78 @@ class FlatPFunctor:
         for inc in rule.iter_self_inclusions():
             s_occ = inc.lhs.compose(ins.occ)
             get_s_ins = lambda : Instance(rule, s_occ)
-            get_ins_inc = lambda u_ins : PrimeInstanceInc(inc, u_ins, ins)
+            get_ins_inc = lambda u_ins : InstanceInc(inc, u_ins, ins)
             yield s_occ, get_s_ins, get_ins_inc
 
+# rules : lhs: C => rhs: Par<C,T> -> D
+# here the lhs l is used to match a pattern of shape C in some decorated object X in Par<C,T>
+# then the rhs takes the decoration of the pattern l in X to compute the rhs in D
 class FamPFunctor:
+    """
+    A class to represent the partial functor of the local rules or rule families (lhs : CS.TO().naked => rhs : Callable[CS.TO(), CD.TO()])
+
+    A rule family represents a set of rules such that lhs are all the decorations of the same structure
+
+    Classes
+    ----------
+    FamRule : Type
+        Type of the rules families
+    FamInclusion : Type
+        Type of inclusions between rules rule families
+    Rule : Type
+        Type of a rule in a rule family
+    Inclusion : Type
+        Type of an inclusion between rules
+    Maker : Type
+        Class to construct a FamPFunctor
+
+    Attributes
+    ----------
+    CS : Datastructure
+        Source parametrisation datastructure
+    CD : Datastructure
+        Destination datastructure
+    smalls : Set[Rule]
+        Set of minimal rules families
+    G : networkx.MultiDiGraph[Rule, Inclusion]
+        Graph of rules families with rule families inclusions
+
+    Methods
+    ----------
+    is_small(ins) : bool
+        Check if an instance corresponds to a minimal rule family
+    next_small(X) : Iterator[Callable[[],[Instance]]
+        Iterate over matches of a small rule family in X
+    iter_under(ins) : Iterator[CS.TM(), Callable[[],[Instance], Callable[[Instance],[InstanceInc]]
+        Iterate over sub-instances under an instance
+    pmatch_up(ins) : Iterator[CS.TM(), Callable[[],[Instance], Callable[[Instance],[InstanceInc]]
+        Iterate over super-instances over an instance
+    iter_self_inclusions(ins) : Iterator[CS.TM(), Callable[[],[Instance], Callable[[Instance],[InstanceInc]]
+        Iterate over symetric instances of an instance
+    """
+
     class FamRule:
+        """
+        Represents a rule family
+        
+        lhs : CS.TO().naked => rhs : Callable[CS.TO(), CD.TO()]
+
+        Attributes
+        ----------
+        lhs : CS.TO().naked
+            Left hand side object
+        rhs : Callable[CD.TO(), CD.TO()]
+            Right hand side object
+        cunder : int
+            Count the rule families directly under this rule family in the graph of rules
+        self_inclusions : List[FamInclusion]
+            List of automorphisms of the rule family
+
+        Methods
+        ----------
+        iter_self_inclusions() : Generator[FamInclusion]
+            Iterate over automorphisms of the rule family
+        """
         def __init__(self, lhs, rhs):
             self.lhs = lhs
             self.rhs = rhs
@@ -138,6 +314,23 @@ class FamPFunctor:
                 yield i
 
     class FamInclusion:
+        """
+        Represents an inclusion of rule families
+        
+        g_a => g_b
+
+        Attributes
+        ----------
+        g_a : FamRule
+            Source rule family
+        g_b : FamRule
+            Destination rule family
+        lhs : CS.TM().naked
+            Inclusion of g_a.lhs in g_b.lhs
+        rhs : CD.TM()
+            Inclusion of g_a.rhs in g_b.rhs
+        """
+
         def __init__(self, g_a, g_b, lhs, rhs):
             self.g_a = g_a
             self.g_b = g_b
@@ -155,14 +348,30 @@ class FamPFunctor:
         def __repr__(self):
             return str(self.lhs) + ' => (lambda S T -> ...)'
 
-        def compose(self, other):
-            def rhs(lps, lpo, rs, ro):
-                lpm = lpo.restrict(other.lhs).dom
-                rm = self.g_b.rhs(lpm)
-                return self.rhs(lps, lpm, rs, rm).compose(other.rhs(lpm, lpo, rm, ro))
-            return FamPFunctor.FamInclusion(self.g_a, other.g_b, self.lhs.compose(other.lhs), rhs)
-
     class Maker():
+        """
+        Maker class for a FamPFunctor
+
+        Attributes
+        ----------
+        CS : Datastructure
+            Source datastructure
+        CD : Datastructure
+            Destination datastructure
+        smalls : Set[FamRule]
+            Set of minimal rule families
+        G : networkx.MultiDiGraph[FamRule, FamInclusion]
+            Graph of rule families with rule familie inclusions
+
+        Methods
+        ----------
+        add_rule(l, r) : FamRule
+            Insert new rule family
+        add_inclusion(g_a, g_b, l, r) : (FamRule, FamRule, FamInclusion)
+            Insert new rule family inclusion
+        get() : FamPFunctor
+            Get the generated FamPFunctor
+        """
         def __init__(self, CS, CD):
             self.CS = CS
             self.CD = CD
@@ -195,8 +404,28 @@ class FamPFunctor:
         self.G = G
         self.smalls = smalls
 
-    #TODO rewrite
     class Rule:
+        """
+        Represents a rule
+        
+        lhs : CS.TO() => rhs : CD.TO()
+
+        Attributes
+        ----------
+        fam : List[FamRule]
+            The rule family of this rule
+        lhs : CS.TO()
+            Left hand side (parametrisation) object
+        rhs : CD.TO()
+            Right hand side object
+        cunder : int
+            Count the rules directly under this rule in the graph of rule families
+
+        Methods
+        ----------
+        get_rhs() : CD.TO()
+            Get the right hand side of the rule
+        """
         def __init__(self, fam_rule, lp):
             assert fam_rule.lhs == lp.naked()
             self.fam = fam_rule
@@ -218,8 +447,29 @@ class FamPFunctor:
         def __repr__(self):
             return "r(fam : " + str(self.fam) + ", lhs " + str(self.lhs) + ", rhs " + str(self.rhs) + ")"
 
-    #TODO rewrite
     class Inclusion:
+        """
+        Represents an inclusion of rules
+        
+        g_a => g_b
+
+        Attributes
+        ----------
+        g_a : Rule
+            Source rule
+        g_b : Rule
+            Destination rule
+        lhs : CS.TM()
+            Inclusion of g_a.lhs in g_b.lhs
+        rhs : CD.TM()
+            Inclusion of g_a.rhs in g_b.rhs
+
+        Methods
+        ----------
+        get_rhs() : CD.TM()
+            Get the right hand side of the inclusion
+        """
+
         def __init__(self, fam_inc, g_a, g_b, lhs):
             assert fam_inc.lhs == lhs.naked()
             self.fam = fam_inc
@@ -262,7 +512,7 @@ class FamPFunctor:
                 return Instance(u_rule, u_occ)
             def get_ins_inc(u_ins):
                 u_inc = self.Inclusion(u_inc_fam, u_ins.rule, ins.rule, u_inc_lhs)
-                return PrimeInstanceInc(u_inc, u_ins, ins)
+                return InstanceInc(u_inc, u_ins, ins)
             yield u_occ, get_u_ins, get_ins_inc
 
     def pmatch_up(self, ins):
@@ -274,7 +524,7 @@ class FamPFunctor:
                 def get_ins_inc(o_ins):
                     o_inc_lhs = o_ins.rule.lhs.restrict(o_inc_fam.lhs)
                     o_inc = self.Inclusion(o_inc_fam, ins.rule, o_ins.rule, o_inc_lhs)
-                    return PrimeInstanceInc(o_inc, ins, o_ins)
+                    return InstanceInc(o_inc, ins, o_ins)
                 yield o_occ, get_o_ins, get_ins_inc
     
     def iter_self_inclusions(self, ins):
@@ -286,5 +536,5 @@ class FamPFunctor:
                 return Instance(s_rule, s_occ)
             def get_ins_inc(s_ins):
                 s_inc = self.Inclusion(s_inc_fam, s_ins.rule, ins.rule, s_inc_lhs)
-                return PrimeInstanceInc(s_inc, s_ins, ins)
+                return InstanceInc(s_inc, s_ins, ins)
             yield s_occ, get_s_ins, get_ins_inc
