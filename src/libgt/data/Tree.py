@@ -47,10 +47,9 @@ class TreeNode(TreeO):
         return self.l == other.l and self.r == other.r
 
     def __hash__(self):
-        return hash(self.l) ^ 31 * hash(self.r)
-        # if self.__h is None:
-        #     self.__h = hash(self.l) ^ 31 * hash(self.r)
-        # return self.__h
+        if self.__h is None:
+            self.__h = hash(self.l) ^ 31 * hash(self.r)
+        return self.__h
 
     def __repr__(self):
         return f"TreeNode({repr(self.l)},{repr(self.r)})"
@@ -89,7 +88,7 @@ class TreeM():
     Right = 1
     
     def __init__(self, s, t, p):
-        # assert TreeM.well_defined(p, s, t)
+        assert TreeM.well_defined(p, s, t)
         self.s = s
         self.t = t
         self.p = p
@@ -127,11 +126,17 @@ class TreeM():
 
     @staticmethod
     def merge_along(x, y, p):
-        x = TreeM.follow(x, p)
-        if x is None:
-            return y
+        if len(p) == 0:
+            if x is None:
+                return y
+            else:
+                return x.merge(y)
+        if not isinstance(x, TreeNode):
+            raise Exception("TreeM: merge_along: illegal merge")
+        if p[0] == TreeM.Left:
+            return TreeNode(TreeM.merge_along(x.l, y, p[1:]), x.r)
         else:
-            x.merge(y)
+            return TreeNode(x.l, TreeM.merge_along(x.r, y, p[1:]))
     
     @staticmethod
     def merge_along_in_place(x, y, p):
@@ -147,8 +152,6 @@ class TreeM():
                 x.merge_in_place(TreeNode(y, None) if p[-1] == TreeM.Left else TreeNode(None, y))
             else:
                 raise Exception("TreeM: merge_along_in_place: illegal merge")
-
-
 
 
     @staticmethod
@@ -170,13 +173,13 @@ class TreeM():
         return self.s == other.s and self.t == other.t and self.p == other.p
 
     def __hash__(self):
-        r = hash(self.s) ^ hash(self.t)
+        r = hash(self.s) ^ 31 * hash(self.t)
         for lr in self.p:
-            r ^= 31 * hash(lr)
+            r ^= hash(lr) * 31 * r
         return r
 
     def __repr__(self):
-        return f"TreeM({str(self.s)},{str(self.t)},{str(self.p)})"
+        return f"TreeM({self.s},{self.t},{self.p})"
 
     @property
     def dom(self):
@@ -203,12 +206,12 @@ class Tree(DataStructure):
     @staticmethod
     def pattern_match_object(p, X, s, m):
         if TreeM.well_defined_aux(p, s):
-            yield TreeM(p,X,m.copy())
+            yield TreeM(p, X, m.copy())
         if isinstance(s, TreeNode):
             m.append(TreeM.Left)
-            yield from Tree.pattern_match_object(p, X, s.l, m)
+            yield from Tree.pattern_match_object(p, X, s.l, m.copy())
             m[-1] = TreeM.Right
-            yield from Tree.pattern_match_object(p, X, s.r, m)
+            yield from Tree.pattern_match_object(p, X, s.r, m.copy())
             del m[-1]
 
     @staticmethod
@@ -216,28 +219,35 @@ class Tree(DataStructure):
         if p is None or isinstance(p,TreeO):
             yield from Tree.pattern_match_object(p, X, X, [])
         else:
-            m = X.p[:-len(p.p)]
-            if TreeM.well_defined(m, p.cod, X.cod):
-                yield TreeM(p.cod, X.cod, m)
+            # print(f'pattern match: {p} in {X}')
+            if len(X.p) >= len(p.p):
+                if X.p[len(X.p)-len(p.p):] == p.p:
+                    m = X.p[0:len(X.p)-len(p.p)]
+                    if TreeM.well_defined(m, p.cod, X.cod):
+                        ins = TreeM(p.cod, X.cod, m.copy())
+                        yield ins
 
     @staticmethod
     def multi_merge(m1s, m2s):
         if len(m1s[0].p) < len(m2s[0].p):
             (a,b,c) = Tree.multi_merge(m2s, m1s)
             return (a,c,b)
-        q = m1s[0].p[0:-len(m2s[0].p)]
+        q = m1s[0].p[0:len(m1s[0].p)-len(m2s[0].p)]
         for m1, m2 in zip(m1s, m2s):
             assert(m1.p == q + m2.p)
         t1 = m1s[0].t
         t2 = m2s[0].t
         r = TreeM.merge_along(t1,t2,q)
+        # print(f'multi_merge: {m1s} {m2s}')
+        # print(f'             {q}')
+        # print(f'             {r}')
         return (r, TreeM(t1,r,[]), TreeM(t2,r,q))
 
     @staticmethod
     def multi_merge_2_in_1(m1s, m2s):
         if len(m1s[0].p) < len(m2s[0].p):
             raise Exception("Tree: multi_merge_2_in_1: the required merge cannot be done in place")
-        q = m1s[0].p[0:-len(m2s[0].p)]
+        q = m1s[0].p[0:len(m1s[0].p)-len(m2s[0].p)]
         for m1, m2 in zip(m1s, m2s):
             assert(m1.p == q + m2.p)
         t1 = m1s[0].t
