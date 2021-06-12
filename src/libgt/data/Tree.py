@@ -14,6 +14,9 @@ class TreeLeaf(TreeO):
     def __init__(self):
         pass
 
+    def copy(self):
+        return self
+
     def __eq__(self, other):
         return self is other
 
@@ -40,6 +43,11 @@ class TreeNode(TreeO):
         self.r = r
         self.__h = None
         pass
+    
+    def copy(self):
+        return TreeNode(
+            None if self.l is None else self.l.copy(),
+            None if self.r is None else self.r.copy())
 
     def __eq__(self, other):
         if not isinstance(other,TreeNode):
@@ -59,11 +67,11 @@ class TreeNode(TreeO):
             return
         if isinstance(y, TreeNode):
             if self.l is None:
-                self.l = y.l
+                self.l = None if y.l is None else y.l.copy()
             else:
                 self.l.merge_in_place(y.l)
             if self.r is None:
-                self.r = y.r
+                self.r = None if y.r is None else y.r.copy()
             else:
                 self.r.merge_in_place(y.r)
         else:
@@ -152,19 +160,6 @@ class TreeM():
                 x.merge_in_place(TreeNode(y, None) if p[-1] == TreeM.Left else TreeNode(None, y))
             else:
                 raise Exception("TreeM: merge_along_in_place: illegal merge")
-
-
-    @staticmethod
-    def merge_along_in_place_aux(x, y):
-        if x is None:
-            return y
-        if y is None:
-            return x
-        if x is TreeLeaf() and y is TreeLeaf(): 
-            return TreeLeaf()
-        if isinstance(x, TreeNode) and isinstance(y, TreeNode):
-            TreeNode(TreeM.merge_along_aux(x.l, y.l), TreeM.merge_along_aux(x.r, y.r))
-        assert False
 
 
     def __eq__(self, other):

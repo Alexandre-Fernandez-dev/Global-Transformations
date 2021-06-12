@@ -239,20 +239,15 @@ class Sequence(DataStructure):
         if m1.s != m2.s:
             raise Exception("Not same source")
         assert m2.i <= m1.i
-        if len(m1.t) - m1.i < len(m2.t) - m2.i:
-            for i in range(m1.i - m2.i, len(m1.t)):
-                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    return None
-            for i in range(len(m1.t) - (m1.i - m2.i), len(m2.t)):
-                m1.t.s.append(m2.t.s[i])
-        else:
-            for i in range(m1.i - m2.i, len(m2.t) + (m1.i - m2.i)):
-                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    return None
-            for i in range(len(m2.t) - (m1.i - m2.i), len(m2.t)):
-                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    return None
-        return m1.t, SequenceM(m2.t, m1.t, m1.i - m2.i)
+        d = m1.i - m2.i
+        for i in range(0, len(m2.t)):
+            if i + d >= len(m1.t):
+                for j in range(i, len(m2.t)):
+                    m1.t.s.append(m2.t.s[j])
+                break
+            elif m1.t.s[i + d] != m2.t.s[i]:
+                return None
+        return m1.t, SequenceM(m2.t, m1.t, d)
 
     @staticmethod
     def multi_merge(m1s, m2s):
@@ -266,6 +261,7 @@ class Sequence(DataStructure):
             assert m1s[i+1].i - m1s[i].i == m2s[i+1].i - m2s[i].i
         return Sequence.merge(m1s[0], m2s[0])
 
+    # TODO: simplify with the same algorithm than merge_2_in_1
     @staticmethod
     def merge(m1, m2):
         if m1.s != m2.s:
