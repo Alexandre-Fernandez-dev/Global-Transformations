@@ -1464,4 +1464,7 @@ if __name__ == "__main__":
             show = 2
         else:
             print("Unknown argument :", "'"+sys.argv[1]+"'", "... Try '--show' or '--showall")
-    divide_tri(show)
+    # divide_tri(show)
+    T, gp = Test.rivers()
+    for _ in range(0, 6):
+        gp = T.extend(gp).LO[0]

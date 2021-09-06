@@ -13,7 +13,8 @@
     + For example match every cycles
 - Remove use of identity object in engine (6)
 - Star with no recursion + all matches are in the fifo (7)
+- Compute minimal suture via maximal instances (8)
 
 # Tests
-- Open + Label example with structure of the rhs depends of the labels (8)
-- Conplicated example (ex: montains + rivers), rule "composition" ? (9)
+- Open + Label example with structure of the rhs depends of the labels (9)
+- Conplicated example (ex: montains + rivers), rule "composition" ? (10)
