@@ -1,6 +1,19 @@
 from .Memory import Result
 
 class GT:
+    """
+    The class for a given global transformation
+    
+    Attributes
+    ----------
+    pfunctor: PFunctor
+        the partial functor of local rules
+    
+    Methods
+    ----------
+    extend(X): pfunctor.CD.TO()
+        compute the global transformation of X
+    """
     def __init__(self, pfunctor):
         self.pfunctor = pfunctor
 
@@ -8,12 +21,13 @@ class GT:
         return self.extend(X)
 
     def extend(self, X):
-        matches = {}
-        rhs = True
-        bigresult = None
-        uins_bigresult = {}
-        fifo = []
+        matches = {}            # pfunctor.CS.TO() -> Instance : given a known match morphism get his associated Instance
+        rhs = True              # is the result a rhs or a composite object ?
+        bigresult = None        # the partial / final result of the computation
+        uins_bigresult = {}     # Instance -> pfunctor.CD.TM() : the cocone says how a known instance result is included in bigresult
+        fifo = []               # The fifo of small instances to treat
         
+        # dummy class to represent an identity morphism, only used once in a computation
         class Identity(): # TODO given by datastructure ?
             def __init__(self):
                 pass
@@ -21,12 +35,16 @@ class GT:
             def compose(self, h):
                 return h
 
-        def add_instance(ins):
+        def add_instance(ins):  # add a known instance in matches
             assert ins.occ not in matches
             matches[ins.occ] = ins
             ins.auto = False
-        
-        def close(ins):
+
+        # recursively finds and add in memory all new sub-instances under an instance
+        # when a minimal instance is found, adds it in the fifo of small instances to treat
+        # returns the suture (list of instances) between the big_result with the new rhs
+        # and all inclusions to the new rhs
+        def close(ins): 
             lm = []
             underincs = {}
             for s_occ, get_s_ins, get_ins_inc in self.pfunctor.iter_self_inclusions(ins): # add siblings
@@ -60,6 +78,8 @@ class GT:
             ins.closed = True
             return lm, underincs
         
+        # recursively finds and add in memory all new super-instances over an instance
+        # when a maximal instance is found, calls close on it and then merges his result whith the actual big_result
         def star(ins):
             nonlocal bigresult, uins_bigresult, rhs
             top = True
@@ -77,7 +97,7 @@ class GT:
             if top:
                 if not ins.auto:
                     lm, underincs = close(ins)
-                    underincs[ins] = Identity() # TODO not necessary, added for equiv underincs matches
+                    underincs[ins] = Identity() # TODO not necessary, added for bijection underincs <=> matches
                     if len(lm) > 0:
                         bigresult, acc_uins_big_result = Result.multi_merge_2(lm, underincs, uins_bigresult, self.pfunctor.CD, not rhs)
                         uins_bigresult.update(acc_uins_big_result)
@@ -86,6 +106,7 @@ class GT:
                         bigresult = ins.rule.rhs
                         uins_bigresult = underincs
 
+        # finds a first small match to start the algorithm
         for get_s_ins in self.pfunctor.next_small(X):
             s_ins = get_s_ins()
             add_instance(s_ins)
@@ -100,6 +121,7 @@ class GT:
                 for oi in ins.overins:
                     mem_cl(oi)
 
+        # while there is small instances to treat in the fifo call star on it to continue computation
         while len(fifo) > 0:
             small_ins = fifo.pop()
             star(small_ins)

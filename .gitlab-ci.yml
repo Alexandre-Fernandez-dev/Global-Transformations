@@ -43,3 +43,8 @@ test-open:
   stage: Test
   script:
   - python3 test/open.py
+
+test-tree:
+  stage: Test
+  script:
+  - python3 test/tree.py

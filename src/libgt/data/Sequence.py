@@ -129,7 +129,8 @@ class SequenceM:
         return repr(self.s) + " -> " + repr(self.t) + " : " + str(self.i)
 
 class KMP:
-    def partial(self, pattern):
+    @staticmethod
+    def partial(pattern):
         """ Calculate partial match table: String -> [Int]"""
         ret = [0]
 
@@ -140,13 +141,14 @@ class KMP:
             ret.append(j + 1 if pattern[j] == pattern[i] else j)
         return ret
 
-    def search(self, T, P):
+    @staticmethod
+    def search(T, P):
         """
         KMP search main algorithm: String -> String -> [Int]
         Return all the matching position of pattern string P in T
         """
         if P.partial is None:
-            P.partial = self.partial(P.s)
+            P.partial = KMP.partial(P.s)
         j = 0
 
         for i in range(len(T.s)):
@@ -157,8 +159,6 @@ class KMP:
             if j == len(P.s):
                 yield i - (j - 1)
                 j = P.partial[j - 1]
-
-k = KMP()
 
 class Sequence(DataStructure):
 
@@ -209,7 +209,7 @@ class Sequence(DataStructure):
                 for i in range(0, len(X.s) + 1):
                     yield SequenceM(p, X, i)
             else:
-                for i in k.search(X, p):
+                for i in KMP.search(X, p):
                     yield SequenceM(p, X, i)
         elif isinstance(p, SequenceM):
             # print(type(p))
@@ -239,62 +239,35 @@ class Sequence(DataStructure):
         if m1.s != m2.s:
             raise Exception("Not same source")
         assert m2.i <= m1.i
-        if len(m1.t) - m1.i < len(m2.t) - m2.i:
-            for i in range(m1.i - m2.i, len(m1.t)):
-                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    return None
-            for i in range(len(m1.t) - (m1.i - m2.i), len(m2.t)):
-                m1.t.s.append(m2.t.s[i])
-        else:
-            for i in range(m1.i - m2.i, len(m2.t) + (m1.i - m2.i)):
-                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    return None
-            for i in range(len(m2.t) - (m1.i - m2.i), len(m2.t)):
-                if m1.t.s[i] != m2.t.s[i - (m1.i - m2.i)]:
-                    return None
-        return m1.t, SequenceM(m2.t, m1.t, m1.i - m2.i)
+        d = m1.i - m2.i
+        for i in range(0, len(m2.t)):
+            if i + d >= len(m1.t):
+                for j in range(i, len(m2.t)):
+                    m1.t.s.append(m2.t.s[j])
+                break
+            elif m1.t.s[i + d] != m2.t.s[i]:
+                return None
+        return m1.t, SequenceM(m2.t, m1.t, d)
 
     @staticmethod
     def multi_merge(m1s, m2s):
         assert len(m1s) == len(m2s)
-        # print(m1s)
-        # print(m2s)
-        # very weird multi merge need check gt :
-        # ms1 : [1 [5.0] -> 3 [0, 2.5, 5.0] : 2, 0 [] -> 3 [0, 2.5, 5.0] : 3]
-        # ms2 : [1 [5.0] -> 3 [5.0, 7.5, 10] : 0, 0 [] -> 3 [5.0, 7.5, 10] : 2]
         for i in range(0, len(m1s) - 1):
             assert m1s[i+1].i - m1s[i].i == m2s[i+1].i - m2s[i].i
         return Sequence.merge(m1s[0], m2s[0])
 
     @staticmethod
     def merge(m1, m2):
+        if m1.i < m2.i:
+            (a, b, c) = Sequence.merge(m2, m1)
+            return (a, c, b)
         if m1.s != m2.s:
             raise Exception("Not same source")
-        s = m1.s
-        if m1.i < m2.i:
-            mo1 = m2
-            mo2 = m1
-        else:
-            mo1 = m1
-            mo2 = m2
-        l = []
-        for i in range(0, mo1.i - mo2.i):
-            l.append(mo1.t.s[i])
-        for i in range(mo1.i - mo2.i, mo1.i):
-            if mo1.t.s[i] != mo2.t.s[i - (mo1.i - mo2.i)]:
-                # print('fail1')
+        d = m1.i - m2.i
+        for i in range(0, len(m2.t)):
+            if i + d >= len(m1.t):
+                break
+            elif m1.t.s[i + d] != m2.t.s[i]:
                 return None
-            l.append(mo1.t.s[i])
-        for i in range(mo1.i, mo1.i + len(s)):
-            l.append(mo1.t.s[i])
-        if len(mo1.t) - mo1.i < len(mo2.t) - mo2.i:
-            mo1, mo2 = (mo2, mo1)
-        for i in range(mo1.i + len(s), mo1.i + len(mo2.t) - mo2.i):
-            if mo1.t.s[i] != mo2.t.s[i - (mo1.i - mo2.i)]:
-                # print('fail2')
-                return None
-            l.append(mo1.t.s[i])
-        for i in range(mo1.i + len(mo2.t) - mo2.i, len(mo1.t)):
-            l.append(mo1.t.s[i])
-        res = SequenceO(l)
-        return res, SequenceM(m1.t, res, max(m1.i, m2.i) - m1.i), SequenceM(m2.t, res, max(m1.i, m2.i) - m2.i)
+        r = SequenceO(m1.t.s + m2.t.s[i:])
+        return r, SequenceM(m1.t, r, 0), SequenceM(m2.t, r, d)
