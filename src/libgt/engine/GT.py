@@ -16,6 +16,10 @@ class GT:
     """
     def __init__(self, pfunctor):
         self.pfunctor = pfunctor
+        self.draw_step = None
+        self.draw_merge = None
+        self.collect_comma_arrow = None
+        self.collect_comma_object = None
 
     def __call__(self, X):
         return self.extend(X)
@@ -35,10 +39,12 @@ class GT:
             def compose(self, h):
                 return h
 
-        def add_instance(ins):  # add a known instance in matches
+        def add_instance(ins, auto = False):  # add a known instance in matches
             assert ins.occ not in matches
+            if self.collect_comma_object != None and not auto:
+                self.collect_comma_object(ins)
             matches[ins.occ] = ins
-            ins.auto = False
+            ins.auto = auto
 
         # recursively finds and add in memory all new sub-instances under an instance
         # when a minimal instance is found, adds it in the fifo of small instances to treat
@@ -51,8 +57,7 @@ class GT:
                 assert s_occ not in matches
                 s_ins = get_s_ins()
                 ins_inc = get_ins_inc(s_ins)
-                add_instance(s_ins)
-                s_ins.auto = True
+                add_instance(s_ins, auto=True)
                 s_ins.closed = True
                 s_ins.overins = ins.overins
                 underincs[s_ins] = ins_inc.get_rhs() # TODO not necessary, added for equiv underincs matches
@@ -67,6 +72,8 @@ class GT:
                     add_instance(u_ins)
                     if self.pfunctor.is_small(u_ins):
                         fifo.insert(0, u_ins)
+                if self.collect_comma_arrow != None:
+                    self.collect_comma_arrow(ins_inc, False)
                 underincs[u_ins] = ins_inc.get_rhs()
                 if not u_ins.closed:
                     acclm, accui = close(u_ins)
@@ -83,13 +90,15 @@ class GT:
         def star(ins):
             nonlocal bigresult, uins_bigresult, rhs
             top = True
-            for o_occ, get_o_ins, _ in self.pfunctor.pmatch_up(ins):
+            for o_occ, get_o_ins, get_ins_inc in self.pfunctor.pmatch_up(ins):
                 top = False
                 if o_occ in matches:
                     o_ins = matches[o_occ]
                 else:
                     o_ins = get_o_ins()
                     add_instance(o_ins)
+                if self.collect_comma_arrow != None:
+                    self.collect_comma_arrow(get_ins_inc(o_ins), True)
                 ins.overins.append(o_ins)
                 if not o_ins.stared and not o_ins.auto:
                     star(o_ins)
@@ -99,11 +108,17 @@ class GT:
                     lm, underincs = close(ins)
                     underincs[ins] = Identity() # TODO not necessary, added for bijection underincs <=> matches
                     if len(lm) > 0:
+                        if(self.draw_merge != None):
+                            self.draw_merge(lm, underincs, uins_bigresult)
                         bigresult, acc_uins_big_result = Result.multi_merge_2(lm, underincs, uins_bigresult, self.pfunctor.CD, not rhs)
+                        if(self.draw_step != None):
+                            self.draw_step(bigresult)
                         uins_bigresult.update(acc_uins_big_result)
                         rhs = False
                     elif bigresult is None:
                         bigresult = ins.rule.rhs
+                        if(self.draw_step != None):
+                            self.draw_step(bigresult)
                         uins_bigresult = underincs
 
         # finds a first small match to start the algorithm
