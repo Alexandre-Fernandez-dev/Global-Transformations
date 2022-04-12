@@ -1,9 +1,9 @@
-import os,sys,inspect
+import sys
+from pathlib import Path
 
-#from test.graph import triangular_mesh_refinement
-current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir) 
+current_dir = Path(__file__).parent.absolute()
+parent_dir = current_dir.parent
+sys.path.insert(0, str(parent_dir)) 
 
 import networkx as nx
 import matplotlib.pyplot as plt

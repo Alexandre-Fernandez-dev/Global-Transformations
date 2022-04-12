@@ -1,7 +1,9 @@
-import os,sys,inspect
-current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parent_dir = os.path.dirname(os.path.dirname(current_dir))
-sys.path.insert(0, parent_dir)
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).parent.absolute()
+root_dir = current_dir.parent.parent
+sys.path.insert(0, str(root_dir)) 
 
 import time
 import random
@@ -20,6 +22,7 @@ def iterT(gp, T):
     return gp
 
 T, gp = Test.sierpinsky()
+gp = iterT(gp, T)
 gp = iterT(gp, T)
 gp = iterT(gp, T)
 gp = iterT(gp, T)
@@ -49,7 +52,7 @@ for n0, n1 in gp.OC.g.edges():
 
 edge_trace = go.Scatter3d(
     x=edge_x, y=edge_y, z=edge_z,
-    line= dict(width=1, color='#888'),
+    line= dict(width=2, color='#888'),
     hoverinfo='none',
     mode='lines')
 

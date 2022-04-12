@@ -1,7 +1,9 @@
-import os,sys,inspect
-current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir) 
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).parent.absolute()
+parent_dir = current_dir.parent
+sys.path.insert(0, str(parent_dir)) 
 
 import networkx as nx
 import matplotlib.pyplot as plt
@@ -1464,7 +1466,7 @@ if __name__ == "__main__":
             show = 2
         else:
             print("Unknown argument :", "'"+sys.argv[1]+"'", "... Try '--show' or '--showall")
-    divide_tri(show)
-    # T, gp = Test.rivers()
-    # for _ in range(0, 6):
-    #     gp = T.extend(gp).LO[0]
+    # divide_tri(show)
+    T, gp = Test.rivers()
+    for _ in range(0, 6):
+        gp = T.extend(gp).LO[0]

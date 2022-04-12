@@ -1,7 +1,10 @@
-import os,sys,inspect
-current_dir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parent_dir = os.path.dirname(current_dir)
-sys.path.insert(0, parent_dir) 
+import sys
+from pathlib import Path
+
+current_dir = Path(__file__).parent.absolute()
+parent_dir = current_dir.parent
+sys.path.insert(0, str(parent_dir)) 
+current_dir = str(current_dir)
 
 import numpy as np
 from scipy.spatial import ConvexHull
