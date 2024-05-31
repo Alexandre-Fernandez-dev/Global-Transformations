@@ -19,14 +19,14 @@ Global transformations are formal tools to define synchronous rewriting of vario
 
 For instance, consider this rule system over words <a href="#ref1">[1]</a>:
 <p align="center">
-<img src="img/rule_ls_inv.svg" alt="Rules for words" width="500"/>
+<img src="img/rule_ls.svg" alt="Rules for words" width="500"/>
 <p>
 
 When applied on `a`, gives rise to this stream of words: `a, ab, aba, abaab, ...`
 
 We can apply the same kind of rewriting over other structures such as cellulaur automata <a href="#ref2">[2]</a> or graph <a href="#ref3">[3]</a>. See this example over 3d meshes <a href="#ref3">[3]</a>:
 <p align="center">
-<img src="img/rule_tmr_inv.svg" alt="Rules for meshes" width="300"/>
+<img src="img/rule_tmr.svg" alt="Rules for meshes" width="300"/>
 <p>
 Which gives rise to the following stream of meshes:
 <p align="center">
@@ -48,7 +48,7 @@ It is also possible to non-deterministic choices. The following meshes are outpu
 
 The algorithm implented here is presented in details in <a href="#ref3">[3]</a>. See this animation of its computation of the mesh refinement presented above :
 <p align="center">
-    <img src="img/compute_inv_bg.gif" alt="Computation" width="500"/>
+    <img src="img/compute.gif" alt="Computation" width="500"/>
     <center>Input is below, output is above.</center>
 <p>
 
