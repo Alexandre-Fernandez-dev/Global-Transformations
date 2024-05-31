@@ -48,7 +48,7 @@ It is also possible to non-deterministic choices. The following meshes are outpu
 
 The algorithm implented here is presented in details in <a href="#ref3">[3]</a>. See this animation of its computation of the mesh refinement presented above :
 <p align="center">
-    <img src="img/compute_inv_bg.gif" alt="Computation" width="400"/>
+    <img src="img/compute_inv_bg.gif" alt="Computation" width="500"/>
     <center>Input is below, output is above.</center>
 <p>
 
@@ -78,20 +78,17 @@ Details of configuration can be found `test\plot\README.md`.
 </li>
 
 <li> <span id="ref2"> My thesis (<a href="https://alexandre-fernandez-dev.github.io/thesis.pdf#chapter.3">chapter 3</a>). Also in the following article:
-<br>
-Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Cellular automata and Kan extensions.” 27th IFIP WG 1.5 International Workshop on Cellular Automata and Discrete Complex Systems (AUTOMATA 2021) (pp. 7:1-7:12). Schloss Dagstuhl -Leibniz-Zentrum fr Informatik, 2021.
+<br>Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Cellular automata and Kan extensions.” 27th IFIP WG 1.5 International Workshop on Cellular Automata and Discrete Complex Systems (AUTOMATA 2021) (pp. 7:1-7:12). Schloss Dagstuhl -Leibniz-Zentrum fr Informatik, 2021.
 </span>
 </li>
 
 <li> <span id="ref3"> My thesis (<a href="https://alexandre-fernandez-dev.github.io/thesis.pdf#chapter.4">chapter 4</a>). Also in the following article:
-<br>
-Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Accretive Computation of Global Transformations.” International Conference on Relational and Algebraic Methods in Computer Science (RAMiCS 2021) (pp. 159-175). Springer, Cham, 2021.
+<br>Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Accretive Computation of Global Transformations.” International Conference on Relational and Algebraic Methods in Computer Science (RAMiCS 2021) (pp. 159-175). Springer, Cham, 2021.
 </span>
 </li>
 
 <li> <span id="ref4"> My thesis (<a href="https://alexandre-fernandez-dev.github.io/thesis.pdf#chapter.5">chapter 5</a>). Also in the following article:
-<br>
-Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Non-Determinism in Lindenmayer Systems and Global Transformations.” 47th International Symposium on Mathematical Foundations of Computer Science (MFCS 2022) (pp. 49:1-49:13). Schloss Dagstuhl-Leibniz-Zentrum für Informatik, 2022.
+<br>Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Non-Determinism in Lindenmayer Systems and Global Transformations.” 47th International Symposium on Mathematical Foundations of Computer Science (MFCS 2022) (pp. 49:1-49:13). Schloss Dagstuhl-Leibniz-Zentrum für Informatik, 2022.
 </span>
 </li>
 
