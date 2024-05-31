@@ -73,17 +73,21 @@ Details of configuration can be found `test\plot\README.md`.
 1. <span id="ref1">My thesis ([chapter 2](https://alexandre-fernandez-dev.github.io/thesis.pdf#chapter.2)). Also in the following article:
 <br>Fernandez Alexandre, Maignan, Luidnel, Spicher Antoine. “Lindenmayer systems and global transformations.” International Conference on Unconventional Computation and Natural Computation (UCNC 2019) (pp. 65-78). Springer, Cham, 2019.
 </span>
+
 2. <span id="ref2"> My thesis ([chapter 3](https://alexandre-fernandez-dev.github.io/thesis.pdf#chapter.3)). Also in the following article:
 <br>
 Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Cellular automata and Kan extensions.” 27th IFIP WG 1.5 International Workshop on Cellular Automata and Discrete Complex Systems (AUTOMATA 2021) (pp. 7:1-7:12). Schloss Dagstuhl -Leibniz-Zentrum fr Informatik, 2021.
 </span>
+
 3. <span id="ref3"> My thesis ([chapter 4](https://alexandre-fernandez-dev.github.io/thesis.pdf#chapter.4)). Also in the following article:
 <br>
 Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Accretive Computation of Global Transformations.” International Conference on Relational and Algebraic Methods in Computer Science (RAMiCS 2021) (pp. 159-175). Springer, Cham, 2021.
 </span>
+
 4. <span id="ref4"> My thesis ([chapter 5](https://alexandre-fernandez-dev.github.io/thesis.pdf#chapter.5)). Also in the following article:
 <br>
 Fernandez Alexandre, Luidnel Maignan and Antoine Spicher. “Non-Determinism in Lindenmayer Systems and Global Transformations.” 47th International Symposium on Mathematical Foundations of Computer Science (MFCS 2022) (pp. 49:1-49:13). Schloss Dagstuhl-Leibniz-Zentrum für Informatik, 2022.
 </span>
+
 5. <span id="ref5"> Prusinkiewicz, Przemyslaw, and Mark Hammel. "A fractal model of mountains and rivers." Graphics Interface. Vol. 93. Canadian Information Processing Society, 1993.
 </span>
