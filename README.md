@@ -4,15 +4,16 @@ A library to define and compute synchronous rewriting systems as global transfor
 
 This projects implements the computation algorithm designed in <a href="#ref3">[3]</a>.
 
-It allows to define rewriting systems over the following structures :
-- Graphs defined in `data/Graph`
-- Generalized maps defined in `data/Gmap`
-- Sequences defined in `data/Sequence`
-- Labelized structures with `data/Sheaf`
-- Sets of alternatives with `data/Open`
+It allows to define rewriting systems over the following structures:
+- Graphs defined in `data/Graph`.
+- Generalized maps defined in `data/Gmap`.
+- Sequences and words defined in `data/Sequence`.
+- Trees defined in `data/Tree`.
+- Labelized structures with `data/Sheaf`.
+- Sets of alternatives for non-determinism with `data/Open`.
 
 To install the required modules :
-```pip install -r requirements.txt```
+```pip install -r requirements.txt```.
 
 ## How does it work ?
 Global transformations are formal tools to define synchronous rewriting of various structures. They are based on the mathematical concept of Kan extensions <a href="#ref2">[2]</a>.
@@ -24,7 +25,7 @@ For instance, consider this rule system over words <a href="#ref1">[1]</a>:
 
 When applied on `a`, gives rise to this stream of words: `a, ab, aba, abaab, ...`
 
-We can apply the same kind of rewriting over other structures such as cellulaur automata <a href="#ref2">[2]</a> or graph <a href="#ref3">[3]</a>. See this example over 3d meshes <a href="#ref3">[3]</a>:
+We can apply the same kind of rewriting over other structures such as cellular automata <a href="#ref2">[2]</a> or graph <a href="#ref3">[3]</a>. See this example over 3d meshes <a href="#ref3">[3]</a>:
 <p align="center">
     <img src="img/rule_tmr.svg" alt="Rules for meshes" width="300"/>
 <p>
@@ -53,20 +54,22 @@ The algorithm implented here is presented in details in <a href="#ref3">[3]</a>.
 <div align="center">Input is below, output is above.</div>
 
 ## Running the tests
-The tests in `test` can be run with the following arguments :
-- `--show`    : show each step of computation
-- `--showall` : show also each intermediary step
+The tests in `test` can be run with the following arguments:
+- `--show`: show each step of computation
+- `--showall`: show also each intermediary step
 
 Rewriting systems can be run and plotted for visual output in `test\plot`.
-Python files in 'test\plot' outputs the following computations:
-- graph_tmr: implementation of triangle mesh refinement (TMR) over graphs <a href="#ref1">[1]</a>.
-- gmap_tmr: 3D implementation of TMR over generalized maps.
-- graph_sierpinsky: modification of the TMR over graphs to compute sierpinksy graphs.
-- open_sierpinsky: application of monadic formalism presented in <a href="#ref3">[3]</a> to random subdivision.
-- open_rivers: use of previous features for fractal river generation (<a href="#ref3">[3]</a>, <a href="#ref4">[4]</a>).
+They outputs the following computations:
+- `graph_tmr.py`: implementation of triangle mesh refinement (TMR) over graphs <a href="#ref1">[1]</a>.
+- `gmap_tmr.py`: 3D implementation of TMR over generalized maps.
+- `graph_sierpinsky.py`: modification of the TMR over graphs to compute sierpinksy graphs.
+- `open_sierpinsky.py`: application of monadic formalism presented in <a href="#ref3">[3]</a> to random subdivision.
+- `open_rivers.py`: use of previous features for fractal river generation (<a href="#ref3">[3]</a>, <a href="#ref4">[4]</a>).
 
 All theses plots can be run step-by-step by running `jupyter` in `test\plot\jupyter`.
 Details of configuration can be found `test\plot\README.md`.
+
+Plots for trees need to be designed, but some tests can be run using `test\tree.py`.
 
 ## References:
 
