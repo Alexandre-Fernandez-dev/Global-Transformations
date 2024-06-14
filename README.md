@@ -46,7 +46,7 @@ It is also possible to non-deterministic choices. The following meshes are outpu
     ...
 <p>
 
-The algorithm implented here is presented in details in <a href="#ref3">[3]</a>. See this animation of its computation of the mesh refinement presented above :
+The algorithm implented here is presented in details in <a href="#ref3">[3]</a>. See this animation of its computation of the mesh refinement presented above:
 <p align="center">
     <img src="img/compute.gif" alt="Computation" width="750"/>
 </p>
