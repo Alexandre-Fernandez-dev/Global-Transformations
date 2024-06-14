@@ -48,7 +48,7 @@ It is also possible to non-deterministic choices. The following meshes are outpu
 
 The algorithm implented here is presented in details in <a href="#ref3">[3]</a>. See this animation of its computation of the mesh refinement presented above :
 <p align="center">
-    <img src="img/compute.gif" alt="Computation" width="600"/>
+    <img src="img/compute.gif" alt="Computation" width="700"/>
 </p>
 <div align="center">Input is below, output is above.</div>
 
