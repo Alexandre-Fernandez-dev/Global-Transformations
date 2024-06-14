@@ -19,38 +19,38 @@ Global transformations are formal tools to define synchronous rewriting of vario
 
 For instance, consider this rule system over words <a href="#ref1">[1]</a>:
 <p align="center">
-<img src="img/rule_ls.svg" alt="Rules for words" width="500"/>
+    <img src="img/rule_ls.svg" alt="Rules for words" width="500"/>
 <p>
 
 When applied on `a`, gives rise to this stream of words: `a, ab, aba, abaab, ...`
 
 We can apply the same kind of rewriting over other structures such as cellulaur automata <a href="#ref2">[2]</a> or graph <a href="#ref3">[3]</a>. See this example over 3d meshes <a href="#ref3">[3]</a>:
 <p align="center">
-<img src="img/rule_tmr.svg" alt="Rules for meshes" width="300"/>
+    <img src="img/rule_tmr.svg" alt="Rules for meshes" width="300"/>
 <p>
 Which gives rise to the following stream of meshes:
 <p align="center">
-<img src="img/tmr_1.png" alt="Graph step 0" width="150"/>
-<img src="img/tmr_2.png" alt="Graph step 1" width="150"/>
-<img src="img/tmr_3.png" alt="Graph step 2" width="150"/>
-...
+    <img src="img/tmr_1.png" alt="Graph step 0" width="150"/>
+    <img src="img/tmr_2.png" alt="Graph step 1" width="150"/>
+    <img src="img/tmr_3.png" alt="Graph step 2" width="150"/>
+    ...
 <p>
 
 It is also possible to non-deterministic choices. The following meshes are outputs for a fractal river generation algorithm <a href="#ref5">[5]</a> (rules can be found in <a href="#ref4">[4]</a>):
 <p align="center">
-<img src="img/river_1.png" alt="River step 0" width="150"/>
-<img src="img/river_2.png" alt="River step 1" width="150"/>
-<img src="img/river_3.png" alt="River step 2" width="150"/>
-<img src="img/river_4.png" alt="River step 2" width="150"/>...
-<img src="img/river_5.png" alt="River step 2" width="150"/>
-...
+    <img src="img/river_1.png" alt="River step 0" width="150"/>
+    <img src="img/river_2.png" alt="River step 1" width="150"/>
+    <img src="img/river_3.png" alt="River step 2" width="150"/>
+    <img src="img/river_4.png" alt="River step 2" width="150"/>...
+    <img src="img/river_5.png" alt="River step 2" width="150"/>
+    ...
 <p>
 
 The algorithm implented here is presented in details in <a href="#ref3">[3]</a>. See this animation of its computation of the mesh refinement presented above :
 <p align="center">
     <img src="img/compute.gif" alt="Computation" width="500"/>
-    <center>Input is below, output is above.</center>
-<p>
+</p>
+<div align="center">Input is below, output is above.</div>
 
 ## Running the tests
 The tests in `test` can be run with the following arguments :
